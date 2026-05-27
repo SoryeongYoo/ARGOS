@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argos"
+version = "0.1.0"
+description = "Airline Route & Ground Operations System — AI-powered OCC for Incheon hub"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "duckdb>=1.1.0",
+    "lightgbm>=4.5.0",
+    "ortools>=9.11.0,<9.12.0",
+    "langgraph>=0.2.0",
+    "langchain-anthropic>=0.3.0",
+    "networkx>=3.4.0",
+    "streamlit>=1.40.0",
+    "plotly>=5.24.0",
+    "pandas>=2.2.0",
+    "numpy>=2.0.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.9.0",
+    "typer>=0.13.0",
+    "scipy>=1.14.0",
+    "faker>=24.0.0",
+    "scikit-learn>=1.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[project.scripts]
+argos-generate = "argos.scripts.generate_data:app"
+argos-setup-db = "argos.scripts.setup_db:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

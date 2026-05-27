@@ -1,0 +1,15 @@
+.env
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+*.egg-info/
+data/db/*.duckdb
+data/raw/
+data/processed/
+notebooks/.ipynb_checkpoints/
+.DS_Store
