@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  thead th { text-align: left; font-family: var(--font-sans); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); padding: 8px 10px; border-bottom: 1px solid var(--border-1); }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--border-2); color: var(--fg-1); }
+  tbody tr.delay  { background: #FFF9EC; }
+  tbody tr.cnx    { background: #FDECEC; }
+  .pill-s { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 10.5px/1.4 var(--font-sans); }
+  .pill-s.dep { background: var(--status-ontime-bg);   color: var(--status-ontime); }
+  .pill-s.dly { background: var(--status-delay-bg);    color: #9A6300; }
+  .pill-s.cnx { background: var(--status-critical-bg); color: var(--status-critical); }
+</style>
+</head>
+<body>
+<div class="card">
+  <table>
+    <thead><tr><th>Flight</th><th>Route</th><th>Aircraft</th><th>Dep (KST)</th><th>Delay</th><th>PAX</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>KE001</td><td>ICN–JFK</td><td>HL7762</td><td>14:35</td><td>+00</td><td>287</td><td><span class="pill-s dep">DEP</span></td></tr>
+      <tr><td>KE085</td><td>ICN–LAX</td><td>HL8205</td><td>16:10</td><td>+12</td><td>312</td><td><span class="pill-s dep">DEP</span></td></tr>
+      <tr class="delay"><td>KE703</td><td>ICN–NRT</td><td>HL7411</td><td>09:20</td><td>+45</td><td>168</td><td><span class="pill-s dly">DLY</span></td></tr>
+      <tr class="cnx"><td>KE093</td><td>ICN–PEK</td><td>HL8048</td><td>11:55</td><td>—</td><td>0</td><td><span class="pill-s cnx">CNX</span></td></tr>
+    </tbody>
+  </table>
+  <span class="eyebrow">Departure schedule · mono · row tint encodes severity</span>
+</div>
+</body>
+</html>

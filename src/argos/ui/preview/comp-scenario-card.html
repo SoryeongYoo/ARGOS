@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .scen { background: white; border: 1px solid var(--border-1); border-radius: 12px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-2); }
+  .scen .id { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); }
+  .scen .name { font-size: 15px; font-weight: 700; color: var(--fg-1); }
+  .scen .desc { font-size: 12px; color: var(--fg-2); line-height: 1.4; }
+  .scen .metrics { display: flex; gap: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .scen .metrics b { color: var(--fg-1); font-weight: 600; }
+  .feas { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font: 600 10.5px/1 var(--font-sans); width: max-content; }
+  .feas.h { background: var(--status-ontime-bg);   color: var(--status-ontime); }
+  .feas.m { background: var(--status-delay-bg);    color: #9A6300; }
+  .feas.l { background: var(--status-critical-bg); color: var(--status-critical); }
+  .approve { margin-top: 4px; padding: 8px 12px; border-radius: 999px; background: var(--argos-ink-900); color: white; border: none; font: 600 12px/1 var(--font-sans); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="card tinted">
+  <div class="grid">
+    <div class="scen">
+      <span class="id">[1] · Accept</span>
+      <span class="name">수용</span>
+      <span class="feas h">HIGH</span>
+      <span class="desc">현 스케줄대로 운항. 후속 편 4건에 90 min 지연 전파.</span>
+      <span class="metrics"><span>잔여 <b>4</b>편</span><span><b>360</b> min</span><span>PAX <b>1,210</b></span></span>
+      <button class="approve">시나리오 승인</button>
+    </div>
+    <div class="scen">
+      <span class="id">[2] · Swap</span>
+      <span class="name">기재 교체</span>
+      <span class="feas m">MEDIUM</span>
+      <span class="desc">HL7762 → HL8205 교체. CP-SAT 호환 시간 충돌 없음.</span>
+      <span class="metrics"><span>잔여 <b>1</b>편</span><span><b>120</b> min</span><span>PAX <b>420</b></span></span>
+      <button class="approve">시나리오 승인</button>
+    </div>
+    <div class="scen">
+      <span class="id">[3] · Cancel</span>
+      <span class="name">결항</span>
+      <span class="feas l">LOW</span>
+      <span class="desc">KE085 결항. 후속 회전 분리, 승객 재예약 발생.</span>
+      <span class="metrics"><span>잔여 <b>0</b>편</span><span><b>0</b> min</span><span>PAX <b>287</b></span></span>
+      <button class="approve">시나리오 승인</button>
+    </div>
+  </div>
+  <span class="eyebrow">Recovery scenario card · Accept / Swap / Cancel · human gate required</span>
+</div>
+</body>
+</html>

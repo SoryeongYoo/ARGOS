@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: repeat(4, auto); gap: 12px; align-items: center; justify-content: start; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font: 600 13px/1.2 var(--font-sans); cursor: pointer; border: 1px solid transparent; }
+  .btn.primary   { background: var(--argos-violet-500); color: white; box-shadow: var(--shadow-violet); }
+  .btn.secondary { background: white; color: var(--fg-1); border-color: var(--border-1); box-shadow: var(--shadow-1); }
+  .btn.ghost     { background: transparent; color: var(--fg-accent); }
+  .btn.danger    { background: var(--status-critical); color: white; }
+  .lbl { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <button class="btn primary">Run simulation</button>
+    <button class="btn secondary">Export CSV</button>
+    <button class="btn ghost">Reset filters</button>
+    <button class="btn danger">Cancel flight</button>
+  </div>
+  <div class="grid">
+    <span class="lbl">Primary · violet-500</span>
+    <span class="lbl">Secondary · n-0</span>
+    <span class="lbl">Ghost · violet-600</span>
+    <span class="lbl">Danger · critical</span>
+  </div>
+  <span class="eyebrow">Standard button · rect-corner · 8 px radius · used in dashboard chrome</span>
+</div>
+</body>
+</html>

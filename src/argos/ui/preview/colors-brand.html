@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .swatch.primary { height: 96px; background: var(--argos-violet-500); }
+  .swatch.ink     { height: 96px; background: var(--argos-ink-900); }
+  .swatch .label  { font-weight: 600; }
+  .swatch .tag    { font-family: var(--font-sans); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.78); position: absolute; top: 10px; left: 12px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <div class="swatch primary">
+      <span class="tag">Brand primary</span>
+      <span class="label"><span>Violet&nbsp;500</span><span>#8B5CF6</span></span>
+    </div>
+    <div class="swatch ink">
+      <span class="tag">Action ink</span>
+      <span class="label"><span>Ink&nbsp;900</span><span>#16161D</span></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

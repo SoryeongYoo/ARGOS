@@ -1,0 +1,231 @@
+/* ARGOS Design System — Colors & Type
+ * AI OCC (Operations Control Center) Decision Support System
+ * Incheon hub carrier (Korean Air-modeled) portfolio project
+ */
+
+/* ── Fonts ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Noto Sans";
+  src: url("fonts/NotoSans-VariableFont_wdth_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-stretch: 62.5% 100%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans";
+  src: url("fonts/NotoSans-Italic-VariableFont_wdth_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-stretch: 62.5% 100%;
+  font-style: italic;
+  font-display: swap;
+}
+/* Noto Sans KR — Hangul companion (uploaded by user, self-hosted) */
+@font-face {
+  font-family: "Noto Sans KR";
+  src: url("fonts/NotoSansKR-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+/* JetBrains Mono — for flight IDs, codes, timestamps, data tables */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+:root {
+  /* ── Brand palette ──────────────────────────────────────────────────── */
+  /* Primary: lavender/violet — taken from the OCC user-flow imagery.       */
+  --argos-violet-50:  #F5F1FE;
+  --argos-violet-100: #EDE7F8;   /* lavender field (default surface tint) */
+  --argos-violet-200: #DCCFF5;
+  --argos-violet-300: #C7B8F0;   /* category chip / soft accent */
+  --argos-violet-400: #A78BFA;
+  --argos-violet-500: #8B5CF6;   /* primary brand */
+  --argos-violet-600: #7C3AED;
+  --argos-violet-700: #6D28D9;
+  --argos-violet-800: #5B21B6;
+  --argos-violet-900: #3F1D8C;
+
+  /* Ink: near-black used for CTA pills (echoes the OCC flowchart) */
+  --argos-ink-900:    #16161D;   /* primary action pill */
+  --argos-ink-800:    #22222B;
+  --argos-ink-700:    #2E2E38;
+
+  /* Neutrals */
+  --argos-n-0:        #FFFFFF;
+  --argos-n-25:       #FAFAFC;
+  --argos-n-50:       #F4F4F7;
+  --argos-n-100:      #ECECF1;
+  --argos-n-200:      #E0E0E7;   /* hairline border */
+  --argos-n-300:      #C8C8D2;
+  --argos-n-400:      #9A9AA8;
+  --argos-n-500:      #6E6E7E;   /* fg secondary */
+  --argos-n-600:      #54545F;
+  --argos-n-700:      #3C3C45;
+  --argos-n-800:      #25252C;
+  --argos-n-900:      #16161D;   /* fg primary */
+
+  /* ── Semantic / operational status ──────────────────────────────────── */
+  /* These map directly to flight states in the OCC dashboard:             */
+  /* On-time, delayed, cancelled, diverted, info                           */
+  --status-ontime:        #10B981;  /* green — on schedule, approved */
+  --status-ontime-bg:     #E6F7F1;
+  --status-delay:         #F59E0B;  /* amber — delay <60 min, warning */
+  --status-delay-bg:      #FFF6E5;
+  --status-critical:      #DC2626;  /* red — cancelled, severe delay */
+  --status-critical-bg:   #FDECEC;
+  --status-info:          #2563EB;  /* sky — information, ETD/ETA */
+  --status-info-bg:       #E8F0FE;
+
+  /* Sub-system accents (mirrors the 5 OCC modules) */
+  --module-dashboard:  var(--argos-violet-500);
+  --module-prediction: #6366F1;     /* indigo */
+  --module-sim:        #EC4899;     /* magenta — delay propagation */
+  --module-recovery:   #14B8A6;     /* teal — recovery scenarios */
+  --module-uam:        #F97316;     /* orange — UAM/ACROSS */
+
+  /* ── Foreground / background semantic tokens ───────────────────────── */
+  --fg-1: var(--argos-n-900);
+  --fg-2: var(--argos-n-500);
+  --fg-3: var(--argos-n-400);
+  --fg-inv: var(--argos-n-0);
+  --fg-accent: var(--argos-violet-600);
+
+  --bg-1: var(--argos-n-0);
+  --bg-2: var(--argos-n-25);
+  --bg-3: var(--argos-n-50);
+  --bg-tint: var(--argos-violet-100);
+  --bg-ink: var(--argos-ink-900);
+
+  --border-1: var(--argos-n-200);
+  --border-2: var(--argos-n-100);
+  --border-strong: var(--argos-n-300);
+
+  /* ── Typography ────────────────────────────────────────────────────── */
+  --font-sans: "Noto Sans", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Mono",
+               Menlo, Consolas, monospace;
+
+  /* Type scale — designed for data-dense OCC dashboards.                 */
+  --fs-display: 40px;   /* hero / dashboard module title */
+  --fs-h1:      28px;   /* tab title */
+  --fs-h2:      22px;   /* section header */
+  --fs-h3:      18px;   /* card title */
+  --fs-h4:      15px;   /* sub-header */
+  --fs-body:    14px;   /* default body */
+  --fs-sm:      13px;   /* table / dense rows */
+  --fs-xs:      12px;   /* metadata, captions */
+  --fs-micro:   11px;   /* code labels, kbd hints */
+
+  --lh-tight:   1.15;
+  --lh-snug:    1.3;
+  --lh-normal:  1.5;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+  --tracking-caps:   0.08em;
+
+  /* ── Spacing & radii ───────────────────────────────────────────────── */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;   /* OCC action pills (cf. flowchart buttons) */
+
+  /* ── Elevation ─────────────────────────────────────────────────────── */
+  --shadow-1: 0 1px 2px rgba(22, 22, 29, 0.04),
+              0 0 0 1px rgba(22, 22, 29, 0.04);
+  --shadow-2: 0 2px 6px rgba(22, 22, 29, 0.06),
+              0 0 0 1px rgba(22, 22, 29, 0.05);
+  --shadow-3: 0 8px 24px rgba(22, 22, 29, 0.08),
+              0 1px 2px rgba(22, 22, 29, 0.04);
+  --shadow-pill: 0 4px 12px rgba(22, 22, 29, 0.16);
+  --shadow-violet: 0 6px 20px rgba(124, 58, 237, 0.22);
+
+  /* Focus ring — operational tools need very obvious focus */
+  --focus-ring: 0 0 0 3px rgba(139, 92, 246, 0.35);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --dur-instant: 80ms;
+  --dur-fast:    140ms;
+  --dur-base:    200ms;
+  --dur-slow:    320ms;
+}
+
+/* ── Semantic element defaults ────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--fg-1);
+  background: var(--bg-1);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1 {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+h3 {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  margin: 0;
+}
+h4 {
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-semi);
+  line-height: var(--lh-snug);
+  margin: 0;
+}
+p  { font-size: var(--fs-body); line-height: var(--lh-normal); margin: 0; }
+small, .caption {
+  font-size: var(--fs-xs);
+  color: var(--fg-2);
+}
+
+code, kbd, .mono, .tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.eyebrow {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--fg-2);
+}

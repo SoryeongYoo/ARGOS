@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .row-s { display: flex; align-items: flex-end; gap: 10px; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .step .bar { background: var(--argos-violet-200); border: 1px solid var(--argos-violet-400); border-radius: 4px; width: 36px; }
+  .step .num { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+  .step .tok { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row-s">
+    <div class="step"><div class="bar" style="height: 4px;"></div><span class="num">4</span><span class="tok">space-1</span></div>
+    <div class="step"><div class="bar" style="height: 8px;"></div><span class="num">8</span><span class="tok">space-2</span></div>
+    <div class="step"><div class="bar" style="height: 12px;"></div><span class="num">12</span><span class="tok">space-3</span></div>
+    <div class="step"><div class="bar" style="height: 16px;"></div><span class="num">16</span><span class="tok">space-4</span></div>
+    <div class="step"><div class="bar" style="height: 20px;"></div><span class="num">20</span><span class="tok">space-5</span></div>
+    <div class="step"><div class="bar" style="height: 24px;"></div><span class="num">24</span><span class="tok">space-6</span></div>
+    <div class="step"><div class="bar" style="height: 32px;"></div><span class="num">32</span><span class="tok">space-8</span></div>
+    <div class="step"><div class="bar" style="height: 40px;"></div><span class="num">40</span><span class="tok">space-10</span></div>
+    <div class="step"><div class="bar" style="height: 48px;"></div><span class="num">48</span><span class="tok">space-12</span></div>
+    <div class="step"><div class="bar" style="height: 64px;"></div><span class="num">64</span><span class="tok">space-16</span></div>
+  </div>
+  <span class="eyebrow">Spacing scale · 4-px base · linear up to 24, jumps after</span>
+</div>
+</body>
+</html>

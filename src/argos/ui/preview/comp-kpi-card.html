@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+  .kpi { background: white; border: 1px solid var(--border-1); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow-1); }
+  .kpi .label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); }
+  .kpi .value { font-family: var(--font-mono); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; line-height: 1; color: var(--fg-1); font-variant-numeric: tabular-nums; }
+  .kpi .meta  { font-family: var(--font-mono); font-size: 11px; display: flex; align-items: center; gap: 4px; }
+  .meta.up    { color: var(--status-critical); }
+  .meta.down  { color: var(--status-ontime); }
+  .meta.flat  { color: var(--fg-3); }
+</style>
+</head>
+<body>
+<div class="card tinted">
+  <div class="grid">
+    <div class="kpi">
+      <span class="label">Total flights</span>
+      <span class="value">412</span>
+      <span class="meta flat">대비 7일 평균 408</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Delayed &gt; 15 m</span>
+      <span class="value">37</span>
+      <span class="meta up">▲ 8.9%</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Cancelled</span>
+      <span class="value">2</span>
+      <span class="meta up">▲ 1</span>
+    </div>
+    <div class="kpi">
+      <span class="label">PAX today</span>
+      <span class="value">94,820</span>
+      <span class="meta down">▼ 1.2%</span>
+    </div>
+  </div>
+  <span class="eyebrow">KPI card · monospace numerals · UPPERCASE label · 7-day delta</span>
+</div>
+</body>
+</html>

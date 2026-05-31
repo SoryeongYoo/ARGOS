@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--fg-2); }
+  .input { padding: 10px 12px; border: 1.5px solid var(--border-1); border-radius: 8px; font: 14px var(--font-sans); color: var(--fg-1); background: white; transition: border-color 140ms; }
+  .input:focus { outline: none; border-color: var(--argos-violet-500); box-shadow: var(--focus-ring); }
+  .input.focused { border-color: var(--argos-violet-500); box-shadow: var(--focus-ring); }
+  .input.error  { border-color: var(--status-critical); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .helper { font-size: 11.5px; color: var(--fg-3); }
+  .err { font-size: 11.5px; color: var(--status-critical); }
+  .slider-track { height: 4px; background: var(--argos-n-200); border-radius: 999px; position: relative; margin-top: 16px; }
+  .slider-fill  { position: absolute; left: 0; top: 0; height: 100%; width: 45%; background: var(--argos-violet-500); border-radius: 999px; }
+  .slider-thumb { position: absolute; left: 45%; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: white; border: 2px solid var(--argos-violet-500); transform: translate(-50%, -50%); box-shadow: var(--shadow-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row">
+    <div class="field">
+      <label>Operating date</label>
+      <input class="input" value="2024-06-15" />
+      <span class="helper">UTC. 데이터셋 범위: 2022–2024</span>
+    </div>
+    <div class="field">
+      <label>Trigger flight</label>
+      <input class="input focused" value="KE001  ICN-JFK  (14:35 KST)" />
+      <span class="helper">기재 회전이 있는 편만 표시</span>
+    </div>
+  </div>
+  <div class="field">
+    <label>Departure delay  ·  90 min</label>
+    <div class="slider-track"><div class="slider-fill"></div><div class="slider-thumb"></div></div>
+  </div>
+  <span class="eyebrow">Form fields · text · focused · slider · sidebar default</span>
+</div>
+</body>
+</html>

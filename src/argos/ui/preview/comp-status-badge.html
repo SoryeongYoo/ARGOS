@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font: 600 11.5px/1 var(--font-sans); }
+  .badge.ontime   { background: var(--status-ontime-bg);   color: var(--status-ontime); }
+  .badge.delay    { background: var(--status-delay-bg);    color: #9A6300; }
+  .badge.critical { background: var(--status-critical-bg); color: var(--status-critical); }
+  .badge.info     { background: var(--status-info-bg);     color: var(--status-info); }
+  .badge.neutral  { background: var(--bg-3); color: var(--fg-2); border: 1px solid var(--border-1); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .lbl { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row">
+    <span class="badge ontime"><span class="dot" style="background: var(--status-ontime);"></span>DEP · 정시</span>
+    <span class="badge delay"><span class="dot" style="background: var(--status-delay);"></span>DLY · +45 min</span>
+    <span class="badge critical"><span class="dot" style="background: var(--status-critical);"></span>CNX · 결항</span>
+    <span class="badge info"><span class="dot" style="background: var(--status-info);"></span>ETD 14:35 KST</span>
+    <span class="badge neutral">스케줄</span>
+  </div>
+  <div class="row">
+    <span class="badge ontime">Feasibility HIGH</span>
+    <span class="badge delay">Feasibility MEDIUM</span>
+    <span class="badge critical">Feasibility LOW</span>
+  </div>
+  <span class="eyebrow">Status badge · semantic background-bg + foreground-token</span>
+</div>
+</body>
+</html>

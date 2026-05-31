@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .row-r { display: flex; gap: 18px; align-items: flex-end; }
+  .rdemo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .rdemo .box { width: 72px; height: 72px; background: var(--argos-violet-100); border: 1.5px solid var(--argos-violet-400); }
+  .rdemo .num { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+  .rdemo .tok { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row-r">
+    <div class="rdemo"><div class="box" style="border-radius: 4px;"></div><span class="num">4</span><span class="tok">radius-xs</span></div>
+    <div class="rdemo"><div class="box" style="border-radius: 6px;"></div><span class="num">6</span><span class="tok">radius-sm</span></div>
+    <div class="rdemo"><div class="box" style="border-radius: 8px;"></div><span class="num">8</span><span class="tok">radius-md</span></div>
+    <div class="rdemo"><div class="box" style="border-radius: 12px;"></div><span class="num">12</span><span class="tok">radius-lg</span></div>
+    <div class="rdemo"><div class="box" style="border-radius: 16px;"></div><span class="num">16</span><span class="tok">radius-xl</span></div>
+    <div class="rdemo"><div class="box" style="border-radius: 999px;"></div><span class="num">∞</span><span class="tok">radius-pill</span></div>
+  </div>
+  <span class="eyebrow">Corner radii · pill reserved for OCC action chips</span>
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64">
+  <defs>
+    
+  </defs>
+  
+  <rect class="mark-bg" x="0" y="8" width="48" height="48" rx="12"></rect>
+  
+  <path class="mark-plane" d="M12 33 L37 19 L31 36 L25 31 L20 38 L21 32 Z"></path>
+  
+  <text class="wordmark" x="60" y="36">ARGOS</text>
+  <text class="tag" x="60" y="52">OCC DECISION SUPPORT</text>
+</svg>

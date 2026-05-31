@@ -16,7 +16,12 @@
       "PowerShell(tail *)",
       "PowerShell(venv\\\\Scripts\\\\pytest.exe tests/ -q --tb=short 2>&1 | Select-Object -Last 20)",
       "PowerShell(Get-Process *)",
-      "Bash(Get-ChildItem C:workspaceARGOSsrcargos *)"
+      "Bash(Get-ChildItem C:workspaceARGOSsrcargos *)",
+      "PowerShell(cd C:\\\\workspace\\\\ARGOS; $env:PYTHONPATH = \"src\"; Start-Process -NoNewWindow -FilePath \"python\" -ArgumentList \"-m streamlit run src/argos/ui/dashboard.py --server.headless true --server.port 8501\" -RedirectStandardOutput \"streamlit_out.log\" -RedirectStandardError \"streamlit_err.log\" -PassThru | Select-Object -ExpandProperty Id)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8501/_stcore/health\" -UseBasicParsing | Select-Object StatusCode, Content)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:8501\" -UseBasicParsing; $r.StatusCode; \\($r.Content | Select-String -Pattern \"ARGOS|OCC|streamlit\"\\).Matches | Select-Object -First 5 Value)",
+      "PowerShell(Start-Process \"http://localhost:8501\")",
+      "PowerShell(Start-Sleep -Seconds 6; Invoke-WebRequest -Uri \"http://localhost:8501/_stcore/health\" -UseBasicParsing | Select-Object StatusCode, Content; Get-Content C:\\\\workspace\\\\ARGOS\\\\streamlit_err.log)"
     ]
   }
 }

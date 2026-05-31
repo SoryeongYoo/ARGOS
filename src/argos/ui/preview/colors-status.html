@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .pair { display: flex; flex-direction: column; gap: 6px; }
+  .pair .fill { height: 56px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; }
+  .pair .tag  { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <div class="pair">
+      <div class="fill" style="background: var(--status-ontime); color: white;">On time</div>
+      <div class="tag"><span>--status-ontime</span><span>#10B981</span></div>
+    </div>
+    <div class="pair">
+      <div class="fill" style="background: var(--status-delay); color: #4a3308;">Delay</div>
+      <div class="tag"><span>--status-delay</span><span>#F59E0B</span></div>
+    </div>
+    <div class="pair">
+      <div class="fill" style="background: var(--status-critical); color: white;">Critical</div>
+      <div class="tag"><span>--status-critical</span><span>#DC2626</span></div>
+    </div>
+    <div class="pair">
+      <div class="fill" style="background: var(--status-info); color: white;">Info</div>
+      <div class="tag"><span>--status-info</span><span>#2563EB</span></div>
+    </div>
+  </div>
+  <span class="eyebrow">Operational status · flight state semantics</span>
+</div>
+</body>
+</html>

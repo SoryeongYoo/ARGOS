@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .row { display: flex; align-items: center; gap: 14px; }
+  .voice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ex { padding: 12px 14px; border-radius: 10px; background: var(--bg-3); border: 1px solid var(--border-1); }
+  .ex .label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); margin-bottom: 6px; }
+  .ex .quote { font-size: 13px; line-height: 1.45; color: var(--fg-1); }
+  .ex.bad { background: #FDECEC; border-color: #F3C4C4; }
+  .ex.bad .label { color: var(--status-critical); }
+  .ex.good { background: #E6F7F1; border-color: #B5E0CF; }
+  .ex.good .label { color: var(--status-ontime); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="voice">
+    <div class="ex good">
+      <div class="label">House voice</div>
+      <div class="quote">회복 조치는 반드시 인간의 명시적 승인 후에만 실행됩니다.</div>
+    </div>
+    <div class="ex bad">
+      <div class="label">Off-brand</div>
+      <div class="quote">Don't worry! We'll make sure your flights are taken care of ✈️</div>
+    </div>
+    <div class="ex good">
+      <div class="label">House voice</div>
+      <div class="quote">KE085 · ICN–LAX · delay +45 min · 후속 4편 영향 (PAX 1,210)</div>
+    </div>
+    <div class="ex bad">
+      <div class="label">Off-brand</div>
+      <div class="quote">Looks like KE085 is running a little late 😅</div>
+    </div>
+  </div>
+  <span class="eyebrow">Tone · procedural · bilingual · no emoji · safety-first qualifier</span>
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .mod { display: flex; flex-direction: column; gap: 6px; }
+  .dot { height: 56px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; padding: 10px; color: white; }
+  .dot .num { font-family: var(--font-mono); font-size: 11px; opacity: 0.8; }
+  .dot .nm  { font-weight: 600; font-size: 13px; }
+  .tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <div class="mod"><div class="dot" style="background: var(--module-dashboard);"><span class="num">01</span><span class="nm">대시보드</span></div><span class="tag">dashboard</span></div>
+    <div class="mod"><div class="dot" style="background: var(--module-prediction);"><span class="num">02</span><span class="nm">지연 예측</span></div><span class="tag">prediction</span></div>
+    <div class="mod"><div class="dot" style="background: var(--module-sim);"><span class="num">03</span><span class="nm">전파 시뮬</span></div><span class="tag">simulation</span></div>
+    <div class="mod"><div class="dot" style="background: var(--module-recovery);"><span class="num">04</span><span class="nm">회복 시나리오</span></div><span class="tag">recovery</span></div>
+    <div class="mod"><div class="dot" style="background: var(--module-uam);"><span class="num">05</span><span class="nm">UAM / ACROSS</span></div><span class="tag">uam</span></div>
+  </div>
+  <span class="eyebrow">Module accents · five OCC workflow stages</span>
+</div>
+</body>
+</html>

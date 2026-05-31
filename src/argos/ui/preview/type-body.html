@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .specimen { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border-2); }
+  .specimen:last-child { border-bottom: none; }
+  .specimen .glyph { flex: 1; color: var(--fg-1); }
+  .specimen .meta  { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); white-space: nowrap; }
+  .eyebrow-demo { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="specimen">
+    <div class="glyph" style="font-size: 15px; font-weight: 600;">Trigger flight · 항공편 선택</div>
+    <div class="meta">H4 · 15 / 600</div>
+  </div>
+  <div class="specimen">
+    <div class="glyph" style="font-size: 14px;">기재 회전 DAG에서 후속 편으로 지연이 전파됩니다. Recovery scenarios are auto-generated.</div>
+    <div class="meta">Body · 14 / 400</div>
+  </div>
+  <div class="specimen">
+    <div class="glyph" style="font-size: 13px; color: var(--fg-2);">KE001 · ICN → JFK · 14:35 KST · pax 287 · status DEP</div>
+    <div class="meta">Small · 13 / 400</div>
+  </div>
+  <div class="specimen">
+    <div class="glyph" style="font-size: 12px; color: var(--fg-2);">Last updated 2024-06-15 03:42 UTC · DB 161,868 flights</div>
+    <div class="meta">Caption · 12 / 400</div>
+  </div>
+  <div class="specimen">
+    <div class="glyph eyebrow-demo">Recovery scenario · feasibility high</div>
+    <div class="meta">Eyebrow · 11 / 600 · UC · +8%</div>
+  </div>
+</div>
+</body>
+</html>

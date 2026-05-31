@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .demo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px; }
+  .demo .box { width: 100%; height: 60px; background: var(--bg-1); border-radius: var(--radius-md); }
+  .demo .tok { font-family: var(--font-mono); font-size: 10px; color: var(--fg-2); }
+  .demo .nm  { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--fg-1); }
+</style>
+</head>
+<body>
+<div class="card tinted">
+  <div class="grid">
+    <div class="demo"><div class="box" style="box-shadow: var(--shadow-1);"></div><span class="nm">shadow-1</span><span class="tok">resting card</span></div>
+    <div class="demo"><div class="box" style="box-shadow: var(--shadow-2);"></div><span class="nm">shadow-2</span><span class="tok">raised</span></div>
+    <div class="demo"><div class="box" style="box-shadow: var(--shadow-3);"></div><span class="nm">shadow-3</span><span class="tok">modal / scenario</span></div>
+    <div class="demo"><div class="box" style="box-shadow: var(--shadow-pill); border-radius: 999px;"></div><span class="nm">shadow-pill</span><span class="tok">action pill</span></div>
+    <div class="demo"><div class="box" style="box-shadow: var(--shadow-violet); background: var(--argos-violet-500);"></div><span class="nm">shadow-violet</span><span class="tok">primary CTA</span></div>
+  </div>
+  <span class="eyebrow">Elevation · 5 shadow tokens · brand-tinted only for primary CTA</span>
+</div>
+</body>
+</html>

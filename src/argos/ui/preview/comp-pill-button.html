@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+  .col2 { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: none; font: 600 13px/1 var(--font-sans); cursor: pointer; transition: all 140ms cubic-bezier(0.2,0,0,1); white-space: nowrap; }
+  .pill.primary { background: var(--argos-ink-900); color: white; box-shadow: var(--shadow-pill); }
+  .pill.hover   { background: var(--argos-ink-700); color: white; box-shadow: var(--shadow-pill); }
+  .pill.disabled { background: var(--argos-n-200); color: var(--argos-n-400); cursor: not-allowed; box-shadow: none; }
+  .lbl { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-2); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <div class="col2">
+      <button class="pill primary">시뮬레이션 실행 →</button>
+      <span class="lbl">Default</span>
+    </div>
+    <div class="col2">
+      <button class="pill hover">시뮬레이션 실행 →</button>
+      <span class="lbl">Hover · ink-700</span>
+    </div>
+    <div class="col2">
+      <button class="pill disabled">시뮬레이션 실행 →</button>
+      <span class="lbl">Disabled</span>
+    </div>
+  </div>
+  <div style="border-top: 1px solid var(--border-2); padding-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <button class="pill primary" style="padding: 8px 14px; font-size: 12px;">날짜 선택</button>
+    <button class="pill primary" style="padding: 8px 14px; font-size: 12px;">항공편 선택</button>
+    <button class="pill primary" style="padding: 8px 14px; font-size: 12px;">승인</button>
+    <button class="pill primary" style="padding: 8px 14px; font-size: 12px;">거부 / 중단</button>
+    <button class="pill primary" style="padding: 8px 14px; font-size: 12px;">ACROSS 제출</button>
+  </div>
+  <span class="eyebrow">Action pill · the OCC flowchart vocabulary — verb + noun, ≤ 8 자</span>
+</div>
+</body>
+</html>

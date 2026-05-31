@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="_card.css" />
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .kpi { background: var(--bg-3); border: 1px solid var(--border-1); border-radius: var(--radius-lg); padding: 14px 16px; }
+  .kpi .label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); }
+  .kpi .value { font-family: var(--font-mono); font-weight: 700; font-size: 32px; letter-spacing: -0.02em; color: var(--fg-1); margin-top: 6px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .kpi .delta { font-family: var(--font-mono); font-size: 12px; margin-top: 4px; }
+  .delta.up   { color: var(--status-critical); }
+  .delta.ok   { color: var(--status-ontime); }
+  .row-table { font-family: var(--font-mono); font-size: 13px; color: var(--fg-1); display: grid; grid-template-columns: 80px 90px 80px 60px 50px; gap: 12px; padding: 4px 0; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid">
+    <div class="kpi"><div class="label">Total flights</div><div class="value">412</div><div class="delta ok">on schedule</div></div>
+    <div class="kpi"><div class="label">Delayed</div><div class="value">37</div><div class="delta up">+8.9%</div></div>
+    <div class="kpi"><div class="label">PAX impacted</div><div class="value">12,480</div><div class="delta up">+1,210</div></div>
+  </div>
+  <div>
+    <div class="row-table" style="color: var(--fg-2); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;">
+      <span>Flight</span><span>Route</span><span>Dep(KST)</span><span>Delay</span><span>Status</span>
+    </div>
+    <div class="row-table"><span>KE001</span><span>ICN-JFK</span><span>14:35</span><span>+00</span><span style="color: var(--status-ontime);">DEP</span></div>
+    <div class="row-table"><span>KE085</span><span>ICN-LAX</span><span>16:10</span><span>+45</span><span style="color: var(--status-delay);">DLY</span></div>
+    <div class="row-table"><span>KE703</span><span>ICN-NRT</span><span>09:20</span><span>—</span><span style="color: var(--status-critical);">CNX</span></div>
+  </div>
+</div>
+</body>
+</html>

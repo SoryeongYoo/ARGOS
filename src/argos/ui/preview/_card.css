@@ -1,0 +1,63 @@
+/* Shared styles for design-system preview cards.
+ * Cards render at ~700px wide; keep bodies compact (≤ ~380px tall). */
+@import url("../colors_and_type.css");
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-1);
+  font-family: var(--font-sans);
+  color: var(--fg-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card {
+  width: 700px;
+  box-sizing: border-box;
+  padding: 22px 26px;
+  background: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card.compact { padding: 18px 22px; gap: 10px; }
+.card.tinted  { background: var(--bg-3); }
+
+.row { display: flex; align-items: center; gap: 10px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+
+.eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.swatch {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius-md);
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(22,22,29,0.06);
+  overflow: hidden;
+}
+.swatch .label {
+  position: absolute;
+  inset: auto 8px 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: rgba(255,255,255,0.92);
+  display: flex;
+  justify-content: space-between;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.swatch.light .label { color: rgba(22,22,29,0.7); text-shadow: none; }
+
+.scale-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+.scale-grid .swatch { height: 60px; border-radius: 6px; }
+.scale-grid .swatch .label { font-size: 9.5px; bottom: 4px; }
