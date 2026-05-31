@@ -201,3 +201,124 @@ def test_node_simulate_populates_state(sample_flight_id):
     assert prop["trigger_flight_id"] == sample_flight_id
     assert prop["initial_delay_minutes"] == 60
     assert isinstance(prop["cascade_chain"], list)
+
+
+# ── End-to-end graph test (mocked LLM, requires DB) ──────────────────────────
+
+@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
+def test_full_graph_approve(monkeypatch, sample_flight_id):
+    """Run the full OCC graph with a mocked LLM; approve scenario 1."""
+    from unittest.mock import MagicMock
+    from langchain_core.messages import AIMessage
+    import argos.agents.occ_graph as occ_mod
+
+    # Build a fake AIMessage that includes a tool call for run_scenario_generation
+    # and also has text content — mirrors what the real Claude would return.
+    fake_tool_call = {
+        "name": "run_scenario_generation",
+        "args": {
+            "db_path":               DB_PATH,
+            "op_date":               "2024-06-15",
+            "trigger_flight_id":     sample_flight_id,
+            "initial_delay_minutes": 60,
+        },
+        "id": "tc_mock_001",
+        "type": "tool_call",
+    }
+    fake_analyse_msg = AIMessage(
+        content="Moderate cascade risk detected across 3 downstream rotations.",
+        tool_calls=[fake_tool_call],
+    )
+    # brief_occ node calls LLM without tools
+    fake_brief_msg = AIMessage(
+        content=(
+            "SITUATION: KE flight delayed 60 min, cascading to 3 legs.\n"
+            "OPTIONS: S1 absorb, S2 swap, S3 cancel.\n"
+            "RECOMMENDATION: S1.\n"
+            "REQUIRED ACTION: Approve Scenario 1.\n"
+            "Awaiting OCC manager approval."
+        )
+    )
+
+    call_count = {"n": 0}
+
+    def mock_make_llm(tools=None):
+        mock_llm = MagicMock()
+        if tools:
+            mock_llm.invoke.return_value = fake_analyse_msg
+        else:
+            mock_llm.invoke.return_value = fake_brief_msg
+        return mock_llm
+
+    monkeypatch.setattr(occ_mod, "_make_llm", mock_make_llm)
+
+    state, graph = occ_mod.run_until_approval(
+        db_path=DB_PATH,
+        op_date="2024-06-15",
+        trigger_flight_id=sample_flight_id,
+        initial_delay_minutes=60,
+        thread_id="test-approve",
+    )
+
+    # At the interrupt, we should have propagation + scenarios
+    assert "propagation_summary" in state
+    assert state["propagation_summary"]["initial_delay_minutes"] == 60
+    assert "scenario_briefing" in state
+    assert len(state.get("scenarios_raw", [])) == 3
+
+    # Resume with approval
+    final = occ_mod.resume_after_approval(
+        graph,
+        approved_scenario_id=1,
+        approval_notes="Test approval",
+        thread_id="test-approve",
+    )
+    assert "execution_summary" in final
+    assert "APPROVED" in final["execution_summary"]
+    assert "1" in final["execution_summary"]
+
+
+@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
+def test_full_graph_reject(monkeypatch, sample_flight_id):
+    """Run the full OCC graph with a mocked LLM; reject all scenarios."""
+    from unittest.mock import MagicMock
+    from langchain_core.messages import AIMessage
+    import argos.agents.occ_graph as occ_mod
+
+    fake_tool_call = {
+        "name": "run_scenario_generation",
+        "args": {
+            "db_path":               DB_PATH,
+            "op_date":               "2024-06-15",
+            "trigger_flight_id":     sample_flight_id,
+            "initial_delay_minutes": 30,
+        },
+        "id": "tc_mock_002",
+        "type": "tool_call",
+    }
+    fake_analyse_msg = AIMessage(content="Minor delay.", tool_calls=[fake_tool_call])
+    fake_brief_msg   = AIMessage(content="Awaiting OCC manager approval.")
+
+    def mock_make_llm(tools=None):
+        m = MagicMock()
+        m.invoke.return_value = fake_analyse_msg if tools else fake_brief_msg
+        return m
+
+    monkeypatch.setattr(occ_mod, "_make_llm", mock_make_llm)
+
+    state, graph = occ_mod.run_until_approval(
+        db_path=DB_PATH,
+        op_date="2024-06-15",
+        trigger_flight_id=sample_flight_id,
+        initial_delay_minutes=30,
+        thread_id="test-reject",
+    )
+
+    final = occ_mod.resume_after_approval(
+        graph,
+        approved_scenario_id=None,
+        approval_notes="Escalate to duty manager",
+        thread_id="test-reject",
+    )
+    assert "REJECTED" in final["execution_summary"]
+    assert "Escalate" in final["execution_summary"]

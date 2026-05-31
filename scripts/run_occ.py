@@ -1,16 +1,16 @@
 """
-CLI: Run OCC multi-agent disruption recovery workflow.
+CLI: OCC 다중 에이전트 중단 복구 워크플로우 실행.
 
-Usage examples
+사용 예시
 --------------
-# Dry-run (simulate only, no LLM briefing)
-python scripts/run_occ.py --flight <uuid> --delay 90 --date 2024-06-15 --dry-run
+# 드라이런(시뮬레이션만 가능, LLM 브리핑 없음)
+파이썬 스크립트/run_occ.py --flight <uuid> --delay 90 --날짜 2024-06-15 --dry-run
 
-# Full run (requires ANTHROPIC_API_KEY in .env)
-python scripts/run_occ.py --flight <uuid> --delay 90 --date 2024-06-15
+# 전체 실행(.env에서 ARPINTIC_API_KEY 필요)
+파이썬 스크립트/run_occ.py --flight <uuid> --delay 90 --날짜 2024-06-15
 
-# Pick first flight with cascade for demo
-python scripts/run_occ.py --auto --delay 120 --date 2024-06-15
+# 시연을 위해 캐스케이드가 있는 첫 번째 항공편 선택
+파이썬 스크립트/run_occ.py --auto --delay 120 --날짜 2024-06-15
 """
 
 from __future__ import annotations
@@ -82,7 +82,7 @@ def main(
         console.print(f"[green]Selected flight_id:[/] {flight_id}")
 
     console.print(Panel(
-        f"[bold]ARGOS OCC[/bold] — Disruption Recovery\n"
+        f"[bold]ARGOS OCC[/bold] - Disruption Recovery\n"
         f"Flight  : {flight_id}\n"
         f"Delay   : {delay} min\n"
         f"Date    : {date_str}",
@@ -103,7 +103,7 @@ def main(
         console.print(f"\n[bold]Cascade:[/] {prop['cascade_depth']} legs | "
                       f"{prop['total_delay_minutes']} min total delay | "
                       f"{prop['total_pax_impacted']} PAX impacted")
-        console.print(f"Chain: {' → '.join(prop['cascade_chain'])}")
+        console.print(f"Chain: {' -> '.join(prop['cascade_chain'])}")
 
         scenarios = run_scenario_generation.invoke({
             "db_path":               DB_PATH,

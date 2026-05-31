@@ -13,7 +13,7 @@ ARGOS는 인천국제공항(ICN/RKSI)을 허브로 하는 항공사의 운항통
 지연 감지  →  전파 시뮬레이션  →  회복 시나리오 3개 자동 생성  →  OCC 관리자 최종 승인
 ```
 
-고전적 OR 기법(ILP/CP-SAT), ML 예측(LightGBM), 그래프 알고리즘(NetworkX), LangGraph 멀티 에이전트(Claude Sonnet)를 하나의 OCC 의사결정 지원 도구로 통합했습니다. **회복 조치는 반드시 인간의 명시적 승인 후에만 실행됩니다.**
+고전적 OR 기법(ILP/CP-SAT), ML 예측(LightGBM), 그래프 알고리즘(NetworkX), LangGraph 멀티 에이전트(Claude Sonnet)를 하나의 OCC 의사결정 지원 도구로 통합했습니다. **회복 조치는 반드시 사람의 명시적 승인 후에만 실행됩니다.**
 
 ---
 

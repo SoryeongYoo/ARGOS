@@ -7,7 +7,16 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\workspace\\\\ARGOS\\\\src\\\\\" -Recurse | Select-Object -Property FullName | ForEach-Object { $_.FullName.Replace\\('C:\\\\workspace\\\\ARGOS\\\\src\\\\', ''\\) } | Sort-Object)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\workspace\\\\ARGOS\\\\scripts\\\\\" -Recurse | Select-Object -Property FullName | ForEach-Object { $_.FullName.Replace\\('C:\\\\workspace\\\\ARGOS\\\\scripts\\\\', ''\\) } | Sort-Object)",
       "PowerShell(New-Item *)",
-      "PowerShell(cd C:\\\\workspace\\\\ARGOS; \\(Get-Content README.md | Measure-Object -Line\\).Lines; \\(Get-Content README.md | Measure-Object -Word\\).Words)"
+      "PowerShell(cd C:\\\\workspace\\\\ARGOS; \\(Get-Content README.md | Measure-Object -Line\\).Lines; \\(Get-Content README.md | Measure-Object -Word\\).Words)",
+      "Bash(python *)",
+      "Bash(pip show *)",
+      "Bash(findstr -i \"name\\\\|version\")",
+      "Bash(Get-Content .env *)",
+      "Bash(venv\\\\Scripts\\\\python.exe *)",
+      "PowerShell(tail *)",
+      "PowerShell(venv\\\\Scripts\\\\pytest.exe tests/ -q --tb=short 2>&1 | Select-Object -Last 20)",
+      "PowerShell(Get-Process *)",
+      "Bash(Get-ChildItem C:workspaceARGOSsrcargos *)"
     ]
   }
 }

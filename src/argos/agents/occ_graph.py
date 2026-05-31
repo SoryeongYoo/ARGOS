@@ -43,7 +43,7 @@ from pathlib import Path
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END, StateGraph
-from langgraph.types import interrupt
+from langgraph.types import Command, interrupt
 from langgraph.checkpoint.memory import MemorySaver
 
 from argos.agents.state import OCCState
@@ -296,7 +296,7 @@ def node_execute(state: OCCState) -> dict:
 
     if selected:
         summary = (
-            f"✅ APPROVED: Scenario {sid} — {selected['name']}\n"
+            f"[APPROVED] Scenario {sid} - {selected['name']}\n"
             f"Action: {selected['action_required']}\n"
             f"Notes: {notes}\n"
             f"Residual impact: {selected['cascade_depth']} legs, "
@@ -305,7 +305,7 @@ def node_execute(state: OCCState) -> dict:
             f"[Simulation] Recovery action logged. Awaiting crew/gate notification."
         )
     else:
-        summary = f"✅ APPROVED with notes: {notes}"
+        summary = f"[APPROVED] with notes: {notes}"
 
     return {"execution_summary": summary}
 
@@ -316,7 +316,7 @@ def node_abort(state: OCCState) -> dict:
     """Record rejection and close the disruption event."""
     notes   = state.get("approval_notes", "No reason given")
     summary = (
-        f"❌ REJECTED by OCC manager.\n"
+        f"[REJECTED] by OCC manager.\n"
         f"Notes: {notes}\n"
         "No recovery action taken. Disruption event closed. "
         "Upstream stations notified to hold."
@@ -413,7 +413,7 @@ def resume_after_approval(
     }
     last_state = None
     for chunk in graph.stream(
-        {"type": "interrupt_response", "value": approval_payload},
+        Command(resume=approval_payload),
         config=config,
         stream_mode="values",
     ):

@@ -196,8 +196,8 @@ with tab_occ:
                 hoverinfo="skip",
             ))
         fig_map.add_trace(go.Scattergeo(
-            lon=[37.4691],  # ICN marker (note: lon/lat swapped intentionally)
-            lat=[126.4505],
+            lon=[126.4505],
+            lat=[37.4691],
             mode="markers+text",
             marker=dict(size=12, color="gold", symbol="star"),
             text=["ICN"],
@@ -415,12 +415,13 @@ with tab_uam:
     with col_b:
         G_route = build_uam_network()
         path = find_route(G_route, origin_vp, dest_vp)
+        flight_min = 0.0
 
         if path and len(path) >= 2:
             from argos.uav.network import route_distance_nm
             dist = route_distance_nm(G_route, path)
             flight_min = (dist / (120 * 0.8)) * 60
-            st.metric("Route", " → ".join(path))
+            st.metric("Route", " -> ".join(path))
             st.metric("Distance", f"{dist:.1f} NM")
             st.metric("Est. Flight Time", f"{flight_min:.0f} min")
         else:

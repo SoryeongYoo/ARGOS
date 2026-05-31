@@ -136,7 +136,7 @@ def check_curfew(
                 conflict_type=ConflictType.CURFEW,
                 description=(
                     f"Operation at {kst_hour:02d}:xx KST violates noise curfew "
-                    f"({CURFEW_START_KST:02d}:00–{CURFEW_END_KST:02d}:00 KST)"
+                    f"({CURFEW_START_KST:02d}:00-{CURFEW_END_KST:02d}:00 KST)"
                 ),
                 conflicting_entity="NOISE-CURFEW",
                 time_window_start=wp.eta_utc,
