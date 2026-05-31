@@ -21,7 +21,8 @@
       "PowerShell(Invoke-WebRequest -Uri \"http://localhost:8501/_stcore/health\" -UseBasicParsing | Select-Object StatusCode, Content)",
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:8501\" -UseBasicParsing; $r.StatusCode; \\($r.Content | Select-String -Pattern \"ARGOS|OCC|streamlit\"\\).Matches | Select-Object -First 5 Value)",
       "PowerShell(Start-Process \"http://localhost:8501\")",
-      "PowerShell(Start-Sleep -Seconds 6; Invoke-WebRequest -Uri \"http://localhost:8501/_stcore/health\" -UseBasicParsing | Select-Object StatusCode, Content; Get-Content C:\\\\workspace\\\\ARGOS\\\\streamlit_err.log)"
+      "PowerShell(Start-Sleep -Seconds 6; Invoke-WebRequest -Uri \"http://localhost:8501/_stcore/health\" -UseBasicParsing | Select-Object StatusCode, Content; Get-Content C:\\\\workspace\\\\ARGOS\\\\streamlit_err.log)",
+      "PowerShell(Start-Process \"C:\\\\workspace\\\\ARGOS\\\\src\\\\argos\\\\ui\\\\ARGOS OCC Dashboard.html\")"
     ]
   }
 }
