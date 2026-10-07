@@ -12,6 +12,19 @@ from datetime import UTC, date
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _short_solver_time_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """CP-SAT 시간 제한을 테스트에서만 1초로 낮춘다 (기본 30초).
+
+    승무원 CP-SAT 은 54편 cascade 에서 30초 제한을 다 쓰고 FEASIBLE 로 끝난다.
+    여기 테스트는 결과 구조만 보므로 최적성은 필요 없다.
+    """
+    import argos.agents.tools as tools_mod
+
+    monkeypatch.setattr(tools_mod, "AIRCRAFT_SOLVER_TIME_LIMIT_S", 1.0)
+    monkeypatch.setattr(tools_mod, "CREW_SOLVER_TIME_LIMIT_S", 1.0)
+
+
 @pytest.fixture(scope="module")
 def sample_flight_id(fixture_db_path: str) -> str:
     """Return one flight_id from the fixture DB for use in propagation tests."""
@@ -218,7 +231,6 @@ def test_node_simulate_populates_state(fixture_db_path, sample_flight_id):
 # ── End-to-end graph test (mocked LLM, requires DB) ──────────────────────────
 
 
-@pytest.mark.slow
 def test_full_graph_approve(monkeypatch, fixture_db_path, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; approve scenario 1."""
     from unittest.mock import MagicMock
@@ -293,7 +305,6 @@ def test_full_graph_approve(monkeypatch, fixture_db_path, sample_flight_id):
     assert "1" in final["execution_summary"]
 
 
-@pytest.mark.slow
 def test_full_graph_reject(monkeypatch, fixture_db_path, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; reject all scenarios."""
     from unittest.mock import MagicMock

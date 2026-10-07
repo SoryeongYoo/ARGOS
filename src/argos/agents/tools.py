@@ -22,6 +22,11 @@ from argos.optimization.aircraft import AircraftAssigner
 from argos.optimization.crew import CrewAssigner, FlightLeg
 from argos.simulation.propagation import DelayPropagator
 
+# CP-SAT 시간 제한(초). solve() 기본값과 같다. LLM 에 노출되는 tool 인자가 아니라
+# 모듈 상수로 두어, 테스트에서만 monkeypatch 로 낮출 수 있게 한다.
+AIRCRAFT_SOLVER_TIME_LIMIT_S: float = 30.0
+CREW_SOLVER_TIME_LIMIT_S: float = 30.0
+
 # ── Propagation tool ──────────────────────────────────────────────────────────
 
 
@@ -124,7 +129,9 @@ def run_aircraft_optimisation(
         op_date=dep_date,
         disrupted_flight_ids=disrupted_flight_ids,
     )
-    result = assigner.solve(tasks, resources, dep_date)
+    result = assigner.solve(
+        tasks, resources, dep_date, time_limit_seconds=AIRCRAFT_SOLVER_TIME_LIMIT_S
+    )
 
     return {
         "assignments": result.assignments,
@@ -201,7 +208,7 @@ def run_crew_optimisation(
         op_day=dep_date,
     )
     assigner = CrewAssigner()
-    result = assigner.solve(legs, crew_pool, dep_date)
+    result = assigner.solve(legs, crew_pool, dep_date, time_limit_seconds=CREW_SOLVER_TIME_LIMIT_S)
 
     return {
         "captain_assignments": result.captain_assignments,
