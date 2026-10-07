@@ -106,3 +106,7 @@ ignore_errors = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+addopts = ["--strict-markers"]
+markers = [
+    "slow: 3초 넘게 걸리는 테스트. `python scripts/verify.py --fast` 에서 제외",
+]
