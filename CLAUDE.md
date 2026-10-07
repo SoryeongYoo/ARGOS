@@ -43,7 +43,7 @@ jupyter lab notebooks/01_eda.ipynb
 pytest
 
 # Lint / type-check
-ruff check src tests
+ruff check src tests scripts
 mypy src
 ```
 
@@ -51,9 +51,10 @@ mypy src
 
 ### Data generation pipeline (`src/argos/data_gen/`)
 
-Two-phase design:
-1. **Claude API phase** — `generator.py:SyntheticDataGenerator.generate_route_params()` asks Claude to produce realistic delay distribution parameters (probability, shape, seasonal factors, IATA delay codes) for each of the 60 routes. Uses **prompt caching** on the aviation domain system prompt and **tool use** (`set_route_delay_parameters`) for structured JSON output.
-2. **NumPy phase** — `generate_flights()` samples from those distributions at scale (~120k rows over 3 years). Never calls the API per-row.
+Rule-based, pure Python — no API calls (no API key needed to generate data):
+1. **Rule-based parameter phase** — `generator.py:SyntheticDataGenerator.generate_route_params()` derives delay distribution parameters (probability, shape, seasonal factors, IATA delay codes) for each of the 60 routes from the region profiles in `_REGION_PROFILES`, with ±12% per-route variation from the seeded NumPy RNG (`RANDOM_SEED`).
+2. **NumPy phase** — `generate_flights()` samples from those distributions at scale (~160k rows over the default 3-year range).
+3. **Storage phase** — `save_to_duckdb()` writes the result to DuckDB.
 
 `routes.py` contains the full 60-route definition (all `RouteDefinition` objects, `ROUTE_MAP` dict). `schemas.py` has Pydantic models and DuckDB DDL.
 
@@ -68,17 +69,17 @@ Pure calculation modules — no I/O, no LLM calls:
 | `mct.py` | `get_mct(arriving_type, departing_type, ...)` | ICN MCT matrix incl. T1/T2 terminal buffer |
 | `cost_index.py` | `optimal_ci(distance, aircraft_type, fuel_price, crew_cost)` | Grid-search CI for min DOC |
 
-### Planned modules (Weeks 2–10)
+### Other modules
 
-| Module | Tech | Status |
-|--------|------|--------|
-| `prediction/` | LightGBM delay prediction | ✅ Week 3 |
-| `optimization/aircraft.py` | OR-Tools ILP aircraft assignment | Week 5 |
-| `optimization/crew.py` | OR-Tools CP-SAT roster | Week 6 |
-| `simulation/propagation.py` | NetworkX DAG delay propagation | Week 4 |
-| `agents/` | LangGraph multi-agent OCC | Week 7-8 |
-| `uav/` | UAV/AAM ACROSS integration | Week 9 |
-| `ui/` | Streamlit OCC dashboard | Week 10 |
+| Module | Tech |
+|--------|------|
+| `prediction/` | LightGBM delay prediction |
+| `optimization/aircraft.py` | OR-Tools CP-SAT aircraft assignment |
+| `optimization/crew.py` | OR-Tools CP-SAT roster |
+| `simulation/propagation.py` | NetworkX DAG delay propagation |
+| `agents/` | LangGraph multi-agent OCC |
+| `uav/` | UAV/AAM ACROSS integration |
+| `ui/` | Streamlit OCC dashboard |
 
 ### Storage
 
@@ -96,21 +97,6 @@ DuckDB at `data/db/argos.duckdb`. Main tables: `flights`, `routes`, `route_aircr
 
 ## Claude API usage patterns
 
-- System prompt is **prompt-cached** (`cache_control: ephemeral`) in all generator calls — the aviation domain knowledge is large and reused across batch iterations.
 - Use **tool use** (not free-form JSON parsing) for all structured outputs from Claude.
 - Default models: `claude-sonnet-4-6` for complex reasoning, `claude-haiku-4-5-20251001` for bulk/cheap inference.
-- All Claude API calls go through `anthropic.Anthropic(api_key=settings.anthropic_api_key)` — never hardcode keys.
-
-## Sprint plan
-
-| Week | Deliverable |
-|------|-------------|
-| 1 | Project structure + synthetic data generator ✅ |
-| 2 | EDA notebook + data quality validation ✅ |
-| 3 | LightGBM delay prediction model ✅ |
-| 4 | NetworkX delay propagation simulator |
-| 5 | OR-Tools aircraft assignment ILP |
-| 6 | CP-SAT crew roster optimizer |
-| 7-8 | LangGraph multi-agent OCC system |
-| 9 | UAV/AAM integration module |
-| 10 | Streamlit dashboard + Docker Compose |
+- All Claude API calls go through `langchain_anthropic.ChatAnthropic(api_key=settings.anthropic_api_key)` (see `agents/occ_graph.py:_make_llm`) — never hardcode keys.
