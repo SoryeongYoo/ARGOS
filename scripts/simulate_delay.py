@@ -83,9 +83,7 @@ def simulate(
     flight: Optional[str] = typer.Option(
         None, "--flight", "-f", help="Trigger flight number (default: auto highest-cascade)"
     ),
-    delay: int = typer.Option(
-        90, "--delay", help="Initial delay in minutes on the trigger flight"
-    ),
+    delay: int = typer.Option(90, "--delay", help="Initial delay in minutes on the trigger flight"),
 ) -> None:
     settings = get_settings()
     db_path = Path(settings.duckdb_path)
@@ -167,9 +165,7 @@ def simulate(
             f"[{fc}]{s.feasibility}[/]",
         )
     console.print(cmp)
-    console.print(
-        "\n[bold yellow]All scenarios require OCC manager approval before execution.[/]"
-    )
+    console.print("\n[bold yellow]All scenarios require OCC manager approval before execution.[/]")
 
 
 def _pick_best_trigger(G, flights_df) -> str:

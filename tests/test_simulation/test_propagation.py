@@ -75,6 +75,7 @@ def _build_graph(*nodes: FlightNode) -> nx.DiGraph:
 
 # ── _min_turn ─────────────────────────────────────────────────────────────────
 
+
 def test_min_turn_narrow():
     assert _min_turn("B737-800") == _MIN_TURN_NARROW
     assert _min_turn("A321neo") == _MIN_TURN_NARROW
@@ -87,6 +88,7 @@ def test_min_turn_wide():
 
 
 # ── FlightNode properties ─────────────────────────────────────────────────────
+
 
 def test_flight_node_no_delay_properties():
     n = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=9, block_minutes=120)
@@ -117,21 +119,26 @@ def test_earliest_icn_ready_wide():
 
 # ── build_rotation_graph ──────────────────────────────────────────────────────
 
+
 def test_build_graph_single_flight():
-    df = pd.DataFrame([{
-        "flight_id": "F1",
-        "flight_number": "KE701",
-        "route_id": "ICN-NRT",
-        "aircraft_registration": "HL7401",
-        "aircraft_type": "B737-800",
-        "origin_iata": "ICN",
-        "dest_iata": "NRT",
-        "scheduled_dep_utc": pd.Timestamp(_dt(9)),
-        "scheduled_arr_utc": pd.Timestamp(_dt(11)),
-        "block_time_minutes": 120,
-        "pax_boarded": 150,
-        "status": "SCH",
-    }])
+    df = pd.DataFrame(
+        [
+            {
+                "flight_id": "F1",
+                "flight_number": "KE701",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(9)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(11)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            }
+        ]
+    )
     propagator = DelayPropagator.__new__(DelayPropagator)
     G = propagator.build_rotation_graph(df)
     assert G.number_of_nodes() == 1
@@ -141,24 +148,38 @@ def test_build_graph_single_flight():
 def test_build_graph_rotation_edge_created():
     # Two flights same aircraft: F1 dep=06:00 block=120, F2 dep=14:00
     # min_elapsed = 2*120 + 2*45 = 330 min; gap = 8h = 480 min → buffer = 150
-    df = pd.DataFrame([
-        {
-            "flight_id": "F1", "flight_number": "KE701", "route_id": "ICN-NRT",
-            "aircraft_registration": "HL7401", "aircraft_type": "B737-800",
-            "origin_iata": "ICN", "dest_iata": "NRT",
-            "scheduled_dep_utc": pd.Timestamp(_dt(6)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(8)),
-            "block_time_minutes": 120, "pax_boarded": 150, "status": "SCH",
-        },
-        {
-            "flight_id": "F2", "flight_number": "KE702", "route_id": "ICN-NRT",
-            "aircraft_registration": "HL7401", "aircraft_type": "B737-800",
-            "origin_iata": "ICN", "dest_iata": "NRT",
-            "scheduled_dep_utc": pd.Timestamp(_dt(14)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(16)),
-            "block_time_minutes": 120, "pax_boarded": 150, "status": "SCH",
-        },
-    ])
+    df = pd.DataFrame(
+        [
+            {
+                "flight_id": "F1",
+                "flight_number": "KE701",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(6)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(8)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            },
+            {
+                "flight_id": "F2",
+                "flight_number": "KE702",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(14)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(16)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            },
+        ]
+    )
     propagator = DelayPropagator.__new__(DelayPropagator)
     G = propagator.build_rotation_graph(df)
     assert G.number_of_edges() == 1
@@ -167,25 +188,38 @@ def test_build_graph_rotation_edge_created():
 
 
 def test_build_graph_different_aircraft_no_edge():
-    df = pd.DataFrame([
-        {
-            "flight_id": "F1", "flight_number": "KE701", "route_id": "ICN-NRT",
-            "aircraft_registration": "HL7401", "aircraft_type": "B737-800",
-            "origin_iata": "ICN", "dest_iata": "NRT",
-            "scheduled_dep_utc": pd.Timestamp(_dt(6)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(8)),
-            "block_time_minutes": 120, "pax_boarded": 150, "status": "SCH",
-        },
-        {
-            "flight_id": "F2", "flight_number": "KE001", "route_id": "ICN-JFK",
-            "aircraft_registration": "HL7701",  # different aircraft
-            "aircraft_type": "B777-300ER",
-            "origin_iata": "ICN", "dest_iata": "JFK",
-            "scheduled_dep_utc": pd.Timestamp(_dt(14)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(14) + timedelta(hours=10)),
-            "block_time_minutes": 600, "pax_boarded": 300, "status": "SCH",
-        },
-    ])
+    df = pd.DataFrame(
+        [
+            {
+                "flight_id": "F1",
+                "flight_number": "KE701",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(6)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(8)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            },
+            {
+                "flight_id": "F2",
+                "flight_number": "KE001",
+                "route_id": "ICN-JFK",
+                "aircraft_registration": "HL7701",  # different aircraft
+                "aircraft_type": "B777-300ER",
+                "origin_iata": "ICN",
+                "dest_iata": "JFK",
+                "scheduled_dep_utc": pd.Timestamp(_dt(14)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(14) + timedelta(hours=10)),
+                "block_time_minutes": 600,
+                "pax_boarded": 300,
+                "status": "SCH",
+            },
+        ]
+    )
     propagator = DelayPropagator.__new__(DelayPropagator)
     G = propagator.build_rotation_graph(df)
     assert G.number_of_edges() == 0
@@ -193,30 +227,45 @@ def test_build_graph_different_aircraft_no_edge():
 
 def test_build_graph_too_large_gap_excluded():
     # Gap > 14 hours should not create a rotation edge
-    df = pd.DataFrame([
-        {
-            "flight_id": "F1", "flight_number": "KE701", "route_id": "ICN-NRT",
-            "aircraft_registration": "HL7401", "aircraft_type": "B737-800",
-            "origin_iata": "ICN", "dest_iata": "NRT",
-            "scheduled_dep_utc": pd.Timestamp(_dt(0)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(2)),
-            "block_time_minutes": 120, "pax_boarded": 150, "status": "SCH",
-        },
-        {
-            "flight_id": "F2", "flight_number": "KE702", "route_id": "ICN-NRT",
-            "aircraft_registration": "HL7401", "aircraft_type": "B737-800",
-            "origin_iata": "ICN", "dest_iata": "NRT",
-            "scheduled_dep_utc": pd.Timestamp(_dt(0) + timedelta(hours=15)),
-            "scheduled_arr_utc": pd.Timestamp(_dt(0) + timedelta(hours=17)),
-            "block_time_minutes": 120, "pax_boarded": 150, "status": "SCH",
-        },
-    ])
+    df = pd.DataFrame(
+        [
+            {
+                "flight_id": "F1",
+                "flight_number": "KE701",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(0)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(2)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            },
+            {
+                "flight_id": "F2",
+                "flight_number": "KE702",
+                "route_id": "ICN-NRT",
+                "aircraft_registration": "HL7401",
+                "aircraft_type": "B737-800",
+                "origin_iata": "ICN",
+                "dest_iata": "NRT",
+                "scheduled_dep_utc": pd.Timestamp(_dt(0) + timedelta(hours=15)),
+                "scheduled_arr_utc": pd.Timestamp(_dt(0) + timedelta(hours=17)),
+                "block_time_minutes": 120,
+                "pax_boarded": 150,
+                "status": "SCH",
+            },
+        ]
+    )
     propagator = DelayPropagator.__new__(DelayPropagator)
     G = propagator.build_rotation_graph(df)
     assert G.number_of_edges() == 0
 
 
 # ── propagate ─────────────────────────────────────────────────────────────────
+
 
 def test_propagate_no_cascade_when_buffer_absorbs():
     # F1 dep=06:00, block=120, narrow turn=45 → min_elapsed=330
@@ -233,7 +282,10 @@ def test_propagate_no_cascade_when_buffer_absorbs():
     assert result.initial_delay_minutes == 90
     assert result.cascade_chain == ["F1"]
     assert result.cascade_depth == 1
-    assert len([n for n in result.affected_nodes if n.dep_delay_minutes > 0 and n.flight_id != "F1"]) == 0
+    assert (
+        len([n for n in result.affected_nodes if n.dep_delay_minutes > 0 and n.flight_id != "F1"])
+        == 0
+    )
 
 
 def test_propagate_cascades_when_delay_exceeds_buffer():
@@ -287,7 +339,7 @@ def test_propagate_caps_at_max_propagated_delay():
 
 
 def test_propagate_three_hop_chain():
-    n1 = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=6,  block_minutes=60, pax=100)
+    n1 = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=6, block_minutes=60, pax=100)
     n2 = _node("F2", "KE702", "HL7401", "B737-800", dep_hour=10, block_minutes=60, pax=100)
     n3 = _node("F3", "KE703", "HL7401", "B737-800", dep_hour=14, block_minutes=60, pax=100)
     # buffer = 0 on both edges → full propagation
@@ -345,6 +397,7 @@ def test_propagate_does_not_mutate_original_graph():
 
 
 # ── generate_scenarios ────────────────────────────────────────────────────────
+
 
 def _make_propagator_with_no_spare(monkeypatch) -> DelayPropagator:
     propagator = DelayPropagator.__new__(DelayPropagator)
@@ -414,8 +467,10 @@ def test_scenario2_na_when_no_spare(monkeypatch):
 
 
 def test_scenario3_cancel_least_loaded(monkeypatch):
-    n1 = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=6,  block_minutes=90, pax=200)
-    n2 = _node("F2", "KE702", "HL7401", "B737-800", dep_hour=12, block_minutes=90, pax=50)   # fewest PAX
+    n1 = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=6, block_minutes=90, pax=200)
+    n2 = _node(
+        "F2", "KE702", "HL7401", "B737-800", dep_hour=12, block_minutes=90, pax=50
+    )  # fewest PAX
     n3 = _node("F3", "KE703", "HL7401", "B737-800", dep_hour=18, block_minutes=90, pax=180)
     G = nx.DiGraph()
     for n in [n1, n2, n3]:
@@ -460,6 +515,7 @@ def test_scenarios_all_require_approval(monkeypatch):
 
 
 # ── PropagationResult ─────────────────────────────────────────────────────────
+
 
 def test_propagation_result_cascade_depth():
     n1 = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=6, block_minutes=120)

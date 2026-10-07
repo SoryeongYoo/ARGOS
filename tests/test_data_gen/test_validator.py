@@ -54,17 +54,24 @@ def clean_db(tmp_path):
     """)
 
     # Seed reference data
-    con.execute("INSERT INTO routes VALUES ('ICN-NRT','ICN','RKSI','NRT','RJAA','Tokyo Narita','Japan',696,4.0)")
-    con.execute("INSERT INTO aircraft VALUES ('HL7401','B737-800','B738','MSN1','2010-01-01',147,8,0,20000,79016)")
+    con.execute(
+        "INSERT INTO routes VALUES ('ICN-NRT','ICN','RKSI','NRT','RJAA','Tokyo Narita','Japan',696,4.0)"
+    )
+    con.execute(
+        "INSERT INTO aircraft VALUES ('HL7401','B737-800','B738','MSN1','2010-01-01',147,8,0,20000,79016)"
+    )
     con.execute("INSERT INTO route_aircraft VALUES ('ICN-NRT','B737-800',145,0)")
     con.execute("INSERT INTO delay_codes_ref VALUES ('71','ATC en-route demand')")
 
     dep = datetime(2024, 6, 1, 1, 0, tzinfo=timezone.utc)
     arr = datetime(2024, 6, 1, 3, 25, tzinfo=timezone.utc)
-    con.execute("""
+    con.execute(
+        """
         INSERT INTO flights VALUES (?, 'KE001', 'ICN-NRT', 'ICN', 'NRT', 'HL7401', 'B737-800',
             ?, ?, ?, ?, 145, 696, 0, 0, NULL, NULL, NULL, 140, 0.90, 8500, 2000, 'ARR', NULL)
-    """, [str(uuid.uuid4()), dep, arr, dep, arr])
+    """,
+        [str(uuid.uuid4()), dep, arr, dep, arr],
+    )
 
     con.close()
     return str(db_path)
@@ -84,10 +91,13 @@ def test_duplicate_ids_detected(clean_db):
     arr = datetime(2024, 6, 2, 3, 25, tzinfo=timezone.utc)
     for _ in range(2):
         try:
-            con.execute("""
+            con.execute(
+                """
                 INSERT INTO flights VALUES (?, 'KE002','ICN-NRT','ICN','NRT','HL7401','B737-800',
                     ?,?,?,?,145,696,0,0,NULL,NULL,NULL,130,0.85,8000,1500,'ARR',NULL)
-            """, [fid, dep, arr, dep, arr])
+            """,
+                [fid, dep, arr, dep, arr],
+            )
         except Exception:
             pass  # second insert violates PK — expected
     con.close()
@@ -101,10 +111,13 @@ def test_timestamp_ordering_detects_bad_data(clean_db):
     con = duckdb.connect(clean_db)
     dep = datetime(2024, 6, 3, 10, 0, tzinfo=timezone.utc)
     arr = datetime(2024, 6, 3, 8, 0, tzinfo=timezone.utc)  # arr BEFORE dep — invalid
-    con.execute("""
+    con.execute(
+        """
         INSERT INTO flights VALUES (?, 'KE003','ICN-NRT','ICN','NRT','HL7401','B737-800',
             ?,?,?,?,145,696,0,0,NULL,NULL,NULL,130,0.85,8000,1500,'ARR',NULL)
-    """, [str(uuid.uuid4()), dep, dep, dep, arr])
+    """,
+        [str(uuid.uuid4()), dep, dep, dep, arr],
+    )
     con.close()
 
     report = DataValidator(clean_db).run_all()
@@ -117,10 +130,13 @@ def test_load_factor_out_of_range_detected(clean_db):
     con = duckdb.connect(clean_db)
     dep = datetime(2024, 6, 4, 1, 0, tzinfo=timezone.utc)
     arr = datetime(2024, 6, 4, 3, 25, tzinfo=timezone.utc)
-    con.execute("""
+    con.execute(
+        """
         INSERT INTO flights VALUES (?, 'KE004','ICN-NRT','ICN','NRT','HL7401','B737-800',
             ?,?,?,?,145,696,0,0,NULL,NULL,NULL,130,1.50,8000,1500,'ARR',NULL)
-    """, [str(uuid.uuid4()), dep, dep, dep, arr])
+    """,
+        [str(uuid.uuid4()), dep, dep, dep, arr],
+    )
     con.close()
 
     report = DataValidator(clean_db).run_all()
@@ -133,11 +149,14 @@ def test_otp_benchmark_warn_when_low(clean_db):
     dep = datetime(2024, 6, 5, 1, 0, tzinfo=timezone.utc)
     # Insert 10 massively delayed flights
     for i in range(10):
-        arr = dep + __import__('datetime').timedelta(minutes=145 + 300)
-        con.execute("""
+        arr = dep + __import__("datetime").timedelta(minutes=145 + 300)
+        con.execute(
+            """
             INSERT INTO flights VALUES (?, 'KE010','ICN-NRT','ICN','NRT','HL7401','B737-800',
                 ?,?,?,?,145,696,300,300,'71',NULL,'ATC',130,0.85,8000,1500,'ARR',NULL)
-        """, [str(uuid.uuid4()), dep, dep, dep, arr])
+        """,
+            [str(uuid.uuid4()), dep, dep, dep, arr],
+        )
     con.close()
 
     report = DataValidator(clean_db).run_all()
@@ -151,10 +170,13 @@ def test_cancelled_flight_integrity(clean_db):
     dep = datetime(2024, 6, 6, 1, 0, tzinfo=timezone.utc)
     arr = datetime(2024, 6, 6, 3, 25, tzinfo=timezone.utc)
     # CNX flight with actual times — integrity violation
-    con.execute("""
+    con.execute(
+        """
         INSERT INTO flights VALUES (?, 'KE005','ICN-NRT','ICN','NRT','HL7401','B737-800',
             ?,?,?,?,145,696,0,0,NULL,NULL,NULL,0,0.0,0,0,'CNX',NULL)
-    """, [str(uuid.uuid4()), dep, arr, dep, arr])  # actual times present on CNX
+    """,
+        [str(uuid.uuid4()), dep, arr, dep, arr],
+    )  # actual times present on CNX
     con.close()
 
     report = DataValidator(clean_db).run_all()

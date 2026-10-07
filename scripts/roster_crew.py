@@ -35,7 +35,8 @@ def _load_legs(db_path: Path, op_date: date) -> list[FlightLeg]:
 
     con = duckdb.connect(str(db_path), read_only=True)
     try:
-        df = con.execute("""
+        df = con.execute(
+            """
             SELECT flight_id, flight_number, aircraft_type,
                    origin_iata, dest_iata,
                    scheduled_dep_utc, block_time_minutes,
@@ -45,7 +46,9 @@ def _load_legs(db_path: Path, op_date: date) -> list[FlightLeg]:
               AND scheduled_dep_utc <  ?
               AND status != 'CNX'
             ORDER BY scheduled_dep_utc
-        """, [day_start, day_end]).df()
+        """,
+            [day_start, day_end],
+        ).df()
     finally:
         con.close()
 
@@ -71,12 +74,8 @@ def roster(
     dep_date: Optional[str] = typer.Option(
         None, "--date", "-d", help="Operating date YYYY-MM-DD (default: 2023-07-15)"
     ),
-    n_narrow: int = typer.Option(
-        16, "--narrow", help="Narrow-body crew pairs (CAPT+FO each)"
-    ),
-    n_wide: int = typer.Option(
-        12, "--wide", help="Wide-body crew pairs (CAPT+FO each)"
-    ),
+    n_narrow: int = typer.Option(16, "--narrow", help="Narrow-body crew pairs (CAPT+FO each)"),
+    n_wide: int = typer.Option(12, "--wide", help="Wide-body crew pairs (CAPT+FO each)"),
     time_limit: float = typer.Option(
         30.0, "--time-limit", help="CP-SAT solver time limit in seconds"
     ),
@@ -102,12 +101,12 @@ def roster(
     )
 
     n_narrow_legs = sum(1 for l in legs if l.aircraft_type in {"B737-800", "A321neo"})
-    n_wide_legs   = sum(1 for l in legs if l.aircraft_type not in {"B737-800", "A321neo"})
+    n_wide_legs = sum(1 for l in legs if l.aircraft_type not in {"B737-800", "A321neo"})
     console.print(
         f"[green]{len(legs)}[/] legs  "
         f"([dim]narrow: {n_narrow_legs}, wide: {n_wide_legs}[/])  |  "
         f"[green]{len(crew)}[/] crew  "
-        f"([dim]narrow: {n_narrow*2}, wide: {n_wide*2}[/])"
+        f"([dim]narrow: {n_narrow * 2}, wide: {n_wide * 2}[/])"
     )
 
     console.rule("[bold]Solving CP-SAT crew roster")
@@ -128,11 +127,13 @@ def roster(
         leg_map = {l.flight_id: l for l in legs}
         t = Table(
             title=f"Crew Assignments ({len(result.fully_crewed)} fully crewed)",
-            show_header=True, header_style="bold", expand=False,
+            show_header=True,
+            header_style="bold",
+            expand=False,
         )
-        t.add_column("Flight",  style="cyan")
+        t.add_column("Flight", style="cyan")
         t.add_column("Route")
-        t.add_column("Type",    style="dim")
+        t.add_column("Type", style="dim")
         t.add_column("CAPT")
         t.add_column("FO")
         t.add_column("PAX", justify="right")
@@ -161,21 +162,24 @@ def roster(
         leg_map = {l.flight_id: l for l in legs}
         g = Table(
             title=f"[red]Crew Gaps ({len(all_gaps)} flights)[/]",
-            show_header=True, header_style="bold red",
+            show_header=True,
+            header_style="bold red",
         )
-        g.add_column("Flight",  style="cyan")
+        g.add_column("Flight", style="cyan")
         g.add_column("Route")
         g.add_column("CAPT missing?", justify="center")
-        g.add_column("FO missing?",   justify="center")
+        g.add_column("FO missing?", justify="center")
         g.add_column("PAX", justify="right")
         for fid in sorted(all_gaps, key=lambda f: leg_map[f].scheduled_dep_utc):
             leg = leg_map[fid]
             no_c = "[red]YES[/]" if fid in result.unassigned_captain else ""
-            no_f = "[red]YES[/]" if fid in result.unassigned_fo   else ""
+            no_f = "[red]YES[/]" if fid in result.unassigned_fo else ""
             g.add_row(
                 leg.flight_number,
                 f"{leg.origin_iata}-{leg.dest_iata}",
-                no_c, no_f, str(leg.pax_boarded),
+                no_c,
+                no_f,
+                str(leg.pax_boarded),
             )
         console.print(g)
 
@@ -183,7 +187,9 @@ def roster(
     if result.duty_periods:
         d = Table(
             title="FAR 117 Duty Periods",
-            show_header=True, header_style="bold", expand=False,
+            show_header=True,
+            header_style="bold",
+            expand=False,
         )
         d.add_column("Crew ID")
         d.add_column("Legs", justify="right")
@@ -208,7 +214,8 @@ def roster(
 
     # ── Summary panel ─────────────────────────────────────────────────────────
     far_status = (
-        "[green]PASS[/]" if not result.far117_violations
+        "[green]PASS[/]"
+        if not result.far117_violations
         else f"[red]{len(result.far117_violations)} VIOLATION(S)[/]"
     )
     console.print(

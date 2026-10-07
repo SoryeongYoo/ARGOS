@@ -75,11 +75,11 @@ def assign(
     # ── Assignment table ───────────────────────────────────────────────────────
     if result.assignments:
         # Build lookup maps
-        task_map  = {t.flight_id: t for t in tasks}
-        ac_map    = {a.registration: a for a in aircraft}
+        task_map = {t.flight_id: t for t in tasks}
+        ac_map = {a.registration: a for a in aircraft}
 
         t = Table(title="Assignments", show_header=True, header_style="bold", expand=False)
-        t.add_column("Flight",   style="cyan")
+        t.add_column("Flight", style="cyan")
         t.add_column("Route")
         t.add_column("Req. Type", style="dim")
         t.add_column("Assigned Reg", style="green")
@@ -88,12 +88,13 @@ def assign(
         t.add_column("PAX", justify="right")
         t.add_column("Dep UTC")
 
-        for fid, reg in sorted(result.assignments.items(),
-                               key=lambda kv: task_map[kv[0]].scheduled_dep_utc):
+        for fid, reg in sorted(
+            result.assignments.items(), key=lambda kv: task_map[kv[0]].scheduled_dep_utc
+        ):
             task = task_map[fid]
-            ac   = ac_map[reg]
-            sub  = ac.aircraft_type != task.required_type
-            type_str = (f"[yellow]{ac.aircraft_type}[/]" if sub else ac.aircraft_type)
+            ac = ac_map[reg]
+            sub = ac.aircraft_type != task.required_type
+            type_str = f"[yellow]{ac.aircraft_type}[/]" if sub else ac.aircraft_type
             spare_str = "[yellow]Y[/]" if ac.is_spare else ""
             t.add_row(
                 task.flight_number,
@@ -111,7 +112,7 @@ def assign(
     if result.unassigned:
         task_map = {t.flight_id: t for t in tasks}
         u = Table(title="[red]Unassigned Flights[/]", show_header=True, header_style="bold red")
-        u.add_column("Flight",   style="cyan")
+        u.add_column("Flight", style="cyan")
         u.add_column("Route")
         u.add_column("Req. Type")
         u.add_column("PAX", justify="right")

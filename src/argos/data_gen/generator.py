@@ -128,88 +128,153 @@ for ac in FLEET:
 _REGION_PROFILES: dict[str, dict] = {
     # Japan: moderate ATC delays at NRT/HND (71-73), winter snow at CTS (63)
     "Japan": {
-        "delay_prob": 0.22, "base_delay": 20.0, "dist": "lognormal",
-        "param_a": 0.75, "param_b": 1.0, "wx_sens": 1.4, "cancel": 0.004,
+        "delay_prob": 0.22,
+        "base_delay": 20.0,
+        "dist": "lognormal",
+        "param_a": 0.75,
+        "param_b": 1.0,
+        "wx_sens": 1.4,
+        "cancel": 0.004,
         "seasonal": {"winter": 1.4, "spring": 0.9, "summer": 1.0, "autumn": 0.95},
         "codes": ["71", "93", "63", "31", "91"],
     },
     # China: highest ATC restriction rate globally (74), esp. PEK/PVG/CAN
     "China": {
-        "delay_prob": 0.32, "base_delay": 30.0, "dist": "lognormal",
-        "param_a": 0.90, "param_b": 1.0, "wx_sens": 1.3, "cancel": 0.007,
+        "delay_prob": 0.32,
+        "base_delay": 30.0,
+        "dist": "lognormal",
+        "param_a": 0.90,
+        "param_b": 1.0,
+        "wx_sens": 1.3,
+        "cancel": 0.007,
         "seasonal": {"winter": 1.2, "spring": 1.1, "summer": 1.2, "autumn": 0.9},
         "codes": ["74", "93", "71", "31", "91"],
     },
     # SE Asia: monsoon sensitivity, typhoon season Jul-Sep
     "SE Asia": {
-        "delay_prob": 0.25, "base_delay": 25.0, "dist": "weibull",
-        "param_a": 1.20, "param_b": 1.0, "wx_sens": 2.0, "cancel": 0.005,
+        "delay_prob": 0.25,
+        "base_delay": 25.0,
+        "dist": "weibull",
+        "param_a": 1.20,
+        "param_b": 1.0,
+        "wx_sens": 2.0,
+        "cancel": 0.005,
         "seasonal": {"winter": 0.8, "spring": 1.0, "summer": 1.8, "autumn": 1.1},
         "codes": ["61", "64", "93", "71", "31"],
     },
     # North America: long-haul reactionary delays dominate
     "North America": {
-        "delay_prob": 0.18, "base_delay": 40.0, "dist": "lognormal",
-        "param_a": 0.80, "param_b": 1.0, "wx_sens": 1.3, "cancel": 0.004,
+        "delay_prob": 0.18,
+        "base_delay": 40.0,
+        "dist": "lognormal",
+        "param_a": 0.80,
+        "param_b": 1.0,
+        "wx_sens": 1.3,
+        "cancel": 0.004,
         "seasonal": {"winter": 1.3, "spring": 0.9, "summer": 1.0, "autumn": 0.95},
         "codes": ["91", "93", "94", "31", "71"],
     },
     # Europe: peak-hour ATC congestion, reactionary delays
     "Europe": {
-        "delay_prob": 0.20, "base_delay": 35.0, "dist": "lognormal",
-        "param_a": 0.85, "param_b": 1.0, "wx_sens": 1.4, "cancel": 0.003,
+        "delay_prob": 0.20,
+        "base_delay": 35.0,
+        "dist": "lognormal",
+        "param_a": 0.85,
+        "param_b": 1.0,
+        "wx_sens": 1.4,
+        "cancel": 0.003,
         "seasonal": {"winter": 1.3, "spring": 0.9, "summer": 1.1, "autumn": 0.9},
         "codes": ["91", "71", "93", "31", "94"],
     },
     "Middle East": {
-        "delay_prob": 0.18, "base_delay": 25.0, "dist": "exponential",
-        "param_a": 1.00, "param_b": 1.0, "wx_sens": 1.2, "cancel": 0.003,
+        "delay_prob": 0.18,
+        "base_delay": 25.0,
+        "dist": "exponential",
+        "param_a": 1.00,
+        "param_b": 1.0,
+        "wx_sens": 1.2,
+        "cancel": 0.003,
         "seasonal": {"winter": 0.9, "spring": 1.0, "summer": 1.1, "autumn": 1.0},
         "codes": ["91", "71", "93", "31"],
     },
     "Oceania": {
-        "delay_prob": 0.15, "base_delay": 40.0, "dist": "lognormal",
-        "param_a": 0.70, "param_b": 1.0, "wx_sens": 1.3, "cancel": 0.003,
+        "delay_prob": 0.15,
+        "base_delay": 40.0,
+        "dist": "lognormal",
+        "param_a": 0.70,
+        "param_b": 1.0,
+        "wx_sens": 1.3,
+        "cancel": 0.003,
         "seasonal": {"winter": 0.9, "spring": 1.0, "summer": 1.0, "autumn": 1.1},
         "codes": ["91", "93", "31", "71"],
     },
     # Russia: severe winter (code 63), long-haul reactionary
     "Russia": {
-        "delay_prob": 0.20, "base_delay": 30.0, "dist": "lognormal",
-        "param_a": 0.80, "param_b": 1.0, "wx_sens": 1.6, "cancel": 0.006,
+        "delay_prob": 0.20,
+        "base_delay": 30.0,
+        "dist": "lognormal",
+        "param_a": 0.80,
+        "param_b": 1.0,
+        "wx_sens": 1.6,
+        "cancel": 0.006,
         "seasonal": {"winter": 1.5, "spring": 0.9, "summer": 0.8, "autumn": 1.0},
         "codes": ["63", "91", "71", "31"],
     },
     "CIS": {
-        "delay_prob": 0.22, "base_delay": 30.0, "dist": "lognormal",
-        "param_a": 0.80, "param_b": 1.0, "wx_sens": 1.5, "cancel": 0.006,
+        "delay_prob": 0.22,
+        "base_delay": 30.0,
+        "dist": "lognormal",
+        "param_a": 0.80,
+        "param_b": 1.0,
+        "wx_sens": 1.5,
+        "cancel": 0.006,
         "seasonal": {"winter": 1.4, "spring": 0.9, "summer": 0.9, "autumn": 1.0},
         "codes": ["63", "71", "91", "31"],
     },
     # South Asia: monsoon season (61), summer spikes
     "South Asia": {
-        "delay_prob": 0.22, "base_delay": 25.0, "dist": "weibull",
-        "param_a": 1.10, "param_b": 1.0, "wx_sens": 1.5, "cancel": 0.005,
+        "delay_prob": 0.22,
+        "base_delay": 25.0,
+        "dist": "weibull",
+        "param_a": 1.10,
+        "param_b": 1.0,
+        "wx_sens": 1.5,
+        "cancel": 0.005,
         "seasonal": {"winter": 0.9, "spring": 1.0, "summer": 1.6, "autumn": 1.0},
         "codes": ["61", "71", "93", "31"],
     },
     "Africa": {
-        "delay_prob": 0.25, "base_delay": 45.0, "dist": "lognormal",
-        "param_a": 0.90, "param_b": 1.0, "wx_sens": 1.3, "cancel": 0.008,
+        "delay_prob": 0.25,
+        "base_delay": 45.0,
+        "dist": "lognormal",
+        "param_a": 0.90,
+        "param_b": 1.0,
+        "wx_sens": 1.3,
+        "cancel": 0.008,
         "seasonal": {"winter": 1.0, "spring": 1.0, "summer": 0.9, "autumn": 1.0},
         "codes": ["91", "71", "31", "93"],
     },
     "Mongolia": {
-        "delay_prob": 0.20, "base_delay": 20.0, "dist": "lognormal",
-        "param_a": 0.70, "param_b": 1.0, "wx_sens": 1.5, "cancel": 0.006,
+        "delay_prob": 0.20,
+        "base_delay": 20.0,
+        "dist": "lognormal",
+        "param_a": 0.70,
+        "param_b": 1.0,
+        "wx_sens": 1.5,
+        "cancel": 0.006,
         "seasonal": {"winter": 1.5, "spring": 1.0, "summer": 0.8, "autumn": 0.9},
         "codes": ["63", "71", "31", "91"],
     },
 }
 
 _DEFAULT_PROFILE: dict = {
-    "delay_prob": 0.22, "base_delay": 25.0, "dist": "lognormal",
-    "param_a": 0.80, "param_b": 1.0, "wx_sens": 1.5, "cancel": 0.005,
+    "delay_prob": 0.22,
+    "base_delay": 25.0,
+    "dist": "lognormal",
+    "param_a": 0.80,
+    "param_b": 1.0,
+    "wx_sens": 1.5,
+    "cancel": 0.005,
     "seasonal": {"winter": 1.3, "spring": 0.9, "summer": 1.1, "autumn": 0.95},
     "codes": ["91", "63", "71", "31", "93"],
 }
@@ -218,18 +283,18 @@ _DEFAULT_PROFILE: dict = {
 # (airport, event_type, active_months, avg_events_per_month, severity_range)
 
 _WEATHER_CALENDAR: list[tuple[str, str, list[int], float, tuple[int, int]]] = [
-    ("ICN", "SNOW",         [12, 1, 2],             3.0, (1, 4)),
-    ("ICN", "FOG",          [11, 12, 1, 2, 3],      4.0, (1, 3)),
-    ("ICN", "TYPHOON",      [7, 8, 9],              0.5, (2, 5)),
-    ("ICN", "THUNDERSTORM", [5, 6, 7, 8, 9],        5.0, (1, 3)),
-    ("NRT", "SNOW",         [12, 1, 2],             2.0, (1, 3)),
-    ("NRT", "THUNDERSTORM", [7, 8],                 3.0, (1, 3)),
-    ("PEK", "FOG",          [10, 11, 12, 1, 2, 3],  5.0, (2, 4)),
-    ("PVG", "THUNDERSTORM", [5, 6, 7, 8, 9],        4.0, (1, 3)),
-    ("HKG", "TYPHOON",      [6, 7, 8, 9, 10],       0.7, (2, 5)),
+    ("ICN", "SNOW", [12, 1, 2], 3.0, (1, 4)),
+    ("ICN", "FOG", [11, 12, 1, 2, 3], 4.0, (1, 3)),
+    ("ICN", "TYPHOON", [7, 8, 9], 0.5, (2, 5)),
+    ("ICN", "THUNDERSTORM", [5, 6, 7, 8, 9], 5.0, (1, 3)),
+    ("NRT", "SNOW", [12, 1, 2], 2.0, (1, 3)),
+    ("NRT", "THUNDERSTORM", [7, 8], 3.0, (1, 3)),
+    ("PEK", "FOG", [10, 11, 12, 1, 2, 3], 5.0, (2, 4)),
+    ("PVG", "THUNDERSTORM", [5, 6, 7, 8, 9], 4.0, (1, 3)),
+    ("HKG", "TYPHOON", [6, 7, 8, 9, 10], 0.7, (2, 5)),
     ("SIN", "THUNDERSTORM", [3, 4, 5, 9, 10, 11, 12], 8.0, (1, 2)),
-    ("CDG", "FOG",          [10, 11, 12, 1, 2],     3.0, (1, 2)),
-    ("LHR", "FOG",          [10, 11, 12, 1],        4.0, (1, 2)),
+    ("CDG", "FOG", [10, 11, 12, 1, 2], 3.0, (1, 2)),
+    ("LHR", "FOG", [10, 11, 12, 1], 4.0, (1, 2)),
 ]
 
 _WEATHER_TEMPLATES: dict[str, list[str]] = {
@@ -337,21 +402,23 @@ class SyntheticDataGenerator:
         # Korean Air typical departure schedule patterns (local KST = UTC+9)
         # Maps region → list of (dep_hour_local, proportion)
         dep_patterns: dict[str, list[tuple[int, float]]] = {
-            "Japan":         [(7, 0.25), (10, 0.25), (14, 0.25), (18, 0.25)],
-            "China":         [(8, 0.3), (12, 0.3), (17, 0.4)],
-            "SE Asia":       [(0, 0.4), (10, 0.3), (22, 0.3)],
+            "Japan": [(7, 0.25), (10, 0.25), (14, 0.25), (18, 0.25)],
+            "China": [(8, 0.3), (12, 0.3), (17, 0.4)],
+            "SE Asia": [(0, 0.4), (10, 0.3), (22, 0.3)],
             "North America": [(10, 0.5), (13, 0.5)],
-            "Europe":        [(11, 0.5), (22, 0.5)],
-            "Middle East":   [(8, 0.5), (23, 0.5)],
-            "Oceania":       [(19, 1.0)],
-            "Russia":        [(9, 0.5), (15, 0.5)],
-            "CIS":           [(10, 1.0)],
-            "South Asia":    [(9, 1.0)],
-            "Africa":        [(20, 1.0)],
-            "Mongolia":      [(9, 1.0)],
+            "Europe": [(11, 0.5), (22, 0.5)],
+            "Middle East": [(8, 0.5), (23, 0.5)],
+            "Oceania": [(19, 1.0)],
+            "Russia": [(9, 0.5), (15, 0.5)],
+            "CIS": [(10, 1.0)],
+            "South Asia": [(9, 1.0)],
+            "Africa": [(20, 1.0)],
+            "Mongolia": [(9, 1.0)],
         }
 
-        console.print(f"[cyan]Generating flights for {len(date_range)} days × {len(routes)} routes...")
+        console.print(
+            f"[cyan]Generating flights for {len(date_range)} days × {len(routes)} routes..."
+        )
 
         for route in routes:
             params = route_params[route.route_id]
@@ -366,18 +433,25 @@ class SyntheticDataGenerator:
                     continue
 
                 for dep_hour, _proportion in pattern:
-
                     # scheduled times (UTC = KST - 9)
                     dep_min_offset = int(self.rng.integers(0, 60))
                     sch_dep = datetime(
-                        dep_date.year, dep_date.month, dep_date.day,
-                        (dep_hour - 9) % 24, dep_min_offset, tzinfo=timezone.utc,
+                        dep_date.year,
+                        dep_date.month,
+                        dep_date.day,
+                        (dep_hour - 9) % 24,
+                        dep_min_offset,
+                        tzinfo=timezone.utc,
                     )
                     sch_arr = sch_dep + timedelta(minutes=block_min)
 
                     # cancellation
                     if self.rng.random() < params.cancellation_rate:
-                        records.append(self._cancelled_flight(route, sch_dep, sch_arr, ac_type, registrations, block_min))
+                        records.append(
+                            self._cancelled_flight(
+                                route, sch_dep, sch_arr, ac_type, registrations, block_min
+                            )
+                        )
                         continue
 
                     # delay
@@ -397,32 +471,34 @@ class SyntheticDataGenerator:
                     reg = str(self.rng.choice(registrations))
                     lf = float(np.clip(self.rng.normal(0.82, 0.08), 0.40, 1.0))
 
-                    records.append({
-                        "flight_id": str(uuid.uuid4()),
-                        "flight_number": self._flight_number(route),
-                        "route_id": route.route_id,
-                        "origin_iata": route.origin_iata,
-                        "dest_iata": route.dest_iata,
-                        "aircraft_registration": reg,
-                        "aircraft_type": ac_type,
-                        "scheduled_dep_utc": sch_dep,
-                        "scheduled_arr_utc": sch_arr,
-                        "actual_dep_utc": sch_dep + timedelta(minutes=dep_delay),
-                        "actual_arr_utc": sch_arr + timedelta(minutes=arr_delay),
-                        "block_time_minutes": block_min,
-                        "distance_nm": route.distance_nm,
-                        "dep_delay_minutes": dep_delay,
-                        "arr_delay_minutes": arr_delay,
-                        "delay_code": delay_code,
-                        "delay_subcode": None,
-                        "delay_responsibility": self._responsibility(delay_code),
-                        "pax_boarded": self._pax(ac_type, lf),
-                        "load_factor": round(lf, 3),
-                        "fuel_uplift_kg": self._fuel(route.distance_nm, ac_type),
-                        "cargo_kg": int(self.rng.integers(500, 8000)),
-                        "status": "ARR",
-                        "cancel_reason": None,
-                    })
+                    records.append(
+                        {
+                            "flight_id": str(uuid.uuid4()),
+                            "flight_number": self._flight_number(route),
+                            "route_id": route.route_id,
+                            "origin_iata": route.origin_iata,
+                            "dest_iata": route.dest_iata,
+                            "aircraft_registration": reg,
+                            "aircraft_type": ac_type,
+                            "scheduled_dep_utc": sch_dep,
+                            "scheduled_arr_utc": sch_arr,
+                            "actual_dep_utc": sch_dep + timedelta(minutes=dep_delay),
+                            "actual_arr_utc": sch_arr + timedelta(minutes=arr_delay),
+                            "block_time_minutes": block_min,
+                            "distance_nm": route.distance_nm,
+                            "dep_delay_minutes": dep_delay,
+                            "arr_delay_minutes": arr_delay,
+                            "delay_code": delay_code,
+                            "delay_subcode": None,
+                            "delay_responsibility": self._responsibility(delay_code),
+                            "pax_boarded": self._pax(ac_type, lf),
+                            "load_factor": round(lf, 3),
+                            "fuel_uplift_kg": self._fuel(route.distance_nm, ac_type),
+                            "cargo_kg": int(self.rng.integers(500, 8000)),
+                            "status": "ARR",
+                            "cancel_reason": None,
+                        }
+                    )
 
         df = pd.DataFrame(records)
         console.print(f"[green]Generated {len(df):,} flight records.")
@@ -462,15 +538,24 @@ class SyntheticDataGenerator:
 
     def _pax(self, ac_type: str, lf: float) -> int:
         caps = {
-            "B737-800": 155, "A321neo": 186, "B777-300ER": 325,
-            "B787-9": 258, "B747-8i": 368,
+            "B737-800": 155,
+            "A321neo": 186,
+            "B777-300ER": 325,
+            "B787-9": 258,
+            "B747-8i": 368,
         }
         cap = caps.get(ac_type, 200)
         return int(cap * lf * self.rng.uniform(0.95, 1.0))
 
     def _fuel(self, distance_nm: int, ac_type: str) -> int:
         # rough kg/nm burn rates
-        burn = {"B737-800": 6.5, "A321neo": 5.8, "B777-300ER": 18.0, "B787-9": 14.0, "B747-8i": 26.0}
+        burn = {
+            "B737-800": 6.5,
+            "A321neo": 5.8,
+            "B777-300ER": 18.0,
+            "B787-9": 14.0,
+            "B747-8i": 26.0,
+        }
         rate = burn.get(ac_type, 10.0)
         return int(distance_nm * rate * self.rng.uniform(0.92, 1.08))
 
@@ -482,17 +567,30 @@ class SyntheticDataGenerator:
         self._fn_counter[key] = n + 1
         # Real KE flight numbers: Japan 700s, China 800s, Americas 001-099, Europe 900s, etc.
         base = {
-            "Japan": 700, "China": 800, "SE Asia": 600,
-            "North America": 1, "Europe": 900, "Middle East": 950,
-            "Oceania": 120, "Russia": 920, "CIS": 880,
-            "South Asia": 470, "Africa": 100, "Mongolia": 870,
+            "Japan": 700,
+            "China": 800,
+            "SE Asia": 600,
+            "North America": 1,
+            "Europe": 900,
+            "Middle East": 950,
+            "Oceania": 120,
+            "Russia": 920,
+            "CIS": 880,
+            "South Asia": 470,
+            "Africa": 100,
+            "Mongolia": 870,
         }.get(route.region, 500)
         num = (base + list(FLEET_BY_TYPE.keys()).index(route.aircraft_types[0]) * 2 + n % 2) % 9999
         return f"KE{num:04d}"
 
     def _cancelled_flight(
-        self, route: RouteDefinition, sch_dep: datetime, sch_arr: datetime,
-        ac_type: str, registrations: list[str], block_min: int
+        self,
+        route: RouteDefinition,
+        sch_dep: datetime,
+        sch_arr: datetime,
+        ac_type: str,
+        registrations: list[str],
+        block_min: int,
     ) -> dict:
         reg = str(self.rng.choice(registrations))
         return {
@@ -552,20 +650,23 @@ class SyntheticDataGenerator:
 
                     hour = int(self.rng.integers(0, 24))
                     duration_h = float(self.rng.uniform(1.0, 14.0))
-                    start_dt = datetime(event_date.year, event_date.month, event_date.day,
-                                        hour, tzinfo=timezone.utc)
+                    start_dt = datetime(
+                        event_date.year, event_date.month, event_date.day, hour, tzinfo=timezone.utc
+                    )
                     end_dt = start_dt + timedelta(hours=duration_h)
                     severity = int(self.rng.integers(sev_range[0], sev_range[1] + 1))
 
-                    records.append({
-                        "event_id": str(uuid.uuid4()),
-                        "event_type": event_type,
-                        "affected_airport": airport,
-                        "start_utc": start_dt,
-                        "end_utc": end_dt,
-                        "severity": severity,
-                        "description": self._weather_description(event_type, airport, severity),
-                    })
+                    records.append(
+                        {
+                            "event_id": str(uuid.uuid4()),
+                            "event_type": event_type,
+                            "affected_airport": airport,
+                            "start_utc": start_dt,
+                            "end_utc": end_dt,
+                            "severity": severity,
+                            "description": self._weather_description(event_type, airport, severity),
+                        }
+                    )
 
             cur_month += 1
             if cur_month > 12:
@@ -606,6 +707,7 @@ class SyntheticDataGenerator:
 
             # Insert routes
             from argos.data_gen.routes import ROUTES as ALL_ROUTES
+
             routes_rows = [
                 {
                     "route_id": r.route_id,
@@ -628,12 +730,14 @@ class SyntheticDataGenerator:
             ra_rows = []
             for r in ALL_ROUTES:
                 for priority, (ac_type, bt) in enumerate(r.block_times.items()):
-                    ra_rows.append({
-                        "route_id": r.route_id,
-                        "aircraft_type": ac_type,
-                        "block_time_min": bt,
-                        "priority": priority,
-                    })
+                    ra_rows.append(
+                        {
+                            "route_id": r.route_id,
+                            "aircraft_type": ac_type,
+                            "block_time_min": bt,
+                            "priority": priority,
+                        }
+                    )
             ra_df = pd.DataFrame(ra_rows)
             con.execute("DELETE FROM route_aircraft")
             con.execute("INSERT INTO route_aircraft SELECT * FROM ra_df")
@@ -648,12 +752,30 @@ class SyntheticDataGenerator:
             # Insert flights
             con.execute("DELETE FROM flights WHERE TRUE")
             flight_cols = [
-                "flight_id", "flight_number", "route_id", "origin_iata", "dest_iata",
-                "aircraft_registration", "aircraft_type", "scheduled_dep_utc", "scheduled_arr_utc",
-                "actual_dep_utc", "actual_arr_utc", "block_time_minutes", "distance_nm",
-                "dep_delay_minutes", "arr_delay_minutes", "delay_code", "delay_subcode",
-                "delay_responsibility", "pax_boarded", "load_factor", "fuel_uplift_kg",
-                "cargo_kg", "status", "cancel_reason",
+                "flight_id",
+                "flight_number",
+                "route_id",
+                "origin_iata",
+                "dest_iata",
+                "aircraft_registration",
+                "aircraft_type",
+                "scheduled_dep_utc",
+                "scheduled_arr_utc",
+                "actual_dep_utc",
+                "actual_arr_utc",
+                "block_time_minutes",
+                "distance_nm",
+                "dep_delay_minutes",
+                "arr_delay_minutes",
+                "delay_code",
+                "delay_subcode",
+                "delay_responsibility",
+                "pax_boarded",
+                "load_factor",
+                "fuel_uplift_kg",
+                "cargo_kg",
+                "status",
+                "cancel_reason",
             ]
             insert_df = flights_df[flight_cols]
             con.execute("INSERT INTO flights SELECT * FROM insert_df")

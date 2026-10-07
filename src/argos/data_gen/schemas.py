@@ -19,28 +19,28 @@ class FlightStatus(str, Enum):
 
 
 class DelayResponsibility(str, Enum):
-    AIRLINE = "A"    # Carrier responsible
-    AIRPORT = "AP"   # Airport/handling responsible
-    ATC = "ATC"      # Air traffic control
-    WEATHER = "W"    # Weather
+    AIRLINE = "A"  # Carrier responsible
+    AIRPORT = "AP"  # Airport/handling responsible
+    ATC = "ATC"  # Air traffic control
+    WEATHER = "W"  # Weather
     OTHER = "O"
 
 
 class Aircraft(BaseModel):
-    registration: str            # e.g. "HL7700"
-    aircraft_type: str           # e.g. "B777-300ER"
-    icao_type: str               # e.g. "B77W"
+    registration: str  # e.g. "HL7700"
+    aircraft_type: str  # e.g. "B777-300ER"
+    icao_type: str  # e.g. "B77W"
     manufacturer_serial: str
     delivery_date: datetime
-    seat_config_y: int           # economy seats
-    seat_config_c: int           # business seats
-    seat_config_f: int = 0       # first class seats
+    seat_config_y: int  # economy seats
+    seat_config_c: int  # business seats
+    seat_config_f: int = 0  # first class seats
 
 
 class Flight(BaseModel):
-    flight_id: str               # UUID
-    flight_number: str           # e.g. "KE001"
-    route_id: str                # e.g. "ICN-NRT"
+    flight_id: str  # UUID
+    flight_number: str  # e.g. "KE001"
+    route_id: str  # e.g. "ICN-NRT"
     origin_iata: str
     dest_iata: str
     aircraft_registration: str
@@ -51,17 +51,17 @@ class Flight(BaseModel):
     actual_dep_utc: datetime | None = None
     actual_arr_utc: datetime | None = None
 
-    block_time_minutes: int      # scheduled block time
+    block_time_minutes: int  # scheduled block time
     distance_nm: int
 
-    dep_delay_minutes: int = 0   # departure delay (negative = early)
+    dep_delay_minutes: int = 0  # departure delay (negative = early)
     arr_delay_minutes: int = 0
-    delay_code: str | None = None          # IATA 2-digit code "00"–"99"
+    delay_code: str | None = None  # IATA 2-digit code "00"–"99"
     delay_subcode: str | None = None
     delay_responsibility: DelayResponsibility | None = None
 
     pax_boarded: int = 0
-    load_factor: float = 0.0     # 0.0–1.0
+    load_factor: float = 0.0  # 0.0–1.0
     fuel_uplift_kg: int = 0
     cargo_kg: int = 0
 
@@ -71,15 +71,16 @@ class Flight(BaseModel):
 
 class RouteParams(BaseModel):
     """Rule-based realistic parameters per route."""
+
     route_id: str
     base_delay_minutes: float = Field(ge=0)
     delay_probability: float = Field(ge=0, le=1)
     delay_distribution: str = Field(pattern="^(lognormal|exponential|weibull)$")
-    dist_param_a: float          # shape / scale A
-    dist_param_b: float          # shape / scale B
+    dist_param_a: float  # shape / scale A
+    dist_param_b: float  # shape / scale B
     weather_sensitivity: float = Field(ge=1.0, le=5.0)
-    seasonal_factors: dict[str, float]   # keys: winter/spring/summer/autumn
-    top_delay_codes: list[str]           # primary IATA delay codes
+    seasonal_factors: dict[str, float]  # keys: winter/spring/summer/autumn
+    top_delay_codes: list[str]  # primary IATA delay codes
     cancellation_rate: float = Field(ge=0, le=0.05)
 
 

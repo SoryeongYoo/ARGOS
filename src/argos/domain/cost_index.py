@@ -20,11 +20,11 @@ def ci_to_mach(ci: int, aircraft_type: str, altitude_fl: int = 350) -> float:
     """
     profiles = {
         #              MRC,   MMO,  ci_scale
-        "B737-800":  (0.785, 0.820, 200),
-        "A321neo":   (0.780, 0.820, 200),
-        "B777-300ER":(0.830, 0.890, 300),
-        "B787-9":    (0.845, 0.900, 300),
-        "B747-8i":   (0.845, 0.900, 300),
+        "B737-800": (0.785, 0.820, 200),
+        "A321neo": (0.780, 0.820, 200),
+        "B777-300ER": (0.830, 0.890, 300),
+        "B787-9": (0.845, 0.900, 300),
+        "B747-8i": (0.845, 0.900, 300),
     }
     mrc, mmo, scale = profiles.get(aircraft_type, (0.800, 0.860, 250))
     fraction = min(ci / scale, 1.0)
@@ -44,11 +44,11 @@ def fuel_penalty_kg(
     """
     fuel_rates = {
         # kg/minute burn at reference CI, and kg burned per CI unit above reference
-        "B737-800":   (55.0,  0.05),
-        "A321neo":    (52.0,  0.04),
+        "B737-800": (55.0, 0.05),
+        "A321neo": (52.0, 0.04),
         "B777-300ER": (185.0, 0.30),
-        "B787-9":     (145.0, 0.22),
-        "B747-8i":    (245.0, 0.40),
+        "B787-9": (145.0, 0.22),
+        "B747-8i": (245.0, 0.40),
     }
     base_rate, ci_fuel_rate = fuel_rates.get(aircraft_type, (100.0, 0.15))
     delta_ci = ci - reference_ci
@@ -66,6 +66,7 @@ def time_saving_minutes(
     Positive = time saved (higher CI = faster). Negative = slower.
     """
     from argos.domain.block_time import calculate_block_time
+
     ref_block = calculate_block_time(distance_nm, aircraft_type, ci=reference_ci)
     new_block = calculate_block_time(distance_nm, aircraft_type, ci=ci)
     return ref_block - new_block
@@ -90,7 +91,13 @@ def optimal_ci(
     for ci in range(0, 1000, 10):
         block = calculate_block_time(distance_nm, aircraft_type, ci=ci)
         extra_fuel = fuel_penalty_kg(ci, block, aircraft_type)
-        base_fuel = block * {"B737-800": 55, "A321neo": 52, "B777-300ER": 185, "B787-9": 145, "B747-8i": 245}.get(aircraft_type, 100)
+        base_fuel = block * {
+            "B737-800": 55,
+            "A321neo": 52,
+            "B777-300ER": 185,
+            "B787-9": 145,
+            "B747-8i": 245,
+        }.get(aircraft_type, 100)
         total_fuel = base_fuel + extra_fuel
         cost = total_fuel * fuel_price_usd_per_kg + block * total_time_cost_per_min
         if cost < best_cost:

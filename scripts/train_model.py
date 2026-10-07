@@ -30,15 +30,22 @@ console = Console()
 @app.command()
 def train(
     cutoff: Optional[str] = typer.Option(
-        None, "--cutoff", "-c",
+        None,
+        "--cutoff",
+        "-c",
         help="Train/test split date YYYY-MM-DD. Default: last 20%% of data by date.",
     ),
     model_path: str = typer.Option(
-        "models/delay_predictor.lgb", "--model-path", "-m",
+        "models/delay_predictor.lgb",
+        "--model-path",
+        "-m",
         help="Output path for trained model file.",
     ),
     num_boost_round: int = typer.Option(
-        600, "--rounds", "-n", help="Maximum LightGBM boosting rounds.",
+        600,
+        "--rounds",
+        "-n",
+        help="Maximum LightGBM boosting rounds.",
     ),
 ) -> None:
     settings = get_settings()
@@ -114,13 +121,13 @@ def train(
     metrics_table = Table(title="Test-Set Metrics", show_header=True, header_style="bold")
     metrics_table.add_column("Metric", style="cyan")
     metrics_table.add_column("Value", justify="right")
-    metrics_table.add_row("ROC-AUC",               f"{test_metrics['roc_auc']:.4f}")
-    metrics_table.add_row("Avg Precision (AP)",    f"{test_metrics['avg_precision']:.4f}")
-    metrics_table.add_row("Precision (>=15 min)",  f"{test_metrics['precision']:.3f}")
-    metrics_table.add_row("Recall (>=15 min)",     f"{test_metrics['recall']:.3f}")
-    metrics_table.add_row("F1 (>=15 min)",         f"{test_metrics['f1']:.3f}")
-    metrics_table.add_row("Actual delay rate",     f"{test_metrics['delay_rate_actual']:.1%}")
-    metrics_table.add_row("Predicted delay rate",  f"{test_metrics['delay_rate_predicted']:.1%}")
+    metrics_table.add_row("ROC-AUC", f"{test_metrics['roc_auc']:.4f}")
+    metrics_table.add_row("Avg Precision (AP)", f"{test_metrics['avg_precision']:.4f}")
+    metrics_table.add_row("Precision (>=15 min)", f"{test_metrics['precision']:.3f}")
+    metrics_table.add_row("Recall (>=15 min)", f"{test_metrics['recall']:.3f}")
+    metrics_table.add_row("F1 (>=15 min)", f"{test_metrics['f1']:.3f}")
+    metrics_table.add_row("Actual delay rate", f"{test_metrics['delay_rate_actual']:.1%}")
+    metrics_table.add_row("Predicted delay rate", f"{test_metrics['delay_rate_predicted']:.1%}")
     console.print(metrics_table)
 
     imp_table = Table(title="Top Feature Importance (gain)", show_header=True, header_style="bold")

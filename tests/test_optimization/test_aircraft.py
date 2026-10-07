@@ -64,6 +64,7 @@ def _flight(
 
 # ── Domain helper tests ───────────────────────────────────────────────────────
 
+
 def test_min_turn_narrow():
     assert _min_turn("B737-800") == 45
     assert _min_turn("A321neo") == 45
@@ -90,6 +91,7 @@ def test_compatible_types_widebody():
 
 
 # ── Basic assignment tests ────────────────────────────────────────────────────
+
 
 def test_single_flight_single_aircraft():
     tasks = [_flight("F1", "KE001", "B737-800", dep_hour=9)]
@@ -129,7 +131,7 @@ def test_two_flights_two_aircraft_no_conflict():
     # F1 footprint: dep=08:00, 2*120+2*45=330min → free at 13:30
     # F2 dep=14:00 → no conflict; one aircraft can cover both
     tasks = [
-        _flight("F1", "KE001", "B737-800", dep_hour=8,  block=120),
+        _flight("F1", "KE001", "B737-800", dep_hour=8, block=120),
         _flight("F2", "KE002", "B737-800", dep_hour=14, block=120),
     ]
     fleet = [
@@ -149,7 +151,7 @@ def test_no_overlap_same_aircraft():
     # F1 departs 09:00, block=180min → ICN-ready ~15:00 (180+180+60+60=480min)
     # F2 departs 10:00 — overlaps with F1's footprint
     tasks = [
-        _flight("F1", "KE001", "B737-800", dep_hour=9,  block=180, pax=300),
+        _flight("F1", "KE001", "B737-800", dep_hour=9, block=180, pax=300),
         _flight("F2", "KE002", "B737-800", dep_hour=10, block=180, pax=100),
     ]
     fleet = [_aircraft("HL7401", "B737-800")]  # only one aircraft
@@ -183,7 +185,7 @@ def test_empty_aircraft_returns_infeasible():
 def test_priority_breaks_pax_tie():
     """Higher-priority flight wins the aircraft even with same PAX."""
     tasks = [
-        _flight("F1", "KE001", "B737-800", dep_hour=9,  block=180, pax=200, priority=2),
+        _flight("F1", "KE001", "B737-800", dep_hour=9, block=180, pax=200, priority=2),
         _flight("F2", "KE002", "B737-800", dep_hour=10, block=180, pax=200, priority=1),
     ]
     fleet = [_aircraft("HL7401", "B737-800")]
@@ -220,14 +222,15 @@ def test_summary_contains_status(capsys):
 
 # ── Multi-aircraft scheduling ─────────────────────────────────────────────────
 
+
 def test_three_flights_two_aircraft_sequential():
     """Aircraft A handles F1+F3 (non-overlapping), aircraft B handles F2."""
     # block=90, turn=45 narrow → footprint = 2*90+2*45 = 270 min = 4.5 hr
     # F1 dep 06:00 → free ~10:30; F3 dep 12:00 → OK on same aircraft
     # F2 dep 07:00 → overlaps with F1, needs different aircraft
     tasks = [
-        _flight("F1", "KE001", "B737-800", dep_hour=6,  block=90, pax=150),
-        _flight("F2", "KE002", "B737-800", dep_hour=7,  block=90, pax=150),
+        _flight("F1", "KE001", "B737-800", dep_hour=6, block=90, pax=150),
+        _flight("F2", "KE002", "B737-800", dep_hour=7, block=90, pax=150),
         _flight("F3", "KE003", "B737-800", dep_hour=12, block=90, pax=150),
     ]
     fleet = [

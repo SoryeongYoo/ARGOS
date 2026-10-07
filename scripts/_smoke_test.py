@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(0, "src")
 
 from argos.data_gen.routes import ROUTES, ROUTE_MAP

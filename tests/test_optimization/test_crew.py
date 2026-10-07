@@ -15,7 +15,7 @@ from argos.optimization.crew import (
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
-OP_DAY  = date(2024, 6, 15)
+OP_DAY = date(2024, 6, 15)
 MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
 
 
@@ -67,6 +67,7 @@ def _fo(cid: str, rating: str = "B737-800", avail_hour: int = 0) -> CrewMember:
 
 # ── Helper function tests ─────────────────────────────────────────────────────
 
+
 def test_is_rated_same_type():
     assert _is_rated("B737-800", "B737-800") is True
 
@@ -97,6 +98,7 @@ def test_crew_footprint_wide():
 
 
 # ── Basic assignment tests ────────────────────────────────────────────────────
+
 
 def test_single_leg_gets_capt_and_fo():
     legs = [_leg("F1", "KE101")]
@@ -143,7 +145,7 @@ def test_same_crew_not_capt_and_fo():
 
     # Can't fill both slots with one person
     capt = result.captain_assignments.get("F1")
-    fo   = result.fo_assignments.get("F1")
+    fo = result.fo_assignments.get("F1")
     if capt and fo:
         assert capt != fo
 
@@ -153,7 +155,7 @@ def test_no_overlap_per_crew():
     # F1 dep=09:00, block=180 → footprint ends around 15:15
     # F2 dep=10:00 overlaps
     legs = [
-        _leg("F1", "KE101", dep_hour=9,  block=180, pax=300),
+        _leg("F1", "KE101", dep_hour=9, block=180, pax=300),
         _leg("F2", "KE102", dep_hour=10, block=180, pax=100),
     ]
     crew = [_capt("C001"), _fo("F001")]  # one set only
@@ -200,12 +202,14 @@ def test_crew_unavailable_before_departure():
 def test_two_legs_require_separate_crew():
     """Two simultaneous legs need separate crew pairs."""
     legs = [
-        _leg("F1", "KE101", dep_hour=9,  block=180),
-        _leg("F2", "KE102", dep_hour=9,  block=180),
+        _leg("F1", "KE101", dep_hour=9, block=180),
+        _leg("F2", "KE102", dep_hour=9, block=180),
     ]
     crew = [
-        _capt("C001"), _capt("C002"),
-        _fo("F001"),   _fo("F002"),
+        _capt("C001"),
+        _capt("C002"),
+        _fo("F001"),
+        _fo("F002"),
     ]
     assigner = CrewAssigner()
     result = assigner.solve(legs, crew, OP_DAY)
@@ -233,6 +237,7 @@ def test_coverage_rate():
 
 
 # ── FAR 117 tests ─────────────────────────────────────────────────────────────
+
 
 def test_far117_validation_runs():
     """Post-solve FAR 117 check always produces DutyPeriod objects."""
@@ -262,17 +267,20 @@ def test_far117_legal_short_duty():
 
 # ── generate_crew helper ──────────────────────────────────────────────────────
 
+
 def test_generate_crew_counts():
     pool = CrewAssigner.generate_crew(
-        n_capt_narrow=5, n_fo_narrow=5,
-        n_capt_wide=3,   n_fo_wide=3,
+        n_capt_narrow=5,
+        n_fo_narrow=5,
+        n_capt_wide=3,
+        n_fo_wide=3,
         op_day=OP_DAY,
     )
     assert len(pool) == 16
-    capts  = [c for c in pool if c.role == "CAPT"]
-    fos    = [c for c in pool if c.role == "FO"]
+    capts = [c for c in pool if c.role == "CAPT"]
+    fos = [c for c in pool if c.role == "FO"]
     narrow = [c for c in pool if c.type_rating == "B737-800"]
-    wide   = [c for c in pool if c.type_rating == "B777-300ER"]
+    wide = [c for c in pool if c.type_rating == "B777-300ER"]
     assert len(capts) == 8
     assert len(fos) == 8
     assert len(narrow) == 10

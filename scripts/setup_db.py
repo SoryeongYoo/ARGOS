@@ -25,6 +25,7 @@ def main() -> None:
             con.execute(ddl)
 
         import pandas as pd
+
         codes_df = pd.DataFrame(
             [{"code": k, "description": v} for k, v in IATA_DELAY_CODES.items()]
         )

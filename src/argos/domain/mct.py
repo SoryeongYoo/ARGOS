@@ -14,9 +14,9 @@ class FlightType(str, Enum):
 # MCT matrix at ICN: (arriving_type, departing_type) → minutes
 _ICN_MCT: dict[tuple[FlightType, FlightType], int] = {
     (FlightType.INTERNATIONAL, FlightType.INTERNATIONAL): 60,
-    (FlightType.INTERNATIONAL, FlightType.DOMESTIC):      45,
-    (FlightType.DOMESTIC,      FlightType.INTERNATIONAL): 60,
-    (FlightType.DOMESTIC,      FlightType.DOMESTIC):      30,
+    (FlightType.INTERNATIONAL, FlightType.DOMESTIC): 45,
+    (FlightType.DOMESTIC, FlightType.INTERNATIONAL): 60,
+    (FlightType.DOMESTIC, FlightType.DOMESTIC): 30,
 }
 
 # ICN terminal assignments (simplified — T1 vs T2)

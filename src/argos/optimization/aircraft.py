@@ -38,19 +38,19 @@ from ortools.sat.python import cp_model
 # ── Domain constants ──────────────────────────────────────────────────────────
 
 _WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
-_MIN_TURN_NARROW = 45    # minutes
-_MIN_TURN_WIDE   = 60    # minutes
+_MIN_TURN_NARROW = 45  # minutes
+_MIN_TURN_WIDE = 60  # minutes
 _REPOSITIONING_MINUTES = 120  # conservative ferry-flight estimate
 
 _TYPE_COMPAT: dict[str, list[str]] = {
-    "B737-800":   ["A321neo"],
-    "A321neo":    ["B737-800"],
+    "B737-800": ["A321neo"],
+    "A321neo": ["B737-800"],
     "B777-300ER": ["B787-9", "B747-8i"],
-    "B787-9":     ["B777-300ER"],
-    "B747-8i":    ["B777-300ER", "B787-9"],
+    "B787-9": ["B777-300ER"],
+    "B747-8i": ["B777-300ER", "B787-9"],
 }
 
-_SUBSTITUTION_PENALTY = 50   # PAX-equivalent cost for cross-type substitution
+_SUBSTITUTION_PENALTY = 50  # PAX-equivalent cost for cross-type substitution
 
 
 def _min_turn(aircraft_type: str) -> int:
@@ -64,35 +64,38 @@ def _compatible_types(required_type: str) -> list[str]:
 
 # ── Data classes ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class FlightTask:
     """A flight leg that needs an aircraft assignment."""
+
     flight_id: str
     flight_number: str
     route_id: str
-    required_type: str          # primary required aircraft type
+    required_type: str  # primary required aircraft type
     origin_iata: str
     dest_iata: str
     scheduled_dep_utc: datetime
     block_time_minutes: int
     pax_boarded: int
-    priority: int = 1           # 1 = normal; higher = more critical to protect
+    priority: int = 1  # 1 = normal; higher = more critical to protect
 
 
 @dataclass
 class AircraftResource:
     """An available aircraft tail."""
+
     registration: str
     aircraft_type: str
-    position_iata: str          # current/last-known airport
+    position_iata: str  # current/last-known airport
     available_from_utc: datetime
-    is_spare: bool = False      # True if not in the original day's schedule
+    is_spare: bool = False  # True if not in the original day's schedule
 
 
 @dataclass
 class AssignmentResult:
-    assignments: dict[str, str]   # flight_id → registration
-    unassigned: list[str]         # flight_ids that could not be covered
+    assignments: dict[str, str]  # flight_id → registration
+    unassigned: list[str]  # flight_ids that could not be covered
     solve_time_seconds: float
     status: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"]
 
@@ -104,8 +107,7 @@ class AssignmentResult:
     def summary(self) -> str:
         lines = [
             f"Status : {self.status}",
-            f"Covered: {len(self.assignments)} flights  "
-            f"({self.coverage_rate:.1%})",
+            f"Covered: {len(self.assignments)} flights  ({self.coverage_rate:.1%})",
             f"Missed : {len(self.unassigned)} flights",
             f"Solved in {self.solve_time_seconds:.2f}s",
         ]
@@ -117,6 +119,7 @@ class AssignmentResult:
 
 
 # ── Optimizer ─────────────────────────────────────────────────────────────────
+
 
 class AircraftAssigner:
     """CP-SAT aircraft-to-flight assignment optimizer.
@@ -177,8 +180,7 @@ class AircraftAssigner:
 
         # ── Coverage constraint: at most one aircraft per flight ───────────────
         for f_idx in range(len(tasks)):
-            covered_by = [x[f_idx, a_idx] for a_idx in range(len(aircraft))
-                          if (f_idx, a_idx) in x]
+            covered_by = [x[f_idx, a_idx] for a_idx in range(len(aircraft)) if (f_idx, a_idx) in x]
             if covered_by:
                 model.Add(sum(covered_by) <= 1)
 
@@ -189,12 +191,15 @@ class AircraftAssigner:
             for f_idx, task in enumerate(tasks):
                 if (f_idx, a_idx) not in x:
                     continue
-                dep_min   = to_min(task.scheduled_dep_utc)
+                dep_min = to_min(task.scheduled_dep_utc)
                 footprint = 2 * task.block_time_minutes + 2 * _min_turn(ac.aircraft_type)
-                end_min   = min(dep_min + footprint, HORIZON)
+                end_min = min(dep_min + footprint, HORIZON)
                 itv = model.NewOptionalIntervalVar(
-                    dep_min, footprint, end_min,
-                    x[f_idx, a_idx], f"itv_{f_idx}_{a_idx}",
+                    dep_min,
+                    footprint,
+                    end_min,
+                    x[f_idx, a_idx],
+                    f"itv_{f_idx}_{a_idx}",
                 )
                 intervals.append(itv)
             if len(intervals) >= 2:
@@ -204,7 +209,7 @@ class AircraftAssigner:
         obj_terms: list[cp_model.LinearExpr] = []
         for (f_idx, a_idx), var in x.items():
             task = tasks[f_idx]
-            ac   = aircraft[a_idx]
+            ac = aircraft[a_idx]
             weight = task.pax_boarded * task.priority
             if ac.aircraft_type != task.required_type:
                 weight = max(0, weight - _SUBSTITUTION_PENALTY)
@@ -215,16 +220,16 @@ class AircraftAssigner:
         # ── Solve ──────────────────────────────────────────────────────────────
         solver = cp_model.CpSolver()
         solver.parameters.max_time_in_seconds = time_limit_seconds
-        solver.parameters.num_search_workers  = 4
+        solver.parameters.num_search_workers = 4
         cp_status = solver.Solve(model)
 
         solve_time = time.perf_counter() - t0
 
         _STATUS_MAP = {
-            cp_model.OPTIMAL:    "OPTIMAL",
-            cp_model.FEASIBLE:   "FEASIBLE",
+            cp_model.OPTIMAL: "OPTIMAL",
+            cp_model.FEASIBLE: "FEASIBLE",
             cp_model.INFEASIBLE: "INFEASIBLE",
-            cp_model.UNKNOWN:    "UNKNOWN",
+            cp_model.UNKNOWN: "UNKNOWN",
         }
         status_str: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"] = (
             _STATUS_MAP.get(cp_status, "TIMEOUT")  # type: ignore[assignment]
@@ -265,11 +270,12 @@ class AircraftAssigner:
                 Pass None to reassign the entire day's schedule.
         """
         day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=timezone.utc)
-        day_end   = day_start + timedelta(days=1)
+        day_end = day_start + timedelta(days=1)
 
         con = duckdb.connect(str(db_path), read_only=True)
         try:
-            flt_df = con.execute("""
+            flt_df = con.execute(
+                """
                 SELECT flight_id, flight_number, route_id,
                        aircraft_type, origin_iata, dest_iata,
                        scheduled_dep_utc, block_time_minutes,
@@ -279,20 +285,27 @@ class AircraftAssigner:
                   AND scheduled_dep_utc <  ?
                   AND status != 'CNX'
                 ORDER BY scheduled_dep_utc
-            """, [day_start, day_end]).df()
+            """,
+                [day_start, day_end],
+            ).df()
 
             ac_df = con.execute(
                 "SELECT registration, aircraft_type FROM aircraft ORDER BY registration"
             ).df()
 
             busy_regs: set[str] = set(
-                con.execute("""
+                con.execute(
+                    """
                     SELECT DISTINCT aircraft_registration
                     FROM flights
                     WHERE scheduled_dep_utc >= ?
                       AND scheduled_dep_utc <  ?
                       AND status != 'CNX'
-                """, [day_start, day_end]).df()["aircraft_registration"].tolist()
+                """,
+                    [day_start, day_end],
+                )
+                .df()["aircraft_registration"]
+                .tolist()
             )
         finally:
             con.close()
@@ -304,26 +317,26 @@ class AircraftAssigner:
 
         tasks = [
             FlightTask(
-                flight_id       = str(row["flight_id"]),
-                flight_number   = str(row["flight_number"]),
-                route_id        = str(row["route_id"]),
-                required_type   = str(row["aircraft_type"]),
-                origin_iata     = str(row["origin_iata"]),
-                dest_iata       = str(row["dest_iata"]),
-                scheduled_dep_utc = row["scheduled_dep_utc"].to_pydatetime(),
-                block_time_minutes = int(row["block_time_minutes"]),
-                pax_boarded     = int(row["pax_boarded"]),
+                flight_id=str(row["flight_id"]),
+                flight_number=str(row["flight_number"]),
+                route_id=str(row["route_id"]),
+                required_type=str(row["aircraft_type"]),
+                origin_iata=str(row["origin_iata"]),
+                dest_iata=str(row["dest_iata"]),
+                scheduled_dep_utc=row["scheduled_dep_utc"].to_pydatetime(),
+                block_time_minutes=int(row["block_time_minutes"]),
+                pax_boarded=int(row["pax_boarded"]),
             )
             for _, row in flt_df.iterrows()
         ]
 
         resources = [
             AircraftResource(
-                registration    = str(row["registration"]),
-                aircraft_type   = str(row["aircraft_type"]),
-                position_iata   = "ICN",
-                available_from_utc = day_start,
-                is_spare        = (str(row["registration"]) not in busy_regs),
+                registration=str(row["registration"]),
+                aircraft_type=str(row["aircraft_type"]),
+                position_iata="ICN",
+                available_from_utc=day_start,
+                is_spare=(str(row["registration"]) not in busy_regs),
             )
             for _, row in ac_df.iterrows()
         ]

@@ -43,36 +43,66 @@ KST = timezone(timedelta(hours=9))
 # Static airport lat/lon for route map rendering (routes table has no geo columns)
 AIRPORT_COORDS: dict[str, tuple[float, float]] = {
     "ICN": (37.4691, 126.4505),
-    "AKL": (-37.0082, 174.7917), "ALA": (43.3521, 77.0405),
-    "AMS": (52.3086,   4.7639),  "ATL": (33.6367, -84.4281),
-    "AUH": (24.4330,  54.6511),  "BKK": (13.6900, 100.7501),
-    "BOM": (19.0896,  72.8656),  "CAN": (23.3924, 113.2988),
-    "CDG": (49.0097,   2.5479),  "CGK": (-6.1256, 106.6558),
-    "CMB": ( 7.1808,  79.8841),  "CSX": (28.1892, 113.2200),
-    "CTS": (42.7752, 141.6922),  "CTU": (30.5785, 103.9470),
-    "DEL": (28.5665,  77.1031),  "DLC": (38.9657, 121.5386),
-    "DOH": (25.2732,  51.6080),  "DPS": (-8.7482, 115.1670),
-    "DXB": (25.2532,  55.3657),  "FCO": (41.8003,  12.2389),
-    "FRA": (50.0379,   8.5622),  "FUK": (33.5853, 130.4511),
-    "HGH": (30.2295, 120.4341),  "HIJ": (34.4361, 132.9194),
-    "HND": (35.5494, 139.7798),  "HNL": (21.3245,-157.9251),
-    "JFK": (40.6413, -73.7781),  "JNB": (-26.1367, 28.2411),
-    "KIX": (34.4347, 135.2440),  "KOJ": (31.8034, 130.7186),
-    "KUL": ( 2.7456, 101.7072),  "LAX": (33.9425,-118.4081),
-    "LHR": (51.4700,  -0.4543),  "MAD": (40.4936,  -3.5670),
-    "MEL": (-37.6733, 144.8430), "MNL": (14.5086, 121.0197),
-    "NGO": (34.8583, 136.8053),  "NRT": (35.7720, 140.3929),
-    "OKA": (26.1958, 127.6461),  "ORD": (41.9742, -87.9073),
-    "PEK": (40.0801, 116.5846),  "PVG": (31.1443, 121.8083),
-    "RGN": (16.9073,  96.1332),  "RUH": (24.9576,  46.6988),
-    "SDJ": (38.1397, 140.9169),  "SEA": (47.4502,-122.3088),
-    "SFO": (37.6213,-122.3790),  "SGN": (10.8188, 106.6520),
-    "SHA": (31.1980, 121.3360),  "SIN": ( 1.3644, 103.9915),
-    "SVO": (55.9726,  37.4146),  "SYD": (-33.9399, 151.1753),
-    "SZX": (22.6393, 113.8107),  "ULN": (47.8431, 106.7669),
-    "VIE": (48.1103,  16.5697),  "VVO": (43.3989, 132.1483),
-    "XIY": (34.4471, 108.7516),  "YVR": (49.1947,-123.1792),
-    "YYZ": (43.6777, -79.6248),  "ZRH": (47.4647,   8.5492),
+    "AKL": (-37.0082, 174.7917),
+    "ALA": (43.3521, 77.0405),
+    "AMS": (52.3086, 4.7639),
+    "ATL": (33.6367, -84.4281),
+    "AUH": (24.4330, 54.6511),
+    "BKK": (13.6900, 100.7501),
+    "BOM": (19.0896, 72.8656),
+    "CAN": (23.3924, 113.2988),
+    "CDG": (49.0097, 2.5479),
+    "CGK": (-6.1256, 106.6558),
+    "CMB": (7.1808, 79.8841),
+    "CSX": (28.1892, 113.2200),
+    "CTS": (42.7752, 141.6922),
+    "CTU": (30.5785, 103.9470),
+    "DEL": (28.5665, 77.1031),
+    "DLC": (38.9657, 121.5386),
+    "DOH": (25.2732, 51.6080),
+    "DPS": (-8.7482, 115.1670),
+    "DXB": (25.2532, 55.3657),
+    "FCO": (41.8003, 12.2389),
+    "FRA": (50.0379, 8.5622),
+    "FUK": (33.5853, 130.4511),
+    "HGH": (30.2295, 120.4341),
+    "HIJ": (34.4361, 132.9194),
+    "HND": (35.5494, 139.7798),
+    "HNL": (21.3245, -157.9251),
+    "JFK": (40.6413, -73.7781),
+    "JNB": (-26.1367, 28.2411),
+    "KIX": (34.4347, 135.2440),
+    "KOJ": (31.8034, 130.7186),
+    "KUL": (2.7456, 101.7072),
+    "LAX": (33.9425, -118.4081),
+    "LHR": (51.4700, -0.4543),
+    "MAD": (40.4936, -3.5670),
+    "MEL": (-37.6733, 144.8430),
+    "MNL": (14.5086, 121.0197),
+    "NGO": (34.8583, 136.8053),
+    "NRT": (35.7720, 140.3929),
+    "OKA": (26.1958, 127.6461),
+    "ORD": (41.9742, -87.9073),
+    "PEK": (40.0801, 116.5846),
+    "PVG": (31.1443, 121.8083),
+    "RGN": (16.9073, 96.1332),
+    "RUH": (24.9576, 46.6988),
+    "SDJ": (38.1397, 140.9169),
+    "SEA": (47.4502, -122.3088),
+    "SFO": (37.6213, -122.3790),
+    "SGN": (10.8188, 106.6520),
+    "SHA": (31.1980, 121.3360),
+    "SIN": (1.3644, 103.9915),
+    "SVO": (55.9726, 37.4146),
+    "SYD": (-33.9399, 151.1753),
+    "SZX": (22.6393, 113.8107),
+    "ULN": (47.8431, 106.7669),
+    "VIE": (48.1103, 16.5697),
+    "VVO": (43.3989, 132.1483),
+    "XIY": (34.4471, 108.7516),
+    "YVR": (49.1947, -123.1792),
+    "YYZ": (43.6777, -79.6248),
+    "ZRH": (47.4647, 8.5492),
 }
 
 # ── Page config ───────────────────────────────────────────────────────────────
@@ -86,15 +116,17 @@ st.set_page_config(
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 @st.cache_data(ttl=300)
 def load_flights_for_day(dep_date_str: str) -> pd.DataFrame:
     dep_date = date.fromisoformat(dep_date_str)
     day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=timezone.utc)
-    day_end   = day_start + timedelta(days=1)
+    day_end = day_start + timedelta(days=1)
 
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
-        df = con.execute("""
+        df = con.execute(
+            """
             SELECT f.flight_id, f.flight_number, f.route_id,
                    f.origin_iata, f.dest_iata,
                    f.aircraft_registration, f.aircraft_type,
@@ -105,7 +137,9 @@ def load_flights_for_day(dep_date_str: str) -> pd.DataFrame:
             FROM flights f
             WHERE f.scheduled_dep_utc >= ? AND f.scheduled_dep_utc < ?
             ORDER BY f.scheduled_dep_utc
-        """, [day_start, day_end]).df()
+        """,
+            [day_start, day_end],
+        ).df()
     finally:
         con.close()
 
@@ -113,8 +147,8 @@ def load_flights_for_day(dep_date_str: str) -> pd.DataFrame:
     df["dep_kst"] = df["scheduled_dep_utc"].dt.tz_convert("Asia/Seoul")
     df["origin_lat"] = df["origin_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
     df["origin_lon"] = df["origin_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
-    df["dest_lat"]   = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
-    df["dest_lon"]   = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
+    df["dest_lat"] = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
+    df["dest_lon"] = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
     return df
 
 
@@ -127,8 +161,8 @@ def load_routes_latlon() -> pd.DataFrame:
         con.close()
     df["origin_lat"] = df["origin_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
     df["origin_lon"] = df["origin_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
-    df["dest_lat"]   = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
-    df["dest_lon"]   = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
+    df["dest_lat"] = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[0])
+    df["dest_lon"] = df["dest_iata"].map(lambda x: AIRPORT_COORDS.get(x, (0.0, 0.0))[1])
     return df
 
 
@@ -208,11 +242,15 @@ with tab_occ:
     total_pax = int(flights_df["pax_boarded"].sum())
 
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("총 항공편",       f"{total_flights:,}")
-    k2.metric("지연 (>15분)",   f"{delayed:,}",
-              delta=f"{delayed/total_flights:.1%}", delta_color="inverse")
-    k3.metric("결항",           f"{cancelled:,}", delta_color="inverse")
-    k4.metric("오늘 탑승객",    f"{total_pax:,}")
+    k1.metric("총 항공편", f"{total_flights:,}")
+    k2.metric(
+        "지연 (>15분)",
+        f"{delayed:,}",
+        delta=f"{delayed / total_flights:.1%}",
+        delta_color="inverse",
+    )
+    k3.metric("결항", f"{cancelled:,}", delta_color="inverse")
+    k4.metric("오늘 탑승객", f"{total_pax:,}")
 
     st.divider()
 
@@ -225,29 +263,36 @@ with tab_occ:
         fig_map = go.Figure()
         for _, row in sample.iterrows():
             color = "red" if row["dep_delay_minutes"] > 15 else "#1f77b4"
-            fig_map.add_trace(go.Scattergeo(
-                lon=[row["origin_lon"], row["dest_lon"]],
-                lat=[row["origin_lat"], row["dest_lat"]],
-                mode="lines",
-                line=dict(width=1, color=color),
-                opacity=0.5,
+            fig_map.add_trace(
+                go.Scattergeo(
+                    lon=[row["origin_lon"], row["dest_lon"]],
+                    lat=[row["origin_lat"], row["dest_lat"]],
+                    mode="lines",
+                    line=dict(width=1, color=color),
+                    opacity=0.5,
+                    showlegend=False,
+                    hoverinfo="skip",
+                )
+            )
+        fig_map.add_trace(
+            go.Scattergeo(
+                lon=[126.4505],
+                lat=[37.4691],
+                mode="markers+text",
+                marker=dict(size=12, color="gold", symbol="star"),
+                text=["ICN"],
+                textposition="top center",
                 showlegend=False,
-                hoverinfo="skip",
-            ))
-        fig_map.add_trace(go.Scattergeo(
-            lon=[126.4505],
-            lat=[37.4691],
-            mode="markers+text",
-            marker=dict(size=12, color="gold", symbol="star"),
-            text=["ICN"],
-            textposition="top center",
-            showlegend=False,
-        ))
+            )
+        )
         fig_map.update_geos(
             projection_type="natural earth",
-            showcountries=True, countrycolor="lightgray",
-            showland=True, landcolor="#f5f5f5",
-            showocean=True, oceancolor="aliceblue",
+            showcountries=True,
+            countrycolor="lightgray",
+            showland=True,
+            landcolor="#f5f5f5",
+            showocean=True,
+            oceancolor="aliceblue",
             center=dict(lat=37, lon=127),
             projection_scale=8,
         )
@@ -260,9 +305,9 @@ with tab_occ:
 
     with sched_col:
         st.subheader("출발 스케줄")
-        sched_display = flights_df[[
-            "flight_number", "route_id", "dep_kst", "dep_delay_minutes", "status"
-        ]].copy()
+        sched_display = flights_df[
+            ["flight_number", "route_id", "dep_kst", "dep_delay_minutes", "status"]
+        ].copy()
         sched_display["dep_kst"] = sched_display["dep_kst"].dt.strftime("%H:%M")
         sched_display.columns = ["항공편", "노선", "출발(KST)", "지연(분)", "상태"]
         sched_display = sched_display.head(20)
@@ -290,25 +335,28 @@ with tab_occ:
                 result, scenarios, G, all_flights = run_propagation(
                     selected_flight_id, delay_min, dep_date
                 )
-            st.session_state["sim_result"]   = result
+            st.session_state["sim_result"] = result
             st.session_state["sim_scenarios"] = scenarios
             st.session_state["sim_flight_id"] = selected_flight_id
-            st.session_state["sim_delay"]     = delay_min
+            st.session_state["sim_delay"] = delay_min
 
-        result    = st.session_state["sim_result"]
+        result = st.session_state["sim_result"]
         scenarios = st.session_state["sim_scenarios"]
 
         # Cascade summary
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("연쇄 깊이",     result.cascade_depth)
-        c2.metric("총 지연",       f"{result.total_delay_minutes}분")
-        c3.metric("영향 탑승객",   f"{result.total_pax_impacted:,}")
-        c4.metric("트리거 지연",   f"{result.initial_delay_minutes}분")
+        c1.metric("연쇄 깊이", result.cascade_depth)
+        c2.metric("총 지연", f"{result.total_delay_minutes}분")
+        c3.metric("영향 탑승객", f"{result.total_pax_impacted:,}")
+        c4.metric("트리거 지연", f"{result.initial_delay_minutes}분")
 
         # Cascade chain
         if result.cascade_chain:
-            st.markdown("**연쇄 체인:** " + " → ".join(result.cascade_chain[:6])
-                        + ("…" if len(result.cascade_chain) > 6 else ""))
+            st.markdown(
+                "**연쇄 체인:** "
+                + " → ".join(result.cascade_chain[:6])
+                + ("…" if len(result.cascade_chain) > 6 else "")
+            )
 
         # Scenario cards
         st.markdown("### 회복 시나리오")
@@ -364,13 +412,15 @@ with tab_uam:
     # Vertiport map
     vp_data = []
     for vid, vp in VERTIPORTS.items():
-        vp_data.append({
-            "id":   vid,
-            "name": vp.name_en,
-            "lat":  vp.position.lat,
-            "lon":  vp.position.lon,
-            "pads": vp.pad_count,
-        })
+        vp_data.append(
+            {
+                "id": vid,
+                "name": vp.name_en,
+                "lat": vp.position.lat,
+                "lon": vp.position.lon,
+                "pads": vp.pad_count,
+            }
+        )
     vp_df = pd.DataFrame(vp_data)
 
     fig_uam = go.Figure()
@@ -380,32 +430,35 @@ with tab_uam:
         vp_u = VERTIPORTS[u]
         vp_v = VERTIPORTS[v]
         color = "#aaa" if data["corridor"].avoids_icn_ctr else "#e07b39"
-        fig_uam.add_trace(go.Scattermapbox(
-            lon=[vp_u.position.lon, vp_v.position.lon],
-            lat=[vp_u.position.lat, vp_v.position.lat],
-            mode="lines",
-            line=dict(width=2, color=color),
-            showlegend=False,
-            hoverinfo="skip",
-        ))
+        fig_uam.add_trace(
+            go.Scattermapbox(
+                lon=[vp_u.position.lon, vp_v.position.lon],
+                lat=[vp_u.position.lat, vp_v.position.lat],
+                mode="lines",
+                line=dict(width=2, color=color),
+                showlegend=False,
+                hoverinfo="skip",
+            )
+        )
 
     # Draw vertiports
-    fig_uam.add_trace(go.Scattermapbox(
-        lon=vp_df["lon"],
-        lat=vp_df["lat"],
-        mode="markers+text",
-        marker=dict(size=14, color="#1f77b4"),
-        text=vp_df["id"],
-        textposition="top right",
-        hovertext=vp_df.apply(
-            lambda r: f"{r['id']}: {r['name']}<br>패드: {r['pads']}", axis=1
-        ),
-        hoverinfo="text",
-        showlegend=False,
-    ))
+    fig_uam.add_trace(
+        go.Scattermapbox(
+            lon=vp_df["lon"],
+            lat=vp_df["lat"],
+            mode="markers+text",
+            marker=dict(size=14, color="#1f77b4"),
+            text=vp_df["id"],
+            textposition="top right",
+            hovertext=vp_df.apply(lambda r: f"{r['id']}: {r['name']}<br>패드: {r['pads']}", axis=1),
+            hoverinfo="text",
+            showlegend=False,
+        )
+    )
 
     # ICN CTR circle (approximate — 5 NM radius markers)
     import math
+
     ctr_lats, ctr_lons = [], []
     for deg in range(0, 361, 10):
         rad = math.radians(deg)
@@ -413,13 +466,16 @@ with tab_uam:
         dlon = (5 / 60) * math.sin(rad) / math.cos(math.radians(37.47))
         ctr_lats.append(37.4691 + dlat)
         ctr_lons.append(126.4505 + dlon)
-    fig_uam.add_trace(go.Scattermapbox(
-        lon=ctr_lons, lat=ctr_lats,
-        mode="lines",
-        line=dict(width=1.5, color="red"),
-        name="ICN CTR (5 NM)",
-        showlegend=True,
-    ))
+    fig_uam.add_trace(
+        go.Scattermapbox(
+            lon=ctr_lons,
+            lat=ctr_lats,
+            mode="lines",
+            line=dict(width=1.5, color="red"),
+            name="ICN CTR (5 NM)",
+            showlegend=True,
+        )
+    )
 
     fig_uam.update_layout(
         mapbox=dict(
@@ -445,10 +501,10 @@ with tab_uam:
 
     col_a, col_b = st.columns(2)
     with col_a:
-        origin_vp = st.selectbox("출발 버티포트",  list(VERTIPORTS.keys()), index=0)
-        dest_vp   = st.selectbox("도착 버티포트", list(VERTIPORTS.keys()), index=3)
-        dep_hour  = st.slider("출발 시각 (UTC)", 0, 23, 3)
-        alt_ft    = st.slider("순항 고도 (ft AGL)", 300, 1500, 800, step=100)
+        origin_vp = st.selectbox("출발 버티포트", list(VERTIPORTS.keys()), index=0)
+        dest_vp = st.selectbox("도착 버티포트", list(VERTIPORTS.keys()), index=3)
+        dep_hour = st.slider("출발 시각 (UTC)", 0, 23, 3)
+        alt_ft = st.slider("순항 고도 (ft AGL)", 300, 1500, 800, step=100)
         pax_count = st.slider("탑승객 수", 1, 4, 2)
 
     with col_b:
@@ -458,6 +514,7 @@ with tab_uam:
 
         if path and len(path) >= 2:
             from argos.uav.network import route_distance_nm
+
             dist = route_distance_nm(G_route, path)
             flight_min = (dist / (120 * 0.8)) * 60
             st.metric("경로", " -> ".join(path))
@@ -473,7 +530,7 @@ with tab_uam:
             etd = datetime(2024, 6, 15, dep_hour, 0, 0, tzinfo=timezone.utc)
             eta = etd + timedelta(minutes=flight_min)
             origin_pos = VERTIPORTS[origin_vp].position
-            dest_pos   = VERTIPORTS[dest_vp].position
+            dest_pos = VERTIPORTS[dest_vp].position
 
             plan = UAMFlightPlan(
                 plan_id=f"DEMO-{dep_hour:02d}{origin_vp[:3]}{dest_vp[:3]}",
@@ -486,7 +543,7 @@ with tab_uam:
                 cruise_alt_ft=float(alt_ft),
                 trajectory=[
                     Waypoint4D(GeoPoint(origin_pos.lat, origin_pos.lon, float(alt_ft)), etd),
-                    Waypoint4D(GeoPoint(dest_pos.lat,   dest_pos.lon,   float(alt_ft)), eta),
+                    Waypoint4D(GeoPoint(dest_pos.lat, dest_pos.lon, float(alt_ft)), eta),
                 ],
                 pax_count=pax_count,
             )
@@ -494,27 +551,21 @@ with tab_uam:
             response = client.submit_plan(plan)
 
             if response.approved:
-                st.success(
-                    f"✅ **승인됨** — 계획 ID: {response.plan_id}  \n"
-                    f"{response.message}"
-                )
+                st.success(f"✅ **승인됨** — 계획 ID: {response.plan_id}  \n{response.message}")
                 if response.conditions:
                     st.info("조건:\n" + "\n".join(f"• {c}" for c in response.conditions))
             else:
-                st.error(
-                    f"❌ **거부됨** — 계획 ID: {response.plan_id}  \n"
-                    f"{response.message}"
-                )
+                st.error(f"❌ **거부됨** — 계획 ID: {response.plan_id}  \n{response.message}")
                 for conflict in response.conflicts:
-                    st.warning(
-                        f"**{conflict.conflict_type.value}**: {conflict.description}"
-                    )
+                    st.warning(f"**{conflict.conflict_type.value}**: {conflict.description}")
 
     # ── Vertiport info table ───────────────────────────────────────────────────
     st.divider()
     st.subheader("버티포트 목록")
     st.dataframe(
-        vp_df.rename(columns={"id": "ID", "name": "이름", "lat": "위도", "lon": "경도", "pads": "패드 수"}),
+        vp_df.rename(
+            columns={"id": "ID", "name": "이름", "lat": "위도", "lon": "경도", "pads": "패드 수"}
+        ),
         use_container_width=True,
         hide_index=True,
     )

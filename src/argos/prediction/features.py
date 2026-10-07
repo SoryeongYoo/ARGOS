@@ -74,11 +74,13 @@ def compute_route_stats(df: pd.DataFrame) -> pd.DataFrame:
     Must be called on training data only to prevent label leakage.
     """
     g = df.groupby("route_id")["dep_delay_minutes"]
-    stats = pd.DataFrame({
-        "route_hist_delay_prob": g.apply(lambda x: (x >= DELAY_THRESHOLD).mean()),
-        "route_hist_avg_delay": g.mean(),
-        "route_hist_p75_delay": g.quantile(0.75),
-    }).reset_index()
+    stats = pd.DataFrame(
+        {
+            "route_hist_delay_prob": g.apply(lambda x: (x >= DELAY_THRESHOLD).mean()),
+            "route_hist_avg_delay": g.mean(),
+            "route_hist_p75_delay": g.quantile(0.75),
+        }
+    ).reset_index()
     return stats
 
 

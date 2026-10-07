@@ -29,17 +29,20 @@ def sample_flight_id():
     # Pick a date with sufficient data
     test_date = date(2024, 6, 15)
     day_start = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
-    day_end   = datetime(2024, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
+    day_end = datetime(2024, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
 
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
-        rows = con.execute("""
+        rows = con.execute(
+            """
             SELECT flight_id FROM flights
             WHERE scheduled_dep_utc >= ? AND scheduled_dep_utc < ?
               AND status != 'CNX'
             ORDER BY scheduled_dep_utc
             LIMIT 1
-        """, [day_start, day_end]).fetchall()
+        """,
+            [day_start, day_end],
+        ).fetchall()
     finally:
         con.close()
 
@@ -50,18 +53,28 @@ def sample_flight_id():
 
 # ── Graph structure tests (no DB, no API) ─────────────────────────────────────
 
+
 def test_graph_compiles():
     from argos.agents.occ_graph import build_occ_graph
+
     graph = build_occ_graph()
     nodes = list(graph.get_graph().nodes.keys())
-    for expected in ["simulate", "analyse", "optimise", "brief_occ",
-                     "human_gate", "execute", "abort"]:
+    for expected in [
+        "simulate",
+        "analyse",
+        "optimise",
+        "brief_occ",
+        "human_gate",
+        "execute",
+        "abort",
+    ]:
         assert expected in nodes
 
 
 def test_graph_has_interrupt():
     """Graph must have human_gate as interrupt_before node."""
     from argos.agents.occ_graph import build_occ_graph
+
     graph = build_occ_graph()
     # interrupt_before is stored in the compiled graph's config
     # We verify the human_gate node exists and is reachable
@@ -72,21 +85,22 @@ def test_graph_has_interrupt():
 
 def test_occ_state_keys():
     from argos.agents.state import OCCState
+
     # Verify TypedDict has expected keys by instantiating a partial dict
     state: OCCState = {
-        "trigger_flight_id":     "test-uuid",
+        "trigger_flight_id": "test-uuid",
         "initial_delay_minutes": 90,
-        "op_date":               "2024-06-15",
-        "db_path":               DB_PATH,
-        "propagation_summary":   {},
-        "scenarios_raw":         [],
-        "scenario_briefing":     "",
-        "aircraft_result":       None,
-        "crew_result":           None,
-        "approved_scenario_id":  None,
-        "approval_notes":        "",
-        "execution_summary":     "",
-        "messages":              [],
+        "op_date": "2024-06-15",
+        "db_path": DB_PATH,
+        "propagation_summary": {},
+        "scenarios_raw": [],
+        "scenario_briefing": "",
+        "aircraft_result": None,
+        "crew_result": None,
+        "approved_scenario_id": None,
+        "approval_notes": "",
+        "execution_summary": "",
+        "messages": [],
     }
     assert state["trigger_flight_id"] == "test-uuid"
     assert state["initial_delay_minutes"] == 90
@@ -100,6 +114,7 @@ def test_occ_tools_importable():
         run_propagation,
         run_scenario_generation,
     )
+
     assert len(OCC_TOOLS) == 4
     assert run_propagation.name == "run_propagation"
     assert run_scenario_generation.name == "run_scenario_generation"
@@ -109,16 +124,19 @@ def test_occ_tools_importable():
 
 # ── Tool invocation tests (require DB) ────────────────────────────────────────
 
+
 @pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
 def test_run_propagation_returns_dict(sample_flight_id):
     from argos.agents.tools import run_propagation
 
-    result = run_propagation.invoke({
-        "db_path":               DB_PATH,
-        "op_date":               "2024-06-15",
-        "trigger_flight_id":     sample_flight_id,
-        "initial_delay_minutes": 90,
-    })
+    result = run_propagation.invoke(
+        {
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "trigger_flight_id": sample_flight_id,
+            "initial_delay_minutes": 90,
+        }
+    )
 
     assert "trigger_flight_id" in result
     assert "cascade_chain" in result
@@ -131,12 +149,14 @@ def test_run_propagation_returns_dict(sample_flight_id):
 def test_run_scenario_generation_returns_three(sample_flight_id):
     from argos.agents.tools import run_scenario_generation
 
-    scenarios = run_scenario_generation.invoke({
-        "db_path":               DB_PATH,
-        "op_date":               "2024-06-15",
-        "trigger_flight_id":     sample_flight_id,
-        "initial_delay_minutes": 90,
-    })
+    scenarios = run_scenario_generation.invoke(
+        {
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "trigger_flight_id": sample_flight_id,
+            "initial_delay_minutes": 90,
+        }
+    )
 
     assert isinstance(scenarios, list)
     assert len(scenarios) == 3
@@ -152,11 +172,13 @@ def test_run_scenario_generation_returns_three(sample_flight_id):
 def test_run_aircraft_optimisation(sample_flight_id):
     from argos.agents.tools import run_aircraft_optimisation
 
-    result = run_aircraft_optimisation.invoke({
-        "db_path":               DB_PATH,
-        "op_date":               "2024-06-15",
-        "disrupted_flight_ids":  [sample_flight_id],
-    })
+    result = run_aircraft_optimisation.invoke(
+        {
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "disrupted_flight_ids": [sample_flight_id],
+        }
+    )
 
     assert "assignments" in result
     assert "unassigned" in result
@@ -169,11 +191,13 @@ def test_run_aircraft_optimisation(sample_flight_id):
 def test_run_crew_optimisation(sample_flight_id):
     from argos.agents.tools import run_crew_optimisation
 
-    result = run_crew_optimisation.invoke({
-        "db_path":               DB_PATH,
-        "op_date":               "2024-06-15",
-        "disrupted_flight_ids":  [sample_flight_id],
-    })
+    result = run_crew_optimisation.invoke(
+        {
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "disrupted_flight_ids": [sample_flight_id],
+        }
+    )
 
     assert "captain_assignments" in result
     assert "fo_assignments" in result
@@ -184,15 +208,16 @@ def test_run_crew_optimisation(sample_flight_id):
 
 # ── node_simulate unit test (no LLM) ─────────────────────────────────────────
 
+
 @pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
 def test_node_simulate_populates_state(sample_flight_id):
     from argos.agents.occ_graph import node_simulate
 
     state = {
-        "trigger_flight_id":     sample_flight_id,
+        "trigger_flight_id": sample_flight_id,
         "initial_delay_minutes": 60,
-        "op_date":               "2024-06-15",
-        "db_path":               DB_PATH,
+        "op_date": "2024-06-15",
+        "db_path": DB_PATH,
     }
     patch = node_simulate(state)
 
@@ -204,6 +229,7 @@ def test_node_simulate_populates_state(sample_flight_id):
 
 
 # ── End-to-end graph test (mocked LLM, requires DB) ──────────────────────────
+
 
 @pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
 def test_full_graph_approve(monkeypatch, sample_flight_id):
@@ -217,9 +243,9 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
     fake_tool_call = {
         "name": "run_scenario_generation",
         "args": {
-            "db_path":               DB_PATH,
-            "op_date":               "2024-06-15",
-            "trigger_flight_id":     sample_flight_id,
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 60,
         },
         "id": "tc_mock_001",
@@ -288,16 +314,16 @@ def test_full_graph_reject(monkeypatch, sample_flight_id):
     fake_tool_call = {
         "name": "run_scenario_generation",
         "args": {
-            "db_path":               DB_PATH,
-            "op_date":               "2024-06-15",
-            "trigger_flight_id":     sample_flight_id,
+            "db_path": DB_PATH,
+            "op_date": "2024-06-15",
+            "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 30,
         },
         "id": "tc_mock_002",
         "type": "tool_call",
     }
     fake_analyse_msg = AIMessage(content="Minor delay.", tool_calls=[fake_tool_call])
-    fake_brief_msg   = AIMessage(content="Awaiting OCC manager approval.")
+    fake_brief_msg = AIMessage(content="Awaiting OCC manager approval.")
 
     def mock_make_llm(tools=None):
         m = MagicMock()

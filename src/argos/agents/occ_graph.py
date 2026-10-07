@@ -92,18 +92,22 @@ def _make_llm(tools: list | None = None) -> ChatAnthropic:
 
 # ── Node: simulate ────────────────────────────────────────────────────────────
 
+
 def node_simulate(state: OCCState) -> dict:
     """Run delay propagation simulation (no LLM)."""
-    result = run_propagation.invoke({
-        "db_path":               state["db_path"],
-        "op_date":               state["op_date"],
-        "trigger_flight_id":     state["trigger_flight_id"],
-        "initial_delay_minutes": state["initial_delay_minutes"],
-    })
+    result = run_propagation.invoke(
+        {
+            "db_path": state["db_path"],
+            "op_date": state["op_date"],
+            "trigger_flight_id": state["trigger_flight_id"],
+            "initial_delay_minutes": state["initial_delay_minutes"],
+        }
+    )
     return {"propagation_summary": result}
 
 
 # ── Node: analyse ─────────────────────────────────────────────────────────────
+
 
 def node_analyse(state: OCCState) -> dict:
     """Claude analyses propagation, calls scenario generation tool."""
@@ -152,6 +156,7 @@ def node_analyse(state: OCCState) -> dict:
 
 # ── Node: optimise ────────────────────────────────────────────────────────────
 
+
 def node_optimise(state: OCCState) -> dict:
     """Claude decides which scenarios need resource optimisation, then runs tools."""
     prop = state["propagation_summary"]
@@ -164,39 +169,43 @@ def node_optimise(state: OCCState) -> dict:
 
     disrupted_ids = cascade_chain  # all flights in the cascade
 
-    aircraft_result = run_aircraft_optimisation.invoke({
-        "db_path":               state["db_path"],
-        "op_date":               state["op_date"],
-        "disrupted_flight_ids":  disrupted_ids,
-    })
-    crew_result = run_crew_optimisation.invoke({
-        "db_path":               state["db_path"],
-        "op_date":               state["op_date"],
-        "disrupted_flight_ids":  disrupted_ids,
-    })
+    aircraft_result = run_aircraft_optimisation.invoke(
+        {
+            "db_path": state["db_path"],
+            "op_date": state["op_date"],
+            "disrupted_flight_ids": disrupted_ids,
+        }
+    )
+    crew_result = run_crew_optimisation.invoke(
+        {
+            "db_path": state["db_path"],
+            "op_date": state["op_date"],
+            "disrupted_flight_ids": disrupted_ids,
+        }
+    )
 
     return {
         "aircraft_result": aircraft_result,
-        "crew_result":     crew_result,
+        "crew_result": crew_result,
     }
 
 
 # ── Node: brief_occ ───────────────────────────────────────────────────────────
 
+
 def node_brief_occ(state: OCCState) -> dict:
     """Claude writes the final structured OCC approval briefing."""
-    prop       = state["propagation_summary"]
-    scenarios  = state.get("scenarios_raw", [])
-    ac_result  = state.get("aircraft_result")
-    cr_result  = state.get("crew_result")
+    prop = state["propagation_summary"]
+    scenarios = state.get("scenarios_raw", [])
+    ac_result = state.get("aircraft_result")
+    cr_result = state.get("crew_result")
 
     # Build context block for Claude
     context_lines = [
         "=== OCC DISRUPTION BRIEFING ===",
         f"Trigger  : {prop['trigger_flight_id']}",
         f"Delay    : {prop['initial_delay_minutes']} min",
-        f"Cascade  : {prop['cascade_depth']} flight(s), "
-        f"{prop['total_pax_impacted']} PAX impacted",
+        f"Cascade  : {prop['cascade_depth']} flight(s), {prop['total_pax_impacted']} PAX impacted",
         "",
         "--- RECOVERY SCENARIOS ---",
     ]
@@ -254,8 +263,7 @@ def node_brief_occ(state: OCCState) -> dict:
         briefing = response.content
     elif isinstance(response.content, list):
         briefing = " ".join(
-            b["text"] for b in response.content
-            if isinstance(b, dict) and b.get("type") == "text"
+            b["text"] for b in response.content if isinstance(b, dict) and b.get("type") == "text"
         )
 
     return {
@@ -266,6 +274,7 @@ def node_brief_occ(state: OCCState) -> dict:
 
 # ── Node: human_gate ──────────────────────────────────────────────────────────
 
+
 def node_human_gate(state: OCCState) -> dict:
     """Human-in-the-loop approval gate.
 
@@ -274,22 +283,25 @@ def node_human_gate(state: OCCState) -> dict:
     or
       {"approved_scenario_id": None, "approval_notes": "Rejected: ..."}
     """
-    approval = interrupt({
-        "briefing":    state.get("scenario_briefing", ""),
-        "scenarios":   state.get("scenarios_raw", []),
-        "cascade":     state.get("propagation_summary", {}),
-    })
+    approval = interrupt(
+        {
+            "briefing": state.get("scenario_briefing", ""),
+            "scenarios": state.get("scenarios_raw", []),
+            "cascade": state.get("propagation_summary", {}),
+        }
+    )
     return {
         "approved_scenario_id": approval.get("approved_scenario_id"),
-        "approval_notes":       approval.get("approval_notes", ""),
+        "approval_notes": approval.get("approval_notes", ""),
     }
 
 
 # ── Node: execute ─────────────────────────────────────────────────────────────
 
+
 def node_execute(state: OCCState) -> dict:
     """Record the approved recovery action (simulation — no real ops changes)."""
-    sid   = state.get("approved_scenario_id")
+    sid = state.get("approved_scenario_id")
     notes = state.get("approval_notes", "")
     scenarios = state.get("scenarios_raw", [])
     selected = next((s for s in scenarios if s["scenario_id"] == sid), None)
@@ -312,9 +324,10 @@ def node_execute(state: OCCState) -> dict:
 
 # ── Node: abort ───────────────────────────────────────────────────────────────
 
+
 def node_abort(state: OCCState) -> dict:
     """Record rejection and close the disruption event."""
-    notes   = state.get("approval_notes", "No reason given")
+    notes = state.get("approval_notes", "No reason given")
     summary = (
         f"[REJECTED] by OCC manager.\n"
         f"Notes: {notes}\n"
@@ -326,6 +339,7 @@ def node_abort(state: OCCState) -> dict:
 
 # ── Routing ───────────────────────────────────────────────────────────────────
 
+
 def route_after_approval(state: OCCState) -> str:
     if state.get("approved_scenario_id") is not None:
         return "execute"
@@ -334,22 +348,23 @@ def route_after_approval(state: OCCState) -> str:
 
 # ── Graph assembly ────────────────────────────────────────────────────────────
 
+
 def build_occ_graph(checkpointer=None) -> StateGraph:
     """Build and compile the OCC LangGraph StateGraph."""
     builder = StateGraph(OCCState)
 
-    builder.add_node("simulate",   node_simulate)
-    builder.add_node("analyse",    node_analyse)
-    builder.add_node("optimise",   node_optimise)
-    builder.add_node("brief_occ",  node_brief_occ)
+    builder.add_node("simulate", node_simulate)
+    builder.add_node("analyse", node_analyse)
+    builder.add_node("optimise", node_optimise)
+    builder.add_node("brief_occ", node_brief_occ)
     builder.add_node("human_gate", node_human_gate)
-    builder.add_node("execute",    node_execute)
-    builder.add_node("abort",      node_abort)
+    builder.add_node("execute", node_execute)
+    builder.add_node("abort", node_abort)
 
     builder.set_entry_point("simulate")
-    builder.add_edge("simulate",  "analyse")
-    builder.add_edge("analyse",   "optimise")
-    builder.add_edge("optimise",  "brief_occ")
+    builder.add_edge("simulate", "analyse")
+    builder.add_edge("analyse", "optimise")
+    builder.add_edge("optimise", "brief_occ")
     builder.add_edge("brief_occ", "human_gate")
     builder.add_conditional_edges(
         "human_gate",
@@ -357,13 +372,14 @@ def build_occ_graph(checkpointer=None) -> StateGraph:
         {"execute": "execute", "abort": "abort"},
     )
     builder.add_edge("execute", END)
-    builder.add_edge("abort",   END)
+    builder.add_edge("abort", END)
 
     cp = checkpointer or MemorySaver()
     return builder.compile(checkpointer=cp, interrupt_before=["human_gate"])
 
 
 # ── Public helpers ────────────────────────────────────────────────────────────
+
 
 def run_until_approval(
     db_path: str,
@@ -380,19 +396,19 @@ def run_until_approval(
     graph = build_occ_graph()
     config = {"configurable": {"thread_id": thread_id}}
     initial_state: OCCState = {
-        "trigger_flight_id":     trigger_flight_id,
+        "trigger_flight_id": trigger_flight_id,
         "initial_delay_minutes": initial_delay_minutes,
-        "op_date":               op_date,
-        "db_path":               db_path,
-        "propagation_summary":   {},
-        "scenarios_raw":         [],
-        "scenario_briefing":     "",
-        "aircraft_result":       None,
-        "crew_result":           None,
-        "approved_scenario_id":  None,
-        "approval_notes":        "",
-        "execution_summary":     "",
-        "messages":              [],
+        "op_date": op_date,
+        "db_path": db_path,
+        "propagation_summary": {},
+        "scenarios_raw": [],
+        "scenario_briefing": "",
+        "aircraft_result": None,
+        "crew_result": None,
+        "approved_scenario_id": None,
+        "approval_notes": "",
+        "execution_summary": "",
+        "messages": [],
     }
     for chunk in graph.stream(initial_state, config=config, stream_mode="values"):
         last_state = chunk
@@ -409,7 +425,7 @@ def resume_after_approval(
     config = {"configurable": {"thread_id": thread_id}}
     approval_payload = {
         "approved_scenario_id": approved_scenario_id,
-        "approval_notes":       approval_notes,
+        "approval_notes": approval_notes,
     }
     last_state = None
     for chunk in graph.stream(

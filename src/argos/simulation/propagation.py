@@ -27,8 +27,8 @@ import pandas as pd
 # ── Domain constants ──────────────────────────────────────────────────────────
 
 _WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
-_MIN_TURN_NARROW = 45   # minutes — ICN or destination ground minimum (narrow body)
-_MIN_TURN_WIDE   = 60   # minutes — wide body
+_MIN_TURN_NARROW = 45  # minutes — ICN or destination ground minimum (narrow body)
+_MIN_TURN_WIDE = 60  # minutes — wide body
 
 
 def _min_turn(aircraft_type: str) -> int:
@@ -36,12 +36,13 @@ def _min_turn(aircraft_type: str) -> int:
 
 
 # Rotation edge constraints
-_MAX_ROTATION_GAP_HOURS = 14   # max gap to still consider two flights a rotation pair
-_MIN_ROTATION_GAP_MIN   = 60   # below this, schedule is a data artifact (same-time conflict)
-_MAX_PROPAGATED_DELAY   = 300  # cap per hop — beyond this the flight is operationally cancelled
+_MAX_ROTATION_GAP_HOURS = 14  # max gap to still consider two flights a rotation pair
+_MIN_ROTATION_GAP_MIN = 60  # below this, schedule is a data artifact (same-time conflict)
+_MAX_PROPAGATED_DELAY = 300  # cap per hop — beyond this the flight is operationally cancelled
 
 
 # ── Data classes ──────────────────────────────────────────────────────────────
+
 
 @dataclass
 class FlightNode:
@@ -85,8 +86,8 @@ class FlightNode:
 class PropagationResult:
     trigger_flight_id: str
     initial_delay_minutes: int
-    cascade_chain: list[str]            # flight_ids in propagation order
-    affected_nodes: list[FlightNode]    # flights with dep_delay > 0 after propagation
+    cascade_chain: list[str]  # flight_ids in propagation order
+    affected_nodes: list[FlightNode]  # flights with dep_delay > 0 after propagation
     total_delay_minutes: int
     total_pax_impacted: int
 
@@ -97,17 +98,18 @@ class PropagationResult:
 
 @dataclass
 class RecoveryScenario:
-    scenario_id: int                    # 1, 2, or 3
+    scenario_id: int  # 1, 2, or 3
     name: str
     description: str
     action_required: str
-    feasibility: str                    # "HIGH" | "MEDIUM" | "LOW"
-    residual: PropagationResult         # impact AFTER applying this scenario
-    cost_index: float                   # relative cost (0.0 = free, 1.0 = most expensive)
-    requires_approval: bool = True      # always True — human-in-the-loop
+    feasibility: str  # "HIGH" | "MEDIUM" | "LOW"
+    residual: PropagationResult  # impact AFTER applying this scenario
+    cost_index: float  # relative cost (0.0 = free, 1.0 = most expensive)
+    requires_approval: bool = True  # always True — human-in-the-loop
 
 
 # ── Propagator ────────────────────────────────────────────────────────────────
+
 
 class DelayPropagator:
     """Builds aircraft rotation DAGs and propagates delays through them."""
@@ -124,7 +126,8 @@ class DelayPropagator:
 
         con = duckdb.connect(str(self.db_path), read_only=True)
         try:
-            df = con.execute("""
+            df = con.execute(
+                """
                 SELECT
                     flight_id, flight_number, route_id,
                     aircraft_registration, aircraft_type,
@@ -138,7 +141,9 @@ class DelayPropagator:
                   AND scheduled_dep_utc <  ?
                   AND status != 'CNX'
                 ORDER BY aircraft_registration, scheduled_dep_utc
-            """, [day_start, day_end]).df()
+            """,
+                [day_start, day_end],
+            ).df()
         finally:
             con.close()
 
@@ -201,13 +206,10 @@ class DelayPropagator:
                 v_node: FlightNode = G.nodes[ids[i + 1]]["data"]
 
                 # Minimum time needed between the two ICN departures
-                min_elapsed_min = (
-                    2 * u_node.block_time_minutes
-                    + 2 * _min_turn(u_node.aircraft_type)
+                min_elapsed_min = 2 * u_node.block_time_minutes + 2 * _min_turn(
+                    u_node.aircraft_type
                 )
-                gap_min = (
-                    v_node.scheduled_dep_utc - u_node.scheduled_dep_utc
-                ).total_seconds() / 60
+                gap_min = (v_node.scheduled_dep_utc - u_node.scheduled_dep_utc).total_seconds() / 60
 
                 # Skip implausible schedule artifacts (same aircraft < 60 min apart)
                 if gap_min < _MIN_ROTATION_GAP_MIN:
@@ -218,7 +220,8 @@ class DelayPropagator:
 
                 buffer_min = gap_min - min_elapsed_min
                 G.add_edge(
-                    ids[i], ids[i + 1],
+                    ids[i],
+                    ids[i + 1],
                     buffer_minutes=buffer_min,
                     min_elapsed_minutes=min_elapsed_min,
                 )
@@ -307,19 +310,21 @@ class DelayPropagator:
 
         # ── Scenario 1: Accept & Absorb ───────────────────────────────────────
         s1_result = self.propagate(G, trigger_flight_id, initial_delay_minutes)
-        scenarios.append(RecoveryScenario(
-            scenario_id=1,
-            name="Accept & Absorb",
-            description=(
-                f"Accept {initial_delay_minutes} min delay on "
-                f"{G.nodes[trigger_flight_id]['data'].flight_number}. "
-                "No operational changes. Delay propagates through rotation chain."
-            ),
-            action_required="No action. Monitor cascade and update passengers.",
-            feasibility="HIGH",
-            residual=s1_result,
-            cost_index=0.2,
-        ))
+        scenarios.append(
+            RecoveryScenario(
+                scenario_id=1,
+                name="Accept & Absorb",
+                description=(
+                    f"Accept {initial_delay_minutes} min delay on "
+                    f"{G.nodes[trigger_flight_id]['data'].flight_number}. "
+                    "No operational changes. Delay propagates through rotation chain."
+                ),
+                action_required="No action. Monitor cascade and update passengers.",
+                feasibility="HIGH",
+                residual=s1_result,
+                cost_index=0.2,
+            )
+        )
 
         # ── Scenario 2: Aircraft Substitution ─────────────────────────────────
         trigger_node: FlightNode = G.nodes[trigger_flight_id]["data"]
@@ -340,41 +345,42 @@ class DelayPropagator:
             s2_result.affected_nodes = [G_swap.nodes[trigger_flight_id]["data"]]
             s2_result.total_pax_impacted = trigger_node.pax_boarded
 
-            scenarios.append(RecoveryScenario(
-                scenario_id=2,
-                name="Aircraft Substitution",
-                description=(
-                    f"Assign spare {trigger_node.aircraft_type} ({spare_reg}) to downstream "
-                    f"rotation. Breaks cascade after {trigger_node.flight_number}."
-                ),
-                action_required=(
-                    f"Position {spare_reg} to ICN. Re-assign {len(downstream)} downstream "
-                    "flight(s) to spare. Notify maintenance of original aircraft swap."
-                ),
-                feasibility="MEDIUM",
-                residual=s2_result,
-                cost_index=0.6,
-            ))
+            scenarios.append(
+                RecoveryScenario(
+                    scenario_id=2,
+                    name="Aircraft Substitution",
+                    description=(
+                        f"Assign spare {trigger_node.aircraft_type} ({spare_reg}) to downstream "
+                        f"rotation. Breaks cascade after {trigger_node.flight_number}."
+                    ),
+                    action_required=(
+                        f"Position {spare_reg} to ICN. Re-assign {len(downstream)} downstream "
+                        "flight(s) to spare. Notify maintenance of original aircraft swap."
+                    ),
+                    feasibility="MEDIUM",
+                    residual=s2_result,
+                    cost_index=0.6,
+                )
+            )
         else:
             # No spare available — report infeasibility
-            scenarios.append(RecoveryScenario(
-                scenario_id=2,
-                name="Aircraft Substitution (N/A)",
-                description="No spare aircraft of compatible type available on this date.",
-                action_required="Escalate to fleet control for cross-fleet swap options.",
-                feasibility="LOW",
-                residual=s1_result,
-                cost_index=1.0,
-            ))
+            scenarios.append(
+                RecoveryScenario(
+                    scenario_id=2,
+                    name="Aircraft Substitution (N/A)",
+                    description="No spare aircraft of compatible type available on this date.",
+                    action_required="Escalate to fleet control for cross-fleet swap options.",
+                    feasibility="LOW",
+                    residual=s1_result,
+                    cost_index=1.0,
+                )
+            )
 
         # ── Scenario 3: Cancel Least-Critical Downstream Leg ─────────────────
         s1_chain = s1_result.cascade_chain
         if len(s1_chain) > 1:
             # Find the downstream flight with fewest PAX to cancel
-            downstream_nodes = [
-                G.nodes[fid]["data"] for fid in s1_chain[1:]
-                if fid in G.nodes
-            ]
+            downstream_nodes = [G.nodes[fid]["data"] for fid in s1_chain[1:] if fid in G.nodes]
             cancel_node = min(downstream_nodes, key=lambda n: n.pax_boarded)
 
             G_cancel = copy.deepcopy(G)
@@ -385,44 +391,48 @@ class DelayPropagator:
 
             s3_result = self.propagate(G_cancel, trigger_flight_id, initial_delay_minutes)
 
-            scenarios.append(RecoveryScenario(
-                scenario_id=3,
-                name="Cancel Least-Loaded Leg",
-                description=(
-                    f"Cancel {cancel_node.flight_number} ({cancel_node.route_id}, "
-                    f"{cancel_node.pax_boarded} PAX) to prevent further cascade. "
-                    f"Protects {len(downstream_nodes) - 1} downstream flight(s)."
-                ),
-                action_required=(
-                    f"Issue cancellation for {cancel_node.flight_number}. "
-                    "Rebook affected passengers. Notify downstream stations."
-                ),
-                feasibility="MEDIUM",
-                residual=s3_result,
-                cost_index=0.8,
-            ))
+            scenarios.append(
+                RecoveryScenario(
+                    scenario_id=3,
+                    name="Cancel Least-Loaded Leg",
+                    description=(
+                        f"Cancel {cancel_node.flight_number} ({cancel_node.route_id}, "
+                        f"{cancel_node.pax_boarded} PAX) to prevent further cascade. "
+                        f"Protects {len(downstream_nodes) - 1} downstream flight(s)."
+                    ),
+                    action_required=(
+                        f"Issue cancellation for {cancel_node.flight_number}. "
+                        "Rebook affected passengers. Notify downstream stations."
+                    ),
+                    feasibility="MEDIUM",
+                    residual=s3_result,
+                    cost_index=0.8,
+                )
+            )
         else:
             # Single-flight cascade — cancellation not needed
             s3_clone = copy.deepcopy(s1_result)
-            scenarios.append(RecoveryScenario(
-                scenario_id=3,
-                name="No Further Action (Single Leg)",
-                description="Trigger flight has no downstream rotation on this date. No cascade.",
-                action_required="None. Monitor flight and update ETA.",
-                feasibility="HIGH",
-                residual=s3_clone,
-                cost_index=0.0,
-            ))
+            scenarios.append(
+                RecoveryScenario(
+                    scenario_id=3,
+                    name="No Further Action (Single Leg)",
+                    description="Trigger flight has no downstream rotation on this date. No cascade.",
+                    action_required="None. Monitor flight and update ETA.",
+                    feasibility="HIGH",
+                    residual=s3_clone,
+                    cost_index=0.0,
+                )
+            )
 
         return scenarios
 
     # Compatible type pairs — one can substitute for the other operationally
     _TYPE_COMPAT: dict[str, list[str]] = {
-        "B737-800":   ["A321neo"],
-        "A321neo":    ["B737-800"],
+        "B737-800": ["A321neo"],
+        "A321neo": ["B737-800"],
         "B777-300ER": ["B787-9", "B747-8i"],
-        "B787-9":     ["B777-300ER"],
-        "B747-8i":    ["B777-300ER", "B787-9"],
+        "B787-9": ["B777-300ER"],
+        "B747-8i": ["B777-300ER", "B787-9"],
     }
 
     def _find_spare_aircraft(self, aircraft_type: str, dep_date: date) -> str | None:
@@ -438,12 +448,15 @@ class DelayPropagator:
         con = duckdb.connect(str(self.db_path), read_only=True)
         try:
             busy = set(
-                con.execute("""
+                con.execute(
+                    """
                     SELECT DISTINCT aircraft_registration
                     FROM flights
                     WHERE scheduled_dep_utc >= ? AND scheduled_dep_utc < ?
                       AND status != 'CNX'
-                """, [day_start, day_end])
+                """,
+                    [day_start, day_end],
+                )
                 .df()["aircraft_registration"]
                 .tolist()
             )

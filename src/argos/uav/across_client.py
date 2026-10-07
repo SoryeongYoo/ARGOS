@@ -46,7 +46,7 @@ class ACROSSClient:
     ) -> None:
         self.mode = mode
         self.base_url = base_url
-        self._plans: dict[str, UAMFlightPlan]  = {}
+        self._plans: dict[str, UAMFlightPlan] = {}
         self._responses: dict[str, ACROSSResponse] = {}
 
     # ── Plan lifecycle ────────────────────────────────────────────────────────
@@ -67,8 +67,12 @@ class ACROSSClient:
 
         # Classify severity: AIRSPACE / RUNWAY_CORR / SEPARATION → DENIED
         # CURFEW → DENIED.  WEATHER → conditional.
-        hard_types = {ConflictType.AIRSPACE, ConflictType.RUNWAY_CORR,
-                      ConflictType.SEPARATION, ConflictType.CURFEW}
+        hard_types = {
+            ConflictType.AIRSPACE,
+            ConflictType.RUNWAY_CORR,
+            ConflictType.SEPARATION,
+            ConflictType.CURFEW,
+        }
         hard = [c for c in conflicts if c.conflict_type in hard_types]
         soft = [c for c in conflicts if c.conflict_type not in hard_types]
 
@@ -90,8 +94,7 @@ class ACROSSClient:
                 approval_time_utc=datetime.now(timezone.utc),
                 conflicts=soft,
                 conditions=[
-                    f"Monitor {c.conflict_type.value} condition: {c.description}"
-                    for c in soft
+                    f"Monitor {c.conflict_type.value} condition: {c.description}" for c in soft
                 ],
                 message="Conditionally approved. Review attached conditions.",
             )
@@ -134,7 +137,7 @@ class ACROSSClient:
         delayed_flight_number: str,
         delayed_pax: int,
         origin_vertiport_id: str,
-        dest_vertiport_id:   str,
+        dest_vertiport_id: str,
         etd_utc: datetime,
         vehicle_id: str = "KE-AAM-001",
     ) -> tuple[UAMFlightPlan, ACROSSResponse] | None:
@@ -146,7 +149,12 @@ class ACROSSClient:
         This is called by the OCC agent when a cascade delay affects
         time-critical passengers (e.g., last connection of the day).
         """
-        from argos.uav.network import VERTIPORTS, build_uam_network, find_route, estimate_flight_time_min
+        from argos.uav.network import (
+            VERTIPORTS,
+            build_uam_network,
+            find_route,
+            estimate_flight_time_min,
+        )
         from argos.uav.models import FlightRules, Waypoint4D, GeoPoint
         from datetime import timedelta
 
@@ -157,7 +165,7 @@ class ACROSSClient:
 
         # Build a simple two-waypoint trajectory (direct, no intermediate stops)
         origin_vp = VERTIPORTS.get(origin_vertiport_id)
-        dest_vp   = VERTIPORTS.get(dest_vertiport_id)
+        dest_vp = VERTIPORTS.get(dest_vertiport_id)
         if not origin_vp or not dest_vp:
             return None
 

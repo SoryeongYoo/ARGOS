@@ -45,22 +45,22 @@ from argos.domain.far117 import is_fdp_legal, required_rest_hours
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-_KST_OFFSET = 9          # UTC+9
-_CHECK_IN_MIN  = 60      # crew reports 60 min before departure
-_POST_FLIGHT_MIN = 30    # post-flight duties after block-in
+_KST_OFFSET = 9  # UTC+9
+_CHECK_IN_MIN = 60  # crew reports 60 min before departure
+_POST_FLIGHT_MIN = 30  # post-flight duties after block-in
 _WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
 _MIN_TURN_NARROW = 45
-_MIN_TURN_WIDE   = 60
-_MAX_FLIGHT_TIME_MIN = 480    # FAR 117 § 117.65(a) — 8 h per calendar day
-_MIN_REST_MIN = 600            # FAR 117 § 117.25 — 10 h minimum rest
+_MIN_TURN_WIDE = 60
+_MAX_FLIGHT_TIME_MIN = 480  # FAR 117 § 117.65(a) — 8 h per calendar day
+_MIN_REST_MIN = 600  # FAR 117 § 117.25 — 10 h minimum rest
 
 # Type-rating groups: a single qualification covers all types in the group
 _RATING_GROUPS: dict[str, str] = {
-    "B737-800":   "NARROW",
-    "A321neo":    "NARROW",
+    "B737-800": "NARROW",
+    "A321neo": "NARROW",
     "B777-300ER": "WIDE",
-    "B787-9":     "WIDE",
-    "B747-8i":    "WIDE",
+    "B787-9": "WIDE",
+    "B747-8i": "WIDE",
 }
 
 
@@ -80,9 +80,11 @@ def _is_rated(crew_type_rating: str, aircraft_type: str) -> bool:
 
 # ── Data classes ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class FlightLeg:
     """A flight leg that needs crew assignment."""
+
     flight_id: str
     flight_number: str
     aircraft_type: str
@@ -96,20 +98,22 @@ class FlightLeg:
 @dataclass
 class CrewMember:
     """A crew member available for assignment."""
+
     crew_id: str
     name: str
     role: Literal["CAPT", "FO"]
-    type_rating: str                  # one of the five fleet types (used as group key)
+    type_rating: str  # one of the five fleet types (used as group key)
     position_iata: str
     available_from_utc: datetime
-    rest_end_utc: datetime | None = None   # earliest they can start next FDP
-    fdp_used_minutes: int = 0              # FDP already consumed today
-    flight_time_used_minutes: int = 0      # block time already flown today
+    rest_end_utc: datetime | None = None  # earliest they can start next FDP
+    fdp_used_minutes: int = 0  # FDP already consumed today
+    flight_time_used_minutes: int = 0  # block time already flown today
 
 
 @dataclass
 class DutyPeriod:
     """Resolved duty period for one crew member after assignment."""
+
     crew_id: str
     flight_ids: list[str]
     report_utc: datetime
@@ -122,28 +126,27 @@ class DutyPeriod:
 
 @dataclass
 class CrewAssignmentResult:
-    captain_assignments: dict[str, str]       # flight_id → crew_id
-    fo_assignments: dict[str, str]            # flight_id → crew_id
-    unassigned_captain: list[str]             # flight_ids missing CAPT
-    unassigned_fo: list[str]                  # flight_ids missing FO
+    captain_assignments: dict[str, str]  # flight_id → crew_id
+    fo_assignments: dict[str, str]  # flight_id → crew_id
+    unassigned_captain: list[str]  # flight_ids missing CAPT
+    unassigned_fo: list[str]  # flight_ids missing FO
     duty_periods: list[DutyPeriod]
-    far117_violations: list[str]              # human-readable violation messages
+    far117_violations: list[str]  # human-readable violation messages
     solve_time_seconds: float
     status: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"]
 
     @property
     def fully_crewed(self) -> list[str]:
         """Flight IDs that have both CAPT and FO assigned."""
-        return [
-            fid for fid in self.captain_assignments
-            if fid in self.fo_assignments
-        ]
+        return [fid for fid in self.captain_assignments if fid in self.fo_assignments]
 
     @property
     def coverage_rate(self) -> float:
         total_positions = (
-            len(self.captain_assignments) + len(self.unassigned_captain)
-            + len(self.fo_assignments) + len(self.unassigned_fo)
+            len(self.captain_assignments)
+            + len(self.unassigned_captain)
+            + len(self.fo_assignments)
+            + len(self.unassigned_fo)
         )
         filled = len(self.captain_assignments) + len(self.fo_assignments)
         return filled / total_positions if total_positions else 0.0
@@ -162,7 +165,7 @@ class CrewAssignmentResult:
             legal = "✓" if dp.far117_legal else "✗ VIOLATION"
             lines.append(
                 f"  {dp.crew_id}: {len(dp.flight_ids)} leg(s), "
-                f"FDP {dp.fdp_minutes//60}h{dp.fdp_minutes%60:02d}m "
+                f"FDP {dp.fdp_minutes // 60}h{dp.fdp_minutes % 60:02d}m "
                 f"(max {dp.far117_max_hours:.1f}h) {legal}"
             )
         if self.far117_violations:
@@ -172,6 +175,7 @@ class CrewAssignmentResult:
 
 
 # ── Optimizer ─────────────────────────────────────────────────────────────────
+
 
 class CrewAssigner:
     """CP-SAT crew-to-flight assignment optimizer.
@@ -208,7 +212,7 @@ class CrewAssigner:
 
         # ── Build feasible (leg, crew) pairs ──────────────────────────────────
         capt_vars: dict[tuple[int, int], cp_model.IntVar] = {}
-        fo_vars:   dict[tuple[int, int], cp_model.IntVar] = {}
+        fo_vars: dict[tuple[int, int], cp_model.IntVar] = {}
 
         for f_idx, leg in enumerate(legs):
             dep_min = to_min(leg.scheduled_dep_utc)
@@ -232,16 +236,14 @@ class CrewAssigner:
                 if cm.role == "CAPT":
                     capt_vars[key] = model.NewBoolVar(f"capt_{f_idx}_{c_idx}")
                     # Captains may also fill FO slot (downgrade) with penalty
-                    fo_vars[key]   = model.NewBoolVar(f"fo_capt_{f_idx}_{c_idx}")
+                    fo_vars[key] = model.NewBoolVar(f"fo_capt_{f_idx}_{c_idx}")
                 else:  # FO
-                    fo_vars[key]   = model.NewBoolVar(f"fo_{f_idx}_{c_idx}")
+                    fo_vars[key] = model.NewBoolVar(f"fo_{f_idx}_{c_idx}")
 
         # ── Each flight: at most 1 CAPT and 1 FO (allow unassignment) ─────────
         for f_idx in range(len(legs)):
-            capt_pool = [capt_vars[f_idx, c] for c in range(len(crew))
-                         if (f_idx, c) in capt_vars]
-            fo_pool   = [fo_vars[f_idx, c]   for c in range(len(crew))
-                         if (f_idx, c) in fo_vars]
+            capt_pool = [capt_vars[f_idx, c] for c in range(len(crew)) if (f_idx, c) in capt_vars]
+            fo_pool = [fo_vars[f_idx, c] for c in range(len(crew)) if (f_idx, c) in fo_vars]
             if capt_pool:
                 model.Add(sum(capt_pool) <= 1)
             if fo_pool:
@@ -258,18 +260,12 @@ class CrewAssigner:
             all_assignments = []
             for f_idx, leg in enumerate(legs):
                 if (f_idx, c_idx) in capt_vars:
-                    all_assignments.append(
-                        (capt_vars[f_idx, c_idx], leg.block_time_minutes)
-                    )
+                    all_assignments.append((capt_vars[f_idx, c_idx], leg.block_time_minutes))
                 if (f_idx, c_idx) in fo_vars:
-                    all_assignments.append(
-                        (fo_vars[f_idx, c_idx], leg.block_time_minutes)
-                    )
+                    all_assignments.append((fo_vars[f_idx, c_idx], leg.block_time_minutes))
             if all_assignments:
                 remaining = _MAX_FLIGHT_TIME_MIN - cm.flight_time_used_minutes
-                model.Add(
-                    sum(var * bt for var, bt in all_assignments) <= max(0, remaining)
-                )
+                model.Add(sum(var * bt for var, bt in all_assignments) <= max(0, remaining))
 
         # ── No-overlap per crew (round-trip footprint) ─────────────────────────
         for c_idx, cm in enumerate(crew):
@@ -279,20 +275,24 @@ class CrewAssigner:
                 dep_min = to_min(leg.scheduled_dep_utc)
                 footprint = _crew_footprint(leg.block_time_minutes, leg.aircraft_type)
                 start = dep_min - _CHECK_IN_MIN
-                end   = min(start + footprint, HORIZON)
+                end = min(start + footprint, HORIZON)
 
                 # Both capt and fo intervals must be tracked independently —
                 # a CAPT can fill either role, so both need overlap protection.
                 if (f_idx, c_idx) in capt_vars:
                     itv = model.NewOptionalIntervalVar(
-                        start, footprint, end,
+                        start,
+                        footprint,
+                        end,
                         capt_vars[f_idx, c_idx],
                         f"itv_c_{f_idx}_{c_idx}",
                     )
                     intervals.append(itv)
                 if (f_idx, c_idx) in fo_vars:
                     itv = model.NewOptionalIntervalVar(
-                        start, footprint, end,
+                        start,
+                        footprint,
+                        end,
                         fo_vars[f_idx, c_idx],
                         f"itv_fo_{f_idx}_{c_idx}",
                     )
@@ -307,8 +307,8 @@ class CrewAssigner:
         obj_terms = []
         for (f_idx, c_idx), var in capt_vars.items():
             leg = legs[f_idx]
-            cm  = crew[c_idx]
-            w   = leg.pax_boarded
+            cm = crew[c_idx]
+            w = leg.pax_boarded
             if cm.role == "CAPT":
                 # CAPT filling FO slot: check if this is a fo_var
                 pass
@@ -316,8 +316,8 @@ class CrewAssigner:
 
         for (f_idx, c_idx), var in fo_vars.items():
             leg = legs[f_idx]
-            cm  = crew[c_idx]
-            w   = leg.pax_boarded
+            cm = crew[c_idx]
+            w = leg.pax_boarded
             if cm.role == "CAPT":
                 # Captain downgrading to FO
                 w = max(0, w - _DOWNGRADE_PENALTY)
@@ -329,16 +329,16 @@ class CrewAssigner:
         # ── Solve ──────────────────────────────────────────────────────────────
         solver = cp_model.CpSolver()
         solver.parameters.max_time_in_seconds = time_limit_seconds
-        solver.parameters.num_search_workers  = 4
+        solver.parameters.num_search_workers = 4
         cp_status = solver.Solve(model)
 
         solve_time = time.perf_counter() - t0
 
         _STATUS_MAP = {
-            cp_model.OPTIMAL:    "OPTIMAL",
-            cp_model.FEASIBLE:   "FEASIBLE",
+            cp_model.OPTIMAL: "OPTIMAL",
+            cp_model.FEASIBLE: "FEASIBLE",
             cp_model.INFEASIBLE: "INFEASIBLE",
-            cp_model.UNKNOWN:    "UNKNOWN",
+            cp_model.UNKNOWN: "UNKNOWN",
         }
         status_str: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"] = (
             _STATUS_MAP.get(cp_status, "TIMEOUT")  # type: ignore[assignment]
@@ -346,7 +346,7 @@ class CrewAssigner:
 
         # ── Extract solution ───────────────────────────────────────────────────
         capt_assign: dict[str, str] = {}
-        fo_assign:   dict[str, str] = {}
+        fo_assign: dict[str, str] = {}
 
         if cp_status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
             for (f_idx, c_idx), var in capt_vars.items():
@@ -366,7 +366,7 @@ class CrewAssigner:
                         fo_assign[fid] = cid
 
         unassigned_capt = [l.flight_id for l in legs if l.flight_id not in capt_assign]
-        unassigned_fo   = [l.flight_id for l in legs if l.flight_id not in fo_assign]
+        unassigned_fo = [l.flight_id for l in legs if l.flight_id not in fo_assign]
 
         # ── Post-solve FAR 117 FDP validation ─────────────────────────────────
         duty_periods, violations = self._validate_far117(
@@ -391,7 +391,7 @@ class CrewAssigner:
         legs: list[FlightLeg],
         crew: list[CrewMember],
         capt_assign: dict[str, str],
-        fo_assign:   dict[str, str],
+        fo_assign: dict[str, str],
         midnight_utc: datetime,
     ) -> tuple[list[DutyPeriod], list[str]]:
         """Compute each crew member's duty period and check FAR 117 FDP limits."""
@@ -407,7 +407,7 @@ class CrewAssigner:
             crew_flights[cid].sort(key=lambda l: l.scheduled_dep_utc)
 
         duty_periods: list[DutyPeriod] = []
-        violations:   list[str] = []
+        violations: list[str] = []
 
         crew_by_id = {cm.crew_id: cm for cm in crew}
 
@@ -417,15 +417,14 @@ class CrewAssigner:
                 continue
 
             first_dep = flight_list[0].scheduled_dep_utc
-            last_leg  = flight_list[-1]
+            last_leg = flight_list[-1]
 
             # Report time = departure of first leg - CHECK_IN_MIN
             report_utc = first_dep - timedelta(minutes=_CHECK_IN_MIN)
 
             # FDP ends when crew checks in after return from last leg
-            last_arr_utc = (
-                last_leg.scheduled_dep_utc
-                + timedelta(minutes=2 * last_leg.block_time_minutes + _min_turn(last_leg.aircraft_type))
+            last_arr_utc = last_leg.scheduled_dep_utc + timedelta(
+                minutes=2 * last_leg.block_time_minutes + _min_turn(last_leg.aircraft_type)
             )
             release_utc = last_arr_utc + timedelta(minutes=_POST_FLIGHT_MIN)
 
@@ -437,9 +436,7 @@ class CrewAssigner:
             total_block = sum(l.block_time_minutes for l in flight_list)
             num_segs = 2 * len(flight_list)  # out + back per leg
 
-            legal, max_hours = is_fdp_legal(
-                report_kst, fdp_minutes / 60, num_segs
-            )
+            legal, max_hours = is_fdp_legal(report_kst, fdp_minutes / 60, num_segs)
 
             dp = DutyPeriod(
                 crew_id=cid,
@@ -455,7 +452,7 @@ class CrewAssigner:
 
             if not legal:
                 violations.append(
-                    f"{cid}: FDP {fdp_minutes//60}h{fdp_minutes%60:02d}m "
+                    f"{cid}: FDP {fdp_minutes // 60}h{fdp_minutes % 60:02d}m "
                     f"exceeds max {max_hours:.1f}h "
                     f"(report {report_kst.strftime('%H:%M')} KST, {num_segs} segs)"
                 )
@@ -467,9 +464,9 @@ class CrewAssigner:
     @staticmethod
     def generate_crew(
         n_capt_narrow: int = 10,
-        n_fo_narrow:   int = 10,
-        n_capt_wide:   int = 8,
-        n_fo_wide:     int = 8,
+        n_fo_narrow: int = 10,
+        n_capt_wide: int = 8,
+        n_fo_wide: int = 8,
         op_day: date | None = None,
     ) -> list[CrewMember]:
         """Generate a synthetic crew pool for testing without a crew database.
@@ -484,19 +481,21 @@ class CrewAssigner:
         pool: list[CrewMember] = []
 
         configs = [
-            ("CAPT", "B737-800",   n_capt_narrow, "N"),
-            ("FO",   "B737-800",   n_fo_narrow,   "N"),
-            ("CAPT", "B777-300ER", n_capt_wide,   "W"),
-            ("FO",   "B777-300ER", n_fo_wide,     "W"),
+            ("CAPT", "B737-800", n_capt_narrow, "N"),
+            ("FO", "B737-800", n_fo_narrow, "N"),
+            ("CAPT", "B777-300ER", n_capt_wide, "W"),
+            ("FO", "B777-300ER", n_fo_wide, "W"),
         ]
         for role, rating, count, prefix in configs:
             for i in range(1, count + 1):
-                pool.append(CrewMember(
-                    crew_id=f"KE-{role[0]}{prefix}{i:03d}",
-                    name=f"{role} {prefix}{i:03d}",
-                    role=role,  # type: ignore[arg-type]
-                    type_rating=rating,
-                    position_iata="ICN",
-                    available_from_utc=midnight_utc,
-                ))
+                pool.append(
+                    CrewMember(
+                        crew_id=f"KE-{role[0]}{prefix}{i:03d}",
+                        name=f"{role} {prefix}{i:03d}",
+                        role=role,  # type: ignore[arg-type]
+                        type_rating=rating,
+                        position_iata="ICN",
+                        available_from_utc=midnight_utc,
+                    )
+                )
         return pool

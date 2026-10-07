@@ -85,21 +85,24 @@ VERTIPORTS: dict[str, Vertiport] = {
 
 # ── Corridor edge attributes ───────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class CorridorEdge:
     """Attributes of a UAM approved corridor segment."""
+
     origin_id: str
     dest_id: str
     distance_nm: float
-    cruise_alt_ft: float       # published cruise altitude AGL
-    min_alt_ft: float          # minimum en-route altitude
-    max_alt_ft: float          # maximum en-route altitude
-    speed_limit_kts: float     # max corridor speed
-    avoids_icn_ctr: bool       # True if corridor stays outside ICN CTR (5 NM)
+    cruise_alt_ft: float  # published cruise altitude AGL
+    min_alt_ft: float  # minimum en-route altitude
+    max_alt_ft: float  # maximum en-route altitude
+    speed_limit_kts: float  # max corridor speed
+    avoids_icn_ctr: bool  # True if corridor stays outside ICN CTR (5 NM)
     notes: str = ""
 
 
 # ── Network builder ────────────────────────────────────────────────────────────
+
 
 def build_uam_network() -> nx.DiGraph:
     """Return directed graph of UAM corridors.
@@ -116,44 +119,47 @@ def build_uam_network() -> nx.DiGraph:
     # (symmetric routes get both directions)
     corridors: list[CorridorEdge] = [
         # ICN T1 ↔ ICN T2 (airport internal shuttle)
-        CorridorEdge("ICN-T1", "ICN-T2", 0.8,  500, 300, 800,  60, True),
-        CorridorEdge("ICN-T2", "ICN-T1", 0.8,  500, 300, 800,  60, True),
-
+        CorridorEdge("ICN-T1", "ICN-T2", 0.8, 500, 300, 800, 60, True),
+        CorridorEdge("ICN-T2", "ICN-T1", 0.8, 500, 300, 800, 60, True),
         # ICN ↔ 송도 (coast route, avoids CTR)
-        CorridorEdge("ICN-T2", "SBR",    8.6,  800, 500, 1200, 80, True,
-                     "Coast corridor; avoids ICN ILS"),
-        CorridorEdge("SBR",    "ICN-T2", 8.6,  800, 500, 1200, 80, True),
-
+        CorridorEdge(
+            "ICN-T2", "SBR", 8.6, 800, 500, 1200, 80, True, "Coast corridor; avoids ICN ILS"
+        ),
+        CorridorEdge("SBR", "ICN-T2", 8.6, 800, 500, 1200, 80, True),
         # 송도 ↔ 여의도 (Han River corridor)
-        CorridorEdge("SBR",    "YDP",   20.5, 1000, 600, 1500, 90, True,
-                     "Han River UAM highway"),
-        CorridorEdge("YDP",    "SBR",   20.5, 1000, 600, 1500, 90, True),
-
+        CorridorEdge("SBR", "YDP", 20.5, 1000, 600, 1500, 90, True, "Han River UAM highway"),
+        CorridorEdge("YDP", "SBR", 20.5, 1000, 600, 1500, 90, True),
         # 여의도 ↔ 김포 (West Seoul)
-        CorridorEdge("YDP",    "GMP",    9.3,  800, 500, 1200, 80, True),
-        CorridorEdge("GMP",    "YDP",    9.3,  800, 500, 1200, 80, True),
-
+        CorridorEdge("YDP", "GMP", 9.3, 800, 500, 1200, 80, True),
+        CorridorEdge("GMP", "YDP", 9.3, 800, 500, 1200, 80, True),
         # 김포 ↔ ICN (direct, low altitude — crosses CTR boundary)
-        CorridorEdge("GMP",    "ICN-T1",18.4,  600, 400, 1000, 70, False,
-                     "Crosses ICN CTR boundary; requires ATC coordination"),
-        CorridorEdge("ICN-T1", "GMP",   18.4,  600, 400, 1000, 70, False),
-
+        CorridorEdge(
+            "GMP",
+            "ICN-T1",
+            18.4,
+            600,
+            400,
+            1000,
+            70,
+            False,
+            "Crosses ICN CTR boundary; requires ATC coordination",
+        ),
+        CorridorEdge("ICN-T1", "GMP", 18.4, 600, 400, 1000, 70, False),
         # 여의도 ↔ 수원 (south corridor)
-        CorridorEdge("YDP",    "SWN",   18.2, 1000, 600, 1500, 90, True),
-        CorridorEdge("SWN",    "YDP",   18.2, 1000, 600, 1500, 90, True),
-
+        CorridorEdge("YDP", "SWN", 18.2, 1000, 600, 1500, 90, True),
+        CorridorEdge("SWN", "YDP", 18.2, 1000, 600, 1500, 90, True),
         # 수원 ↔ 판교
-        CorridorEdge("SWN",    "BDC",   12.0, 1000, 600, 1500, 90, True),
-        CorridorEdge("BDC",    "SWN",   12.0, 1000, 600, 1500, 90, True),
-
+        CorridorEdge("SWN", "BDC", 12.0, 1000, 600, 1500, 90, True),
+        CorridorEdge("BDC", "SWN", 12.0, 1000, 600, 1500, 90, True),
         # 여의도 ↔ 판교
-        CorridorEdge("YDP",    "BDC",   11.8, 1000, 600, 1500, 90, True),
-        CorridorEdge("BDC",    "YDP",   11.8, 1000, 600, 1500, 90, True),
+        CorridorEdge("YDP", "BDC", 11.8, 1000, 600, 1500, 90, True),
+        CorridorEdge("BDC", "YDP", 11.8, 1000, 600, 1500, 90, True),
     ]
 
     for c in corridors:
         G.add_edge(
-            c.origin_id, c.dest_id,
+            c.origin_id,
+            c.dest_id,
             corridor=c,
             weight=c.distance_nm,
         )
@@ -162,6 +168,7 @@ def build_uam_network() -> nx.DiGraph:
 
 
 # ── Route planner ─────────────────────────────────────────────────────────────
+
 
 def find_route(
     G: nx.DiGraph,

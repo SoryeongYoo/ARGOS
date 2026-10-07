@@ -31,7 +31,9 @@ def generate(
     start: Optional[str] = typer.Option(None, "--start", "-s", help="Start date YYYY-MM-DD"),
     end: Optional[str] = typer.Option(None, "--end", "-e", help="End date YYYY-MM-DD"),
     routes: Optional[list[str]] = typer.Option(
-        None, "--routes", "-r",
+        None,
+        "--routes",
+        "-r",
         help="Route IDs to generate (e.g. ICN-NRT ICN-JFK). Default: all 60.",
     ),
 ) -> None:

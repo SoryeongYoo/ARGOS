@@ -37,7 +37,7 @@ from argos.uav.across_client import ACROSSClient
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 UTC = timezone.utc
-BASE_TIME = datetime(2024, 6, 15, 2, 0, 0, tzinfo=UTC)   # 11:00 KST (daytime)
+BASE_TIME = datetime(2024, 6, 15, 2, 0, 0, tzinfo=UTC)  # 11:00 KST (daytime)
 
 DEMO_VEHICLE = UAMVehicle(
     vehicle_id="KE-AAM-001",
@@ -63,7 +63,7 @@ def _plan(
 ) -> UAMFlightPlan:
     """Build a simple 2-waypoint flight plan."""
     origin_vp = VERTIPORTS[origin_id]
-    dest_vp   = VERTIPORTS[dest_id]
+    dest_vp = VERTIPORTS[dest_id]
     etd = datetime(2024, 6, 15, dep_hour_utc, 0, tzinfo=UTC)
     eta = etd + timedelta(minutes=20)
     return UAMFlightPlan(
@@ -77,13 +77,14 @@ def _plan(
         cruise_alt_ft=alt_ft,
         trajectory=[
             Waypoint4D(GeoPoint(origin_vp.position.lat, origin_vp.position.lon, alt_ft), etd),
-            Waypoint4D(GeoPoint(dest_vp.position.lat,   dest_vp.position.lon,   alt_ft), eta),
+            Waypoint4D(GeoPoint(dest_vp.position.lat, dest_vp.position.lon, alt_ft), eta),
         ],
         pax_count=2,
     )
 
 
 # ── GeoPoint tests ────────────────────────────────────────────────────────────
+
 
 def test_geopoint_distance_same_point():
     p = GeoPoint(37.4691, 126.4505)
@@ -104,6 +105,7 @@ def test_geopoint_distance_symmetry():
 
 
 # ── Network tests ─────────────────────────────────────────────────────────────
+
 
 def test_network_builds():
     G = build_uam_network()
@@ -167,6 +169,7 @@ def test_all_routes_from_returns_dict():
 
 # ── Airspace / conflict tests ─────────────────────────────────────────────────
 
+
 def test_ctr_altitude_ok_outside_ctr():
     plan = _plan("P1", "SBR", "YDP", alt_ft=800)
     # SBR and YDP are outside ICN CTR — no altitude violation expected
@@ -228,6 +231,7 @@ def test_assess_conflicts_catches_curfew():
 
 
 # ── ACROSS client tests ───────────────────────────────────────────────────────
+
 
 def test_submit_clean_plan_approved():
     client = ACROSSClient()
@@ -316,7 +320,7 @@ def test_suggest_uam_alternative_connected():
     plan, response = result
     assert plan.origin_id == "SBR"
     assert plan.dest_id == "YDP"
-    assert plan.pax_count <= 4   # eVTOL capacity cap
+    assert plan.pax_count <= 4  # eVTOL capacity cap
     assert response.plan_id == plan.plan_id
 
 

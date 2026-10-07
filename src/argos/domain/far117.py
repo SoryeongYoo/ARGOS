@@ -18,16 +18,16 @@ from datetime import datetime, timedelta
 
 _APPENDIX_B: dict[int, list[float]] = {
     #  hr   1seg  2seg  3seg  4seg  5seg  6seg
-     0: [9.0, 9.0,  9.0,  9.0,  9.0,  9.0],
-     1: [9.0, 9.0,  9.0,  9.0,  9.0,  9.0],
-     2: [9.0, 9.0,  9.0,  9.0,  9.0,  9.0],
-     3: [9.0, 9.0,  9.0,  9.0,  9.0,  9.0],
-     4: [10.0, 10.0, 10.0, 10.0, 9.0,  9.0],
-     5: [12.0, 12.0, 12.0, 12.0, 11.5, 11.0],
-     6: [13.0, 13.0, 12.0, 12.0, 11.5, 11.0],
-     7: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
-     8: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
-     9: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
+    0: [9.0, 9.0, 9.0, 9.0, 9.0, 9.0],
+    1: [9.0, 9.0, 9.0, 9.0, 9.0, 9.0],
+    2: [9.0, 9.0, 9.0, 9.0, 9.0, 9.0],
+    3: [9.0, 9.0, 9.0, 9.0, 9.0, 9.0],
+    4: [10.0, 10.0, 10.0, 10.0, 9.0, 9.0],
+    5: [12.0, 12.0, 12.0, 12.0, 11.5, 11.0],
+    6: [13.0, 13.0, 12.0, 12.0, 11.5, 11.0],
+    7: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
+    8: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
+    9: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
     10: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
     11: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
     12: [13.5, 13.0, 12.0, 12.0, 11.5, 11.0],
@@ -40,22 +40,22 @@ _APPENDIX_B: dict[int, list[float]] = {
     19: [12.0, 12.0, 11.5, 11.5, 11.0, 10.0],
     20: [11.5, 11.5, 11.0, 11.0, 10.5, 10.0],
     21: [11.0, 11.0, 10.5, 10.5, 10.0, 9.5],
-    22: [10.5, 10.5, 10.0, 10.0, 9.5,  9.0],
-    23: [10.0, 10.0, 10.0, 9.5,  9.0,  9.0],
+    22: [10.5, 10.5, 10.0, 10.0, 9.5, 9.0],
+    23: [10.0, 10.0, 10.0, 9.5, 9.0, 9.0],
 }
 
 # Minimum rest between FDPs
-_MIN_REST_HOURS = 10.0          # standard
-_MIN_REST_REDUCED = 8.0         # reduced (requires compensatory rest)
-_MIN_REST_AUGMENTED = 8.0       # augmented crew (≥3 pilots)
+_MIN_REST_HOURS = 10.0  # standard
+_MIN_REST_REDUCED = 8.0  # reduced (requires compensatory rest)
+_MIN_REST_AUGMENTED = 8.0  # augmented crew (≥3 pilots)
 
 # Cumulative flight time limits
 MAX_FT_CALENDAR_DAY_HOURS = 8.0
 MAX_FT_28_DAY_HOURS = 100.0
 MAX_FT_YEAR_HOURS = 1000.0
-MAX_FDP_EXTENSION = 2.0         # max unforeseen extension to FDP (hours)
+MAX_FDP_EXTENSION = 2.0  # max unforeseen extension to FDP (hours)
 
-LONG_HAUL_MIN_CREW = 3          # ≥3 pilots required when FDP > 12h
+LONG_HAUL_MIN_CREW = 3  # ≥3 pilots required when FDP > 12h
 
 
 def max_fdp_hours(report_hour_local: int, num_segments: int, augmented: bool = False) -> float:

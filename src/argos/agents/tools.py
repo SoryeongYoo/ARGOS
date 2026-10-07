@@ -25,6 +25,7 @@ from argos.simulation.propagation import DelayPropagator
 
 # ── Propagation tool ──────────────────────────────────────────────────────────
 
+
 @tool
 def run_propagation(
     db_path: str,
@@ -100,6 +101,7 @@ def run_scenario_generation(
 
 # ── Aircraft optimisation tool ────────────────────────────────────────────────
 
+
 @tool
 def run_aircraft_optimisation(
     db_path: str,
@@ -136,6 +138,7 @@ def run_aircraft_optimisation(
 
 # ── Crew optimisation tool ────────────────────────────────────────────────────
 
+
 @tool
 def run_crew_optimisation(
     db_path: str,
@@ -164,13 +167,15 @@ def run_crew_optimisation(
 
     con = duckdb.connect(db_path, read_only=True)
     try:
-        flt_df = con.execute("""
+        flt_df = con.execute(
+            """
             SELECT flight_id, flight_number, aircraft_type,
                    origin_iata, dest_iata, scheduled_dep_utc, block_time_minutes,
                    COALESCE(pax_boarded, 0) AS pax_boarded
             FROM flights
             WHERE flight_id IN ({})
-        """.format(",".join(f"'{fid}'" for fid in disrupted_flight_ids))).df()
+        """.format(",".join(f"'{fid}'" for fid in disrupted_flight_ids))
+        ).df()
     finally:
         con.close()
 
@@ -190,8 +195,10 @@ def run_crew_optimisation(
     ]
 
     crew_pool = CrewAssigner.generate_crew(
-        n_capt_narrow=12, n_fo_narrow=12,
-        n_capt_wide=10,   n_fo_wide=10,
+        n_capt_narrow=12,
+        n_fo_narrow=12,
+        n_capt_wide=10,
+        n_fo_wide=10,
         op_day=dep_date,
     )
     assigner = CrewAssigner()

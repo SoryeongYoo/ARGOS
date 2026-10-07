@@ -66,11 +66,11 @@ DEMO_VEHICLE = UAMVehicle(
 
 def _status_color(status: ApprovalStatus) -> str:
     return {
-        ApprovalStatus.APPROVED:  "green",
-        ApprovalStatus.DENIED:    "red",
+        ApprovalStatus.APPROVED: "green",
+        ApprovalStatus.DENIED: "red",
         ApprovalStatus.CANCELLED: "yellow",
-        ApprovalStatus.PENDING:   "cyan",
-        ApprovalStatus.ACTIVE:    "blue",
+        ApprovalStatus.PENDING: "cyan",
+        ApprovalStatus.ACTIVE: "blue",
         ApprovalStatus.COMPLETED: "dim",
     }.get(status, "white")
 
@@ -79,13 +79,13 @@ def _show_network(G) -> None:
     console.rule("[bold]UAM Vertiport Network - ICN Hub Region")
 
     vt = Table(box=box.SIMPLE, show_header=True, header_style="bold")
-    vt.add_column("ID",       style="cyan")
+    vt.add_column("ID", style="cyan")
     vt.add_column("Name (EN)")
-    vt.add_column("Lat",      justify="right")
-    vt.add_column("Lon",      justify="right")
-    vt.add_column("Pads",     justify="right")
+    vt.add_column("Lat", justify="right")
+    vt.add_column("Lon", justify="right")
+    vt.add_column("Pads", justify="right")
     vt.add_column("Charging", justify="right")
-    vt.add_column("ICAO",     style="dim")
+    vt.add_column("ICAO", style="dim")
 
     for vid, vp in VERTIPORTS.items():
         vt.add_row(
@@ -99,20 +99,30 @@ def _show_network(G) -> None:
         )
     console.print(vt)
 
-    et = Table(title=f"Corridors ({G.number_of_edges()} edges)",
-               box=box.SIMPLE, show_header=True, header_style="bold")
-    et.add_column("Origin",    style="cyan")
-    et.add_column("Dest",      style="cyan")
+    et = Table(
+        title=f"Corridors ({G.number_of_edges()} edges)",
+        box=box.SIMPLE,
+        show_header=True,
+        header_style="bold",
+    )
+    et.add_column("Origin", style="cyan")
+    et.add_column("Dest", style="cyan")
     et.add_column("Dist (NM)", justify="right")
     et.add_column("Cruise ft", justify="right")
     et.add_column("Speed kts", justify="right")
-    et.add_column("CTR-free",  justify="center")
+    et.add_column("CTR-free", justify="center")
 
     for u, v, data in sorted(G.edges(data=True), key=lambda e: e[0]):
         c = data["corridor"]
         free = "[green]Yes[/]" if c.avoids_icn_ctr else "[yellow]No[/]"
-        et.add_row(u, v, f"{c.distance_nm:.1f}", str(int(c.cruise_alt_ft)),
-                   str(int(c.speed_limit_kts)), free)
+        et.add_row(
+            u,
+            v,
+            f"{c.distance_nm:.1f}",
+            str(int(c.cruise_alt_ft)),
+            str(int(c.speed_limit_kts)),
+            free,
+        )
     console.print(et)
 
 
@@ -125,7 +135,7 @@ def _show_route(G, origin_id: str, dest_id: str) -> None:
         return
 
     dist = route_distance_nm(G, path)
-    ft   = estimate_flight_time_min(G, path, DEMO_VEHICLE)
+    ft = estimate_flight_time_min(G, path, DEMO_VEHICLE)
 
     console.print(
         f"Path     : [cyan]{' -> '.join(path)}[/]\n"
@@ -140,13 +150,14 @@ def _show_route(G, origin_id: str, dest_id: str) -> None:
     ht.add_column("Segment")
     ht.add_column("Dist (NM)", justify="right")
     ht.add_column("Cruise ft", justify="right")
-    ht.add_column("CTR-free",  justify="center")
+    ht.add_column("CTR-free", justify="center")
     for i in range(len(path) - 1):
-        u, v = path[i], path[i+1]
+        u, v = path[i], path[i + 1]
         c = G[u][v]["corridor"]
         free = "[green]Yes[/]" if c.avoids_icn_ctr else "[yellow]No[/]"
-        ht.add_row(str(i+1), f"{u} -> {v}",
-                   f"{c.distance_nm:.1f}", str(int(c.cruise_alt_ft)), free)
+        ht.add_row(
+            str(i + 1), f"{u} -> {v}", f"{c.distance_nm:.1f}", str(int(c.cruise_alt_ft)), free
+        )
     console.print(ht)
 
 
@@ -156,27 +167,27 @@ def _submit_plans(client: ACROSSClient, G) -> None:
     etd_day = datetime(2024, 6, 15, 3, 0, tzinfo=UTC)  # 12:00 KST
 
     test_cases = [
-        ("PLAN-OK",     "SBR",    "YDP",    800,  3,  "Normal daytime SBR->YDP"),
-        ("PLAN-CURFEW", "SBR",    "YDP",    800,  15, "Midnight KST curfew violation"),
-        ("PLAN-CTR",    "ICN-T1", "ICN-T2", 1500, 3,  "High altitude inside ICN CTR"),
-        ("PLAN-MULTI",  "ICN-T2", "YDP",    800,  4,  "Multi-hop ICN-T2->SBR->YDP"),
+        ("PLAN-OK", "SBR", "YDP", 800, 3, "Normal daytime SBR->YDP"),
+        ("PLAN-CURFEW", "SBR", "YDP", 800, 15, "Midnight KST curfew violation"),
+        ("PLAN-CTR", "ICN-T1", "ICN-T2", 1500, 3, "High altitude inside ICN CTR"),
+        ("PLAN-MULTI", "ICN-T2", "YDP", 800, 4, "Multi-hop ICN-T2->SBR->YDP"),
     ]
 
     rt = Table(box=box.SIMPLE, show_header=True, header_style="bold")
-    rt.add_column("Plan ID",   style="cyan")
+    rt.add_column("Plan ID", style="cyan")
     rt.add_column("Route")
-    rt.add_column("Alt ft",    justify="right")
+    rt.add_column("Alt ft", justify="right")
     rt.add_column("Dep (UTC)")
-    rt.add_column("Status",    justify="center")
+    rt.add_column("Status", justify="center")
     rt.add_column("Conflicts", justify="right")
-    rt.add_column("Note",      style="dim")
+    rt.add_column("Note", style="dim")
 
     for pid, origin, dest, alt_ft, dep_hour, note in test_cases:
         etd = datetime(2024, 6, 15, dep_hour, 0, tzinfo=UTC)
         eta = etd + timedelta(minutes=20)
 
         origin_vp = VERTIPORTS[origin]
-        dest_vp   = VERTIPORTS[dest]
+        dest_vp = VERTIPORTS[dest]
 
         plan = UAMFlightPlan(
             plan_id=pid,
@@ -189,7 +200,7 @@ def _submit_plans(client: ACROSSClient, G) -> None:
             cruise_alt_ft=float(alt_ft),
             trajectory=[
                 Waypoint4D(GeoPoint(origin_vp.position.lat, origin_vp.position.lon, alt_ft), etd),
-                Waypoint4D(GeoPoint(dest_vp.position.lat,   dest_vp.position.lon,   alt_ft), eta),
+                Waypoint4D(GeoPoint(dest_vp.position.lat, dest_vp.position.lon, alt_ft), eta),
             ],
             pax_count=2,
         )
@@ -225,7 +236,7 @@ def _occ_scenario(client: ACROSSClient, G) -> None:
         "OCC checks if UAM shuttle (SBR -> GMP) can serve as alternative.\n"
     )
 
-    etd = datetime(2024, 6, 15, 3, 30, tzinfo=UTC)   # 12:30 KST
+    etd = datetime(2024, 6, 15, 3, 30, tzinfo=UTC)  # 12:30 KST
     result = client.suggest_uam_alternative(
         delayed_flight_number="KE0701",
         delayed_pax=8,
@@ -242,25 +253,26 @@ def _occ_scenario(client: ACROSSClient, G) -> None:
     sc = _status_color(resp.status)
     flight_min = (plan.eta_utc - plan.etd_utc).total_seconds() / 60
 
-    console.print(Panel(
-        f"Plan ID    : {plan.plan_id}\n"
-        f"Route      : {plan.origin_id} -> {plan.dest_id}\n"
-        f"Departure  : {plan.etd_utc.strftime('%H:%M UTC')} "
-        f"({plan.etd_utc.hour + 9:02d}:{plan.etd_utc.minute:02d} KST)\n"
-        f"ETA        : {plan.eta_utc.strftime('%H:%M UTC')}\n"
-        f"Flight time: {flight_min:.0f} min\n"
-        f"PAX slots  : {plan.pax_count} (capped at eVTOL capacity)\n"
-        f"Status     : [{sc}]{resp.status.value}[/]\n"
-        + (f"Message    : {resp.message}" if resp.message else ""),
-        title="UAM Alternative Flight Plan",
-        border_style=sc,
-        expand=False,
-    ))
+    console.print(
+        Panel(
+            f"Plan ID    : {plan.plan_id}\n"
+            f"Route      : {plan.origin_id} -> {plan.dest_id}\n"
+            f"Departure  : {plan.etd_utc.strftime('%H:%M UTC')} "
+            f"({plan.etd_utc.hour + 9:02d}:{plan.etd_utc.minute:02d} KST)\n"
+            f"ETA        : {plan.eta_utc.strftime('%H:%M UTC')}\n"
+            f"Flight time: {flight_min:.0f} min\n"
+            f"PAX slots  : {plan.pax_count} (capped at eVTOL capacity)\n"
+            f"Status     : [{sc}]{resp.status.value}[/]\n"
+            + (f"Message    : {resp.message}" if resp.message else ""),
+            title="UAM Alternative Flight Plan",
+            border_style=sc,
+            expand=False,
+        )
+    )
 
     if resp.approved:
         console.print(
-            "[green]UAM alternative approved.[/] "
-            "OCC may offer seats to time-critical passengers."
+            "[green]UAM alternative approved.[/] OCC may offer seats to time-critical passengers."
         )
     else:
         console.print(
@@ -274,12 +286,8 @@ def demo(
     origin: Optional[str] = typer.Option(
         None, "--origin", "-o", help="Origin vertiport ID for route demo"
     ),
-    dest: Optional[str] = typer.Option(
-        None, "--dest", "-d", help="Destination vertiport ID"
-    ),
-    scenario: Optional[str] = typer.Option(
-        None, "--scenario", "-s", help="Scenario to run: 'occ'"
-    ),
+    dest: Optional[str] = typer.Option(None, "--dest", "-d", help="Destination vertiport ID"),
+    scenario: Optional[str] = typer.Option(None, "--scenario", "-s", help="Scenario to run: 'occ'"),
 ) -> None:
     G = build_uam_network()
     client = ACROSSClient(mode="simulation")
@@ -287,7 +295,7 @@ def demo(
     _show_network(G)
 
     o = origin or "SBR"
-    d = dest   or "GMP"
+    d = dest or "GMP"
     _show_route(G, o, d)
 
     _submit_plans(client, G)

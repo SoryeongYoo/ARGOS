@@ -16,35 +16,55 @@ _DEFAULT_TAXI_IN_MIN = 15
 @dataclass(frozen=True)
 class AircraftPerformance:
     aircraft_type: str
-    cruise_tas_knots: float          # True airspeed at typical cruise altitude
-    ci_ref: int                      # Reference CI for TAS above
-    ci_sensitivity: float            # knots per CI unit change
-    climb_descent_distance_nm: float # Total climb + descent distance
-    climb_descent_time_min: float    # Time for climb + descent phase
+    cruise_tas_knots: float  # True airspeed at typical cruise altitude
+    ci_ref: int  # Reference CI for TAS above
+    ci_sensitivity: float  # knots per CI unit change
+    climb_descent_distance_nm: float  # Total climb + descent distance
+    climb_descent_time_min: float  # Time for climb + descent phase
     taxi_out_min: int = _ICN_TAXI_OUT_MIN
     taxi_in_min: int = _DEFAULT_TAXI_IN_MIN
 
 
 _PERFORMANCE: dict[str, AircraftPerformance] = {
     "B737-800": AircraftPerformance(
-        "B737-800", cruise_tas_knots=447, ci_ref=35,
-        ci_sensitivity=0.18, climb_descent_distance_nm=300, climb_descent_time_min=42,
+        "B737-800",
+        cruise_tas_knots=447,
+        ci_ref=35,
+        ci_sensitivity=0.18,
+        climb_descent_distance_nm=300,
+        climb_descent_time_min=42,
     ),
     "A321neo": AircraftPerformance(
-        "A321neo", cruise_tas_knots=450, ci_ref=40,
-        ci_sensitivity=0.16, climb_descent_distance_nm=280, climb_descent_time_min=40,
+        "A321neo",
+        cruise_tas_knots=450,
+        ci_ref=40,
+        ci_sensitivity=0.16,
+        climb_descent_distance_nm=280,
+        climb_descent_time_min=40,
     ),
     "B777-300ER": AircraftPerformance(
-        "B777-300ER", cruise_tas_knots=490, ci_ref=80,
-        ci_sensitivity=0.25, climb_descent_distance_nm=380, climb_descent_time_min=52,
+        "B777-300ER",
+        cruise_tas_knots=490,
+        ci_ref=80,
+        ci_sensitivity=0.25,
+        climb_descent_distance_nm=380,
+        climb_descent_time_min=52,
     ),
     "B787-9": AircraftPerformance(
-        "B787-9", cruise_tas_knots=487, ci_ref=75,
-        ci_sensitivity=0.22, climb_descent_distance_nm=360, climb_descent_time_min=50,
+        "B787-9",
+        cruise_tas_knots=487,
+        ci_ref=75,
+        ci_sensitivity=0.22,
+        climb_descent_distance_nm=360,
+        climb_descent_time_min=50,
     ),
     "B747-8i": AircraftPerformance(
-        "B747-8i", cruise_tas_knots=493, ci_ref=85,
-        ci_sensitivity=0.28, climb_descent_distance_nm=400, climb_descent_time_min=55,
+        "B747-8i",
+        cruise_tas_knots=493,
+        ci_ref=85,
+        ci_sensitivity=0.28,
+        climb_descent_distance_nm=400,
+        climb_descent_time_min=55,
     ),
 }
 
@@ -75,10 +95,7 @@ def calculate_block_time(
     cruise_time_min = (cruise_dist / effective_gs) * 60.0
 
     return round(
-        perf.climb_descent_time_min
-        + cruise_time_min
-        + perf.taxi_out_min
-        + perf.taxi_in_min
+        perf.climb_descent_time_min + cruise_time_min + perf.taxi_out_min + perf.taxi_in_min
     )
 
 

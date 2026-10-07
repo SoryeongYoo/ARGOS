@@ -153,11 +153,13 @@ class DelayPredictor:
         if self._model is None:
             raise RuntimeError("Model not trained.")
         return (
-            pd.DataFrame({
-                "feature": self._model.feature_name(),
-                "importance_gain": self._model.feature_importance("gain"),
-                "importance_split": self._model.feature_importance("split"),
-            })
+            pd.DataFrame(
+                {
+                    "feature": self._model.feature_name(),
+                    "importance_gain": self._model.feature_importance("gain"),
+                    "importance_split": self._model.feature_importance("split"),
+                }
+            )
             .sort_values("importance_gain", ascending=False)
             .head(top_n)
             .reset_index(drop=True)

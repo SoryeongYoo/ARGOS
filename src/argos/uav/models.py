@@ -19,45 +19,48 @@ from typing import Literal
 
 # ── Enumerations ──────────────────────────────────────────────────────────────
 
+
 class VehicleClass(str, Enum):
-    EVTOL    = "eVTOL"    # electric Vertical Take-Off and Landing
-    CARGO    = "CARGO"    # unmanned cargo drone
-    INSPECT  = "INSPECT"  # inspection UAV
+    EVTOL = "eVTOL"  # electric Vertical Take-Off and Landing
+    CARGO = "CARGO"  # unmanned cargo drone
+    INSPECT = "INSPECT"  # inspection UAV
 
 
 class FlightRules(str, Enum):
-    VFRC = "VFRC"   # Visual Flight Rules (Controlled)
-    IFRC = "IFRC"   # Instrument Flight Rules (Controlled)
+    VFRC = "VFRC"  # Visual Flight Rules (Controlled)
+    IFRC = "IFRC"  # Instrument Flight Rules (Controlled)
 
 
 class ApprovalStatus(str, Enum):
-    PENDING   = "PENDING"
-    APPROVED  = "APPROVED"
-    DENIED    = "DENIED"
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    DENIED = "DENIED"
     CANCELLED = "CANCELLED"
-    ACTIVE    = "ACTIVE"
+    ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
 
 
 class ConflictType(str, Enum):
-    SEPARATION   = "SEPARATION"    # horizontal/vertical separation violation
-    AIRSPACE     = "AIRSPACE"      # enters restricted/controlled airspace
-    RUNWAY_CORR  = "RUNWAY_CORR"   # penetrates ILS/approach corridor
-    CURFEW       = "CURFEW"        # noise curfew violation (23:00–06:00 KST)
-    WEATHER      = "WEATHER"       # weather minima not met
+    SEPARATION = "SEPARATION"  # horizontal/vertical separation violation
+    AIRSPACE = "AIRSPACE"  # enters restricted/controlled airspace
+    RUNWAY_CORR = "RUNWAY_CORR"  # penetrates ILS/approach corridor
+    CURFEW = "CURFEW"  # noise curfew violation (23:00–06:00 KST)
+    WEATHER = "WEATHER"  # weather minima not met
 
 
 # ── Spatial primitives ────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class GeoPoint:
-    lat: float   # decimal degrees N
-    lon: float   # decimal degrees E
+    lat: float  # decimal degrees N
+    lon: float  # decimal degrees E
     alt_ft: float = 0.0  # AGL feet
 
     def distance_nm(self, other: "GeoPoint") -> float:
         """Haversine great-circle distance in nautical miles."""
         import math
+
         R_NM = 3440.065  # Earth radius in NM
         lat1, lon1 = math.radians(self.lat), math.radians(self.lon)
         lat2, lon2 = math.radians(other.lat), math.radians(other.lon)
@@ -70,11 +73,13 @@ class GeoPoint:
 @dataclass(frozen=True)
 class Waypoint4D:
     """A point in 4D space-time along a UAM trajectory."""
+
     point: GeoPoint
-    eta_utc: datetime   # estimated time of arrival at this waypoint
+    eta_utc: datetime  # estimated time of arrival at this waypoint
 
 
 # ── Fleet models ──────────────────────────────────────────────────────────────
+
 
 @dataclass
 class UAMVehicle:
@@ -83,56 +88,58 @@ class UAMVehicle:
     vehicle_class: VehicleClass
     manufacturer: str
     model: str
-    max_alt_ft: float        # operational ceiling AGL
+    max_alt_ft: float  # operational ceiling AGL
     cruise_speed_kts: float
     range_nm: float
     max_payload_kg: float
-    pax_capacity: int        # 0 for cargo/inspection
-    registration: str        # Korean CAA registration KR-XXXXX
+    pax_capacity: int  # 0 for cargo/inspection
+    registration: str  # Korean CAA registration KR-XXXXX
 
 
 @dataclass
 class Vertiport:
     vertiport_id: str
-    name_ko: str             # Korean name
+    name_ko: str  # Korean name
     name_en: str
     position: GeoPoint
-    icao_code: str | None    # if co-located with airport
-    pad_count: int           # simultaneous takeoff/landing capacity
+    icao_code: str | None  # if co-located with airport
+    pad_count: int  # simultaneous takeoff/landing capacity
     charging_slots: int
-    curfew_start_kst: int = 23   # hour; noise curfew (23:00–06:00)
-    curfew_end_kst: int   = 6
+    curfew_start_kst: int = 23  # hour; noise curfew (23:00–06:00)
+    curfew_end_kst: int = 6
 
 
 # ── Flight plan ───────────────────────────────────────────────────────────────
+
 
 @dataclass
 class UAMFlightPlan:
     plan_id: str
     vehicle_id: str
-    origin_id: str           # Vertiport ID
-    dest_id: str             # Vertiport ID
+    origin_id: str  # Vertiport ID
+    dest_id: str  # Vertiport ID
     flight_rules: FlightRules
-    etd_utc: datetime        # estimated time of departure
-    eta_utc: datetime        # estimated time of arrival
-    cruise_alt_ft: float     # planned cruise altitude AGL
+    etd_utc: datetime  # estimated time of departure
+    eta_utc: datetime  # estimated time of arrival
+    cruise_alt_ft: float  # planned cruise altitude AGL
     trajectory: list[Waypoint4D] = field(default_factory=list)
     pax_count: int = 0
     cargo_kg: float = 0.0
-    operator: str = "KE-AAM"   # Korean Air AAM division
+    operator: str = "KE-AAM"  # Korean Air AAM division
 
 
 # ── ACROSS API response models ────────────────────────────────────────────────
+
 
 @dataclass
 class ConflictDetail:
     conflict_type: ConflictType
     description: str
-    conflicting_entity: str   # flight_id or airspace_id
+    conflicting_entity: str  # flight_id or airspace_id
     time_window_start: datetime | None = None
-    time_window_end:   datetime | None = None
+    time_window_end: datetime | None = None
     separation_required_nm: float = 0.5
-    separation_actual_nm:   float | None = None
+    separation_actual_nm: float | None = None
 
 
 @dataclass
@@ -141,7 +148,7 @@ class ACROSSResponse:
     status: ApprovalStatus
     approval_time_utc: datetime | None = None
     conflicts: list[ConflictDetail] = field(default_factory=list)
-    conditions: list[str] = field(default_factory=list)   # approval conditions
+    conditions: list[str] = field(default_factory=list)  # approval conditions
     message: str = ""
 
     @property

@@ -30,10 +30,10 @@ from argos.uav.models import (
 
 ICN_CENTRE = GeoPoint(lat=37.4691, lon=126.4505)  # ARP (Aerodrome Reference Point)
 
-ICN_CTR_RADIUS_NM   = 5.0
-ICN_TMA_RADIUS_NM   = 30.0
-ICN_CTR_CEILING_FT  = 2000.0
-UAM_MAX_ALT_ICN_FT  = 1000.0   # UAM altitude cap inside CTR
+ICN_CTR_RADIUS_NM = 5.0
+ICN_TMA_RADIUS_NM = 30.0
+ICN_CTR_CEILING_FT = 2000.0
+UAM_MAX_ALT_ICN_FT = 1000.0  # UAM altitude cap inside CTR
 
 # ILS critical areas — simplified as rectangular corridors
 # Each entry: (runway_name, threshold_point, heading_deg, length_nm, width_nm)
@@ -45,23 +45,22 @@ _ILS_CORRIDORS = [
 ]
 
 # Separation standards (nm)
-SEP_UAM_UAM_NM         = 0.3
-SEP_UAM_CONV_NM        = 1.0
-SEP_UAM_CONV_VERT_FT   = 500.0
-SEP_ILS_FINAL_NM       = 2.0     # keep-out from ILS final
-SEP_ILS_BELOW_FT       = 1500.0  # altitude below which ILS sep applies
+SEP_UAM_UAM_NM = 0.3
+SEP_UAM_CONV_NM = 1.0
+SEP_UAM_CONV_VERT_FT = 500.0
+SEP_ILS_FINAL_NM = 2.0  # keep-out from ILS final
+SEP_ILS_BELOW_FT = 1500.0  # altitude below which ILS sep applies
 
 # Noise curfew (KST)
 CURFEW_START_KST = 23
-CURFEW_END_KST   = 6
-KST_OFFSET_H     = 9
+CURFEW_END_KST = 6
+KST_OFFSET_H = 9
 
 
 # ── Geometry helpers ──────────────────────────────────────────────────────────
 
-def _point_in_circle(
-    point: GeoPoint, centre: GeoPoint, radius_nm: float
-) -> bool:
+
+def _point_in_circle(point: GeoPoint, centre: GeoPoint, radius_nm: float) -> bool:
     return point.distance_nm(centre) <= radius_nm
 
 
@@ -75,6 +74,7 @@ def _vertical_separation_ft(a: GeoPoint, b: GeoPoint) -> float:
 
 # ── Conflict detectors ────────────────────────────────────────────────────────
 
+
 def check_ctr_altitude(
     plan: UAMFlightPlan,
 ) -> list[ConflictDetail]:
@@ -83,17 +83,19 @@ def check_ctr_altitude(
     for wp in plan.trajectory:
         if _point_in_circle(wp.point, ICN_CENTRE, ICN_CTR_RADIUS_NM):
             if wp.point.alt_ft > UAM_MAX_ALT_ICN_FT:
-                conflicts.append(ConflictDetail(
-                    conflict_type=ConflictType.AIRSPACE,
-                    description=(
-                        f"Waypoint at {wp.point.lat:.4f}/{wp.point.lon:.4f} "
-                        f"is {wp.point.alt_ft:.0f} ft inside ICN CTR "
-                        f"(max {UAM_MAX_ALT_ICN_FT:.0f} ft)"
-                    ),
-                    conflicting_entity="ICN-CTR",
-                    time_window_start=wp.eta_utc,
-                    time_window_end=wp.eta_utc + timedelta(seconds=30),
-                ))
+                conflicts.append(
+                    ConflictDetail(
+                        conflict_type=ConflictType.AIRSPACE,
+                        description=(
+                            f"Waypoint at {wp.point.lat:.4f}/{wp.point.lon:.4f} "
+                            f"is {wp.point.alt_ft:.0f} ft inside ICN CTR "
+                            f"(max {UAM_MAX_ALT_ICN_FT:.0f} ft)"
+                        ),
+                        conflicting_entity="ICN-CTR",
+                        time_window_start=wp.eta_utc,
+                        time_window_end=wp.eta_utc + timedelta(seconds=30),
+                    )
+                )
     return conflicts
 
 
@@ -110,17 +112,19 @@ def check_ils_corridor(
             dist_to_threshold = wp.point.distance_nm(threshold)
             if dist_to_threshold <= length_nm:
                 # Check lateral offset (crude: use distance from threshold ± width)
-                conflicts.append(ConflictDetail(
-                    conflict_type=ConflictType.RUNWAY_CORR,
-                    description=(
-                        f"Waypoint {dist_to_threshold:.1f} NM from runway {rwy_name} "
-                        f"threshold at {wp.point.alt_ft:.0f} ft "
-                        f"(ILS protection active below {SEP_ILS_BELOW_FT:.0f} ft)"
-                    ),
-                    conflicting_entity=f"ILS-{rwy_name}",
-                    time_window_start=wp.eta_utc,
-                    time_window_end=wp.eta_utc + timedelta(minutes=2),
-                ))
+                conflicts.append(
+                    ConflictDetail(
+                        conflict_type=ConflictType.RUNWAY_CORR,
+                        description=(
+                            f"Waypoint {dist_to_threshold:.1f} NM from runway {rwy_name} "
+                            f"threshold at {wp.point.alt_ft:.0f} ft "
+                            f"(ILS protection active below {SEP_ILS_BELOW_FT:.0f} ft)"
+                        ),
+                        conflicting_entity=f"ILS-{rwy_name}",
+                        time_window_start=wp.eta_utc,
+                        time_window_end=wp.eta_utc + timedelta(minutes=2),
+                    )
+                )
     return conflicts
 
 
@@ -132,16 +136,18 @@ def check_curfew(
     for wp in plan.trajectory:
         kst_hour = (wp.eta_utc.hour + KST_OFFSET_H) % 24
         if kst_hour >= CURFEW_START_KST or kst_hour < CURFEW_END_KST:
-            conflicts.append(ConflictDetail(
-                conflict_type=ConflictType.CURFEW,
-                description=(
-                    f"Operation at {kst_hour:02d}:xx KST violates noise curfew "
-                    f"({CURFEW_START_KST:02d}:00-{CURFEW_END_KST:02d}:00 KST)"
-                ),
-                conflicting_entity="NOISE-CURFEW",
-                time_window_start=wp.eta_utc,
-                time_window_end=wp.eta_utc + timedelta(minutes=1),
-            ))
+            conflicts.append(
+                ConflictDetail(
+                    conflict_type=ConflictType.CURFEW,
+                    description=(
+                        f"Operation at {kst_hour:02d}:xx KST violates noise curfew "
+                        f"({CURFEW_START_KST:02d}:00-{CURFEW_END_KST:02d}:00 KST)"
+                    ),
+                    conflicting_entity="NOISE-CURFEW",
+                    time_window_start=wp.eta_utc,
+                    time_window_end=wp.eta_utc + timedelta(minutes=1),
+                )
+            )
             break  # one curfew violation is enough — don't spam
     return conflicts
 
@@ -169,22 +175,25 @@ def check_uam_separation(
                     continue  # not co-temporal
                 sep = _lateral_separation_nm(wp_a.point, wp_b.point)
                 if sep < SEP_UAM_UAM_NM:
-                    conflicts.append(ConflictDetail(
-                        conflict_type=ConflictType.SEPARATION,
-                        description=(
-                            f"UAM separation {sep:.2f} NM < required {SEP_UAM_UAM_NM} NM "
-                            f"with flight {other.plan_id}"
-                        ),
-                        conflicting_entity=other.plan_id,
-                        time_window_start=wp_a.eta_utc,
-                        time_window_end=wp_a.eta_utc + timedelta(seconds=time_tolerance_sec),
-                        separation_required_nm=SEP_UAM_UAM_NM,
-                        separation_actual_nm=sep,
-                    ))
+                    conflicts.append(
+                        ConflictDetail(
+                            conflict_type=ConflictType.SEPARATION,
+                            description=(
+                                f"UAM separation {sep:.2f} NM < required {SEP_UAM_UAM_NM} NM "
+                                f"with flight {other.plan_id}"
+                            ),
+                            conflicting_entity=other.plan_id,
+                            time_window_start=wp_a.eta_utc,
+                            time_window_end=wp_a.eta_utc + timedelta(seconds=time_tolerance_sec),
+                            separation_required_nm=SEP_UAM_UAM_NM,
+                            separation_actual_nm=sep,
+                        )
+                    )
     return conflicts
 
 
 # ── Full conflict assessment ──────────────────────────────────────────────────
+
 
 def assess_conflicts(
     plan: UAMFlightPlan,
