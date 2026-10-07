@@ -187,3 +187,29 @@ scripts/* ──► 각 모듈 (sys.path.insert로 src/를 경로에 추가)
 14. **`ortools<9.12` 고정(Windows 크래시 회피)은 계속 유지해야 하나요?** 에이전트의 주 실행 환경은 Windows인가요, Linux/CI인가요?
 15. **`[project.scripts]`(현재 깨져 있음)와 `scripts/*.py`의 `sys.path.insert` 중 어느 방식으로 통일할까요?**
 16. **커밋된 `streamlit_*.log`, `models/delay_predictor.lgb`의 의도는 무엇인가요?** 지우거나 gitignore에 추가할 대상인가요?
+
+---
+
+## 5. 처리 현황 (2026-10-07 갱신)
+
+위 1~4장은 2026-10-01 시점의 기록이라 수정하지 않는다. 이후 상태만 여기에 적는다.
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| C1 | 해소 | CLAUDE.md 를 지도로 재작성 |
+| C2 | 결정됨, 구현 대기 | [ADR 0002](../decisions/0002-fdp-hard-constraint.md) |
+| C3 | 결정됨, 구현 대기 | [ADR 0003](../decisions/0003-rename-relative-cost.md) |
+| C4, C5, D2 | 결정됨, 구현 대기 | [ADR 0001](../decisions/0001-domain-single-source.md) |
+| C6, C7 | 자산 이동 완료(`design/`). dashboard 문구 규칙 불일치는 남음 | [ADR 0006](../decisions/0006-design-assets-in-design-dir.md) |
+| C8 | 해소 | [glossary](../glossary.md) |
+| C9, D3, D6, D9, D10 | 규칙 문서화, 코드는 그대로 | [conventions](../conventions.md) |
+| V1 | 일부 해소: far117 골든 테스트, smoke 이관 | `tests/test_domain/` |
+| V2 | 해소: 세션 fixture DB, skip 0 | `tests/conftest.py` |
+| V5 | 결정됨, 구현 대기 | [ADR 0005](../decisions/0005-prediction-not-wired.md) |
+| V6 | 해소: ruff/format/mypy baseline 0 | `scripts/verify.py` |
+| V7 | 일부 해소: scripts 도 lint 대상, 상태 변경 스크립트에 `--yes` 게이트 | `src/argos/cli_guard.py` |
+| V8 | 해소: pytest 72초에서 11초로 | `agents.tools.*_SOLVER_TIME_LIMIT_S` |
+| D1 | 결정됨, 구현 대기 | [ADR 0004](../decisions/0004-all-approvals-via-human-gate.md) |
+| D7 | 해소: `sys.path.insert` 제거, 깨진 `[project.scripts]` 삭제 | |
+| D11 | 해소: `streamlit_*.log` 삭제, `*.log` gitignore | |
+| V3, V4, V9, D4, D5, D8 | 미착수 | 각 [아키텍처 문서](../architecture/overview.md) 의 알려진 부채 |
