@@ -19,18 +19,24 @@ cp .env.example .env           # add ANTHROPIC_API_KEY
 
 ## Common commands
 
+**DB 를 쓰는 스크립트는 --yes 없이 먼저 실행해 확인할 것.** `setup_db.py`, `generate_data.py`, `train_model.py` 는 `--yes` 없이 실행하면 바꿀 내용(현재 DB 행 수, 삭제·덮어쓸 대상)만 출력하고 exit 0 으로 종료한다. 출력을 확인한 뒤 `--yes` 를 붙여 실행한다. `generate_data.py --yes` 는 기존 `flights` 를 기간과 무관하게 전부 지운다.
+
 ```bash
 # Initialize DuckDB schema (no API calls)
-python scripts/setup_db.py
+python scripts/setup_db.py            # dry run
+python scripts/setup_db.py --yes
 
 # Generate 3-year synthetic dataset (pure Python, no API calls)
-python scripts/generate_data.py
+python scripts/generate_data.py --yes
 
 # Quick test with short date range
-python scripts/generate_data.py --start 2024-01-01 --end 2024-01-31
+python scripts/generate_data.py --yes --start 2024-01-01 --end 2024-01-31
 
 # Specific routes only
-python scripts/generate_data.py --routes ICN-NRT ICN-JFK --start 2024-06-01 --end 2024-06-30
+python scripts/generate_data.py --yes --routes ICN-NRT ICN-JFK --start 2024-06-01 --end 2024-06-30
+
+# Train delay model (overwrites models/delay_predictor.lgb)
+python scripts/train_model.py --yes
 
 # Data quality gate (run before any ML training)
 python scripts/validate_data.py

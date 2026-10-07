@@ -1,10 +1,12 @@
 """
 Train LightGBM delay prediction model.
 
+--yes 없이 실행하면 바꿀 내용만 출력하고 종료한다.
+
 Usage:
-    python scripts/train_model.py
-    python scripts/train_model.py --cutoff 2024-01-01 --model-path models/delay.lgb
-    python scripts/train_model.py --rounds 800
+    python scripts/train_model.py --yes
+    python scripts/train_model.py --yes --cutoff 2024-01-01 --model-path models/delay.lgb
+    python scripts/train_model.py --yes --rounds 800
 """
 
 from pathlib import Path
@@ -14,6 +16,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from argos.cli_guard import YES_HELP, require_yes
 from argos.config import get_settings
 from argos.prediction.features import compute_route_stats, engineer_features, load_raw_data
 from argos.prediction.model import DelayPredictor
@@ -42,6 +45,7 @@ def train(
         "-n",
         help="Maximum LightGBM boosting rounds.",
     ),
+    yes: bool = typer.Option(False, "--yes", "-y", help=YES_HELP),
 ) -> None:
     settings = get_settings()
     db_path = Path(settings.duckdb_path)
@@ -49,6 +53,20 @@ def train(
     if not db_path.exists():
         console.print(f"[red]DuckDB not found: {db_path}. Run generate_data.py first.")
         raise typer.Exit(1)
+
+    out = Path(model_path)
+    out_state = (
+        f"기존 파일 덮어씀 ({out.stat().st_size:,} bytes)" if out.exists() else "새 파일 생성"
+    )
+    require_yes(
+        yes,
+        [
+            f"{db_path} 읽기 전용으로 학습 데이터 로드 (DB 변경 없음)",
+            f"LightGBM 학습 (최대 {num_boost_round} rounds, cutoff {cutoff or '자동 80/20'})",
+            f"모델 저장: {out} ({out_state})",
+        ],
+        console,
+    )
 
     console.rule("[bold cyan]ARGOS Delay Prediction Training")
 

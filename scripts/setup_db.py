@@ -1,19 +1,39 @@
-"""Initialize DuckDB schema without generating data."""
+"""Initialize DuckDB schema without generating data.
+
+Usage:
+    python scripts/setup_db.py          # 바꿀 내용만 출력 (dry run)
+    python scripts/setup_db.py --yes    # 실제 실행
+"""
 
 from pathlib import Path
 
 import duckdb
+import typer
 from rich.console import Console
 
+from argos.cli_guard import YES_HELP, describe_db, require_yes
 from argos.config import get_settings
 from argos.data_gen.schemas import ALL_DDL, IATA_DELAY_CODES
 
+app = typer.Typer(add_completion=False, help="Initialize ARGOS DuckDB schema")
 console = Console()
 
 
-def main() -> None:
+@app.command()
+def main(yes: bool = typer.Option(False, "--yes", "-y", help=YES_HELP)) -> None:
     settings = get_settings()
     db_path = Path(settings.duckdb_path)
+
+    require_yes(
+        yes,
+        [
+            *describe_db(db_path),
+            f"테이블 {len(ALL_DDL)}개 CREATE TABLE IF NOT EXISTS (기존 테이블과 데이터는 유지)",
+            f"delay_codes_ref 전체 삭제 후 IATA 지연코드 {len(IATA_DELAY_CODES)}개 재삽입",
+        ],
+        console,
+    )
+
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     con = duckdb.connect(str(db_path))
@@ -37,4 +57,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    app()

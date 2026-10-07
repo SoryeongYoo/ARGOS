@@ -101,16 +101,16 @@ pip install -e ".[dev]"
 cp .env.example .env
 # → ANTHROPIC_API_KEY=sk-ant-... 추가
 
-# 3. DB 초기화 및 데이터 생성
-python scripts/setup_db.py
-python scripts/generate_data.py          # 3년치 전체 데이터셋 (~2분)
-# python scripts/generate_data.py --start 2024-01-01 --end 2024-06-30  # 빠른 실행
+# 3. DB 초기화 및 데이터 생성 (--yes 없이 실행하면 바꿀 내용만 출력)
+python scripts/setup_db.py --yes
+python scripts/generate_data.py --yes    # 3년치 전체 데이터셋 (~2분)
+# python scripts/generate_data.py --yes --start 2024-01-01 --end 2024-06-30  # 빠른 실행
 
 # 4. 데이터 품질 검증
 python scripts/validate_data.py
 
 # 5. 지연 예측 모델 학습
-python scripts/train_model.py
+python scripts/train_model.py --yes
 
 # 6. 테스트 실행
 pytest                                   # 80개 테스트, 약 10초
