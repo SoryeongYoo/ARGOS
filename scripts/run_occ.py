@@ -22,9 +22,6 @@ from pathlib import Path
 import typer
 import duckdb
 
-# Ensure src/ is on the path when run as a script
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 app = typer.Typer(add_completion=False)
 
 DB_PATH = str(Path("data/db/argos.duckdb").resolve())

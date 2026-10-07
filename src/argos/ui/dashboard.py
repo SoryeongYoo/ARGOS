@@ -15,14 +15,8 @@ Run with:
 
 from __future__ import annotations
 
-import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-
-# Allow running as `streamlit run src/argos/ui/dashboard.py` from project root
-_ROOT = Path(__file__).parent.parent.parent.parent
-if str(_ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(_ROOT / "src"))
 
 import duckdb
 import pandas as pd
@@ -37,6 +31,7 @@ from argos.uav.network import VERTIPORTS, build_uam_network, find_route
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
+_ROOT = Path(__file__).parent.parent.parent.parent
 DB_PATH = str((_ROOT / "data" / "db" / "argos.duckdb").resolve())
 KST = timezone(timedelta(hours=9))
 

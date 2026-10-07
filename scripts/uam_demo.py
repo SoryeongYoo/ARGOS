@@ -18,8 +18,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 import typer
 from rich.console import Console
 from rich.panel import Panel

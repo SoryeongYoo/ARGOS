@@ -13,3 +13,4 @@ data/raw/
 data/processed/
 notebooks/.ipynb_checkpoints/
 .DS_Store
+*.log

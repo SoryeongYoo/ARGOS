@@ -1,7 +1,5 @@
 import sys
 
-sys.path.insert(0, "src")
-
 from argos.data_gen.routes import ROUTES, ROUTE_MAP
 from argos.domain.block_time import calculate_block_time
 from argos.domain.far117 import max_fdp_hours
