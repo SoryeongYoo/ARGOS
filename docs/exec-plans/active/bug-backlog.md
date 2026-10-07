@@ -18,11 +18,13 @@ harness/verify 작업(2026-10) 중 발견했지만, 동작이 바뀌는 수정�
   - 파이썬 음수 인덱스로 마지막 열(6구간) 값을 조용히 반환한다.
   - 음수 입력도 마찬가지다.
 - 고정 테스트: 없음. 골든 테스트는 1~6구간과 6 초과 클램프만 고정한다.
+- 권장 동작: `num_segments < 1` 이면 `ValueError`. FDP 에는 최소 1구간이 있어야 하므로, 조용히 값을 반환하는 것보다 안전하다.
 - 단계:
-  1. 0과 음수 입력의 기대 동작(`ValueError` 등)을 정한다.
-  2. 호출 지점을 확인한다. `crew.py` `_validate_far117` 은 `num_segs = 2 * len(flight_list)` 를 넘기므로 0 이 들어가지 않는다. 그래서 현재 런타임 영향은 없다. `augmented_required` 는 src 에서 호출하는 곳이 없다.
-  3. 테스트 → 수정.
-- 사람 결정: 불필요. 입력 검증일 뿐 규정 값은 바뀌지 않는다.
+  1. 호출 지점을 확인한다. `crew.py` `_validate_far117` 은 `num_segs = 2 * len(flight_list)` 를 넘기므로 0 이 들어가지 않는다. 그래서 현재 런타임 영향은 없다. `augmented_required` 는 src 에서 호출하는 곳이 없다. `is_fdp_legal` 과 `augmented_required` 는 `max_fdp_hours` 를 거치므로 같은 검증을 물려받는다.
+  2. [`tests/test_domain/test_far117.py`](../../../tests/test_domain/test_far117.py) 에 0, -1 입력이 `ValueError` 를 내는 테스트를 추가한다. 기존 골든 테스트(표 값과 1~6구간, 클램프)는 건드리지 않는다.
+  3. `max_fdp_hours` 맨 앞에 입력 검증을 넣는다. 표와 상수는 수정하지 않는다.
+  4. `python scripts/verify.py`
+- 사람 결정: 불필요. 입력 검증일 뿐 규정 값은 바뀌지 않는다. [ADR 0002](../../decisions/0002-fdp-hard-constraint.md) 의 "검증 대기"는 표 값에만 적용된다.
 
 ## B2. `run_crew_optimisation` 의 `midnight_utc` 미사용
 
