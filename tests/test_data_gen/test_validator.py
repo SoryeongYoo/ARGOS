@@ -1,7 +1,7 @@
 """Unit tests for the data quality validator."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import duckdb
 import pytest
@@ -55,16 +55,18 @@ def clean_db(tmp_path):
 
     # Seed reference data
     con.execute(
-        "INSERT INTO routes VALUES ('ICN-NRT','ICN','RKSI','NRT','RJAA','Tokyo Narita','Japan',696,4.0)"
+        "INSERT INTO routes VALUES "
+        "('ICN-NRT','ICN','RKSI','NRT','RJAA','Tokyo Narita','Japan',696,4.0)"
     )
     con.execute(
-        "INSERT INTO aircraft VALUES ('HL7401','B737-800','B738','MSN1','2010-01-01',147,8,0,20000,79016)"
+        "INSERT INTO aircraft VALUES "
+        "('HL7401','B737-800','B738','MSN1','2010-01-01',147,8,0,20000,79016)"
     )
     con.execute("INSERT INTO route_aircraft VALUES ('ICN-NRT','B737-800',145,0)")
     con.execute("INSERT INTO delay_codes_ref VALUES ('71','ATC en-route demand')")
 
-    dep = datetime(2024, 6, 1, 1, 0, tzinfo=timezone.utc)
-    arr = datetime(2024, 6, 1, 3, 25, tzinfo=timezone.utc)
+    dep = datetime(2024, 6, 1, 1, 0, tzinfo=UTC)
+    arr = datetime(2024, 6, 1, 3, 25, tzinfo=UTC)
     con.execute(
         """
         INSERT INTO flights VALUES (?, 'KE001', 'ICN-NRT', 'ICN', 'NRT', 'HL7401', 'B737-800',
@@ -87,8 +89,8 @@ def test_clean_dataset_passes_all_checks(clean_db):
 def test_duplicate_ids_detected(clean_db):
     con = duckdb.connect(clean_db)
     fid = str(uuid.uuid4())
-    dep = datetime(2024, 6, 2, 1, 0, tzinfo=timezone.utc)
-    arr = datetime(2024, 6, 2, 3, 25, tzinfo=timezone.utc)
+    dep = datetime(2024, 6, 2, 1, 0, tzinfo=UTC)
+    arr = datetime(2024, 6, 2, 3, 25, tzinfo=UTC)
     for _ in range(2):
         try:
             con.execute(
@@ -109,8 +111,8 @@ def test_duplicate_ids_detected(clean_db):
 
 def test_timestamp_ordering_detects_bad_data(clean_db):
     con = duckdb.connect(clean_db)
-    dep = datetime(2024, 6, 3, 10, 0, tzinfo=timezone.utc)
-    arr = datetime(2024, 6, 3, 8, 0, tzinfo=timezone.utc)  # arr BEFORE dep — invalid
+    dep = datetime(2024, 6, 3, 10, 0, tzinfo=UTC)
+    arr = datetime(2024, 6, 3, 8, 0, tzinfo=UTC)  # arr BEFORE dep — invalid
     con.execute(
         """
         INSERT INTO flights VALUES (?, 'KE003','ICN-NRT','ICN','NRT','HL7401','B737-800',
@@ -128,8 +130,8 @@ def test_timestamp_ordering_detects_bad_data(clean_db):
 
 def test_load_factor_out_of_range_detected(clean_db):
     con = duckdb.connect(clean_db)
-    dep = datetime(2024, 6, 4, 1, 0, tzinfo=timezone.utc)
-    arr = datetime(2024, 6, 4, 3, 25, tzinfo=timezone.utc)
+    dep = datetime(2024, 6, 4, 1, 0, tzinfo=UTC)
+    arr = datetime(2024, 6, 4, 3, 25, tzinfo=UTC)
     con.execute(
         """
         INSERT INTO flights VALUES (?, 'KE004','ICN-NRT','ICN','NRT','HL7401','B737-800',
@@ -146,9 +148,9 @@ def test_load_factor_out_of_range_detected(clean_db):
 
 def test_otp_benchmark_warn_when_low(clean_db):
     con = duckdb.connect(clean_db)
-    dep = datetime(2024, 6, 5, 1, 0, tzinfo=timezone.utc)
+    dep = datetime(2024, 6, 5, 1, 0, tzinfo=UTC)
     # Insert 10 massively delayed flights
-    for i in range(10):
+    for i in range(10):  # noqa: B007 — 미사용 루프 변수, 로직 검토 필요
         arr = dep + __import__("datetime").timedelta(minutes=145 + 300)
         con.execute(
             """
@@ -167,8 +169,8 @@ def test_otp_benchmark_warn_when_low(clean_db):
 
 def test_cancelled_flight_integrity(clean_db):
     con = duckdb.connect(clean_db)
-    dep = datetime(2024, 6, 6, 1, 0, tzinfo=timezone.utc)
-    arr = datetime(2024, 6, 6, 3, 25, tzinfo=timezone.utc)
+    dep = datetime(2024, 6, 6, 1, 0, tzinfo=UTC)
+    arr = datetime(2024, 6, 6, 3, 25, tzinfo=UTC)
     # CNX flight with actual times — integrity violation
     con.execute(
         """

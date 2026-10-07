@@ -7,18 +7,14 @@ Usage:
     python scripts/simulate_delay.py --date 2023-07-15 --flight KE0700 --delay 90
 """
 
-import sys
-from pathlib import Path
-
 from datetime import date
-from typing import Optional
+from pathlib import Path
 
 import networkx as nx
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 
 from argos.config import get_settings
 from argos.simulation.propagation import DelayPropagator, PropagationResult, RecoveryScenario
@@ -75,10 +71,10 @@ def _scenario_panel(s: RecoveryScenario) -> Panel:
 
 @app.command()
 def simulate(
-    dep_date: Optional[str] = typer.Option(
+    dep_date: str | None = typer.Option(
         None, "--date", "-d", help="Operating date YYYY-MM-DD (default: 2023-07-15)"
     ),
-    flight: Optional[str] = typer.Option(
+    flight: str | None = typer.Option(
         None, "--flight", "-f", help="Trigger flight number (default: auto highest-cascade)"
     ),
     delay: int = typer.Option(90, "--delay", help="Initial delay in minutes on the trigger flight"),

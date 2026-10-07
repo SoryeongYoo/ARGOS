@@ -6,7 +6,7 @@ Values are set by Incheon Airport Corporation and published in IATA SST.
 from enum import Enum
 
 
-class FlightType(str, Enum):
+class FlightType(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     DOMESTIC = "D"
     INTERNATIONAL = "I"
 

@@ -7,11 +7,8 @@ Usage:
     python scripts/roster_crew.py --date 2023-07-15 --narrow 20 --wide 15
 """
 
-import sys
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-
-from datetime import date, datetime, timedelta, timezone
-from typing import Optional
 
 import duckdb
 import pandas as pd
@@ -28,7 +25,7 @@ console = Console()
 
 
 def _load_legs(db_path: Path, op_date: date) -> list[FlightLeg]:
-    day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=timezone.utc)
+    day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=UTC)
     day_end = day_start + timedelta(days=1)
 
     con = duckdb.connect(str(db_path), read_only=True)
@@ -69,7 +66,7 @@ def _load_legs(db_path: Path, op_date: date) -> list[FlightLeg]:
 
 @app.command()
 def roster(
-    dep_date: Optional[str] = typer.Option(
+    dep_date: str | None = typer.Option(
         None, "--date", "-d", help="Operating date YYYY-MM-DD (default: 2023-07-15)"
     ),
     n_narrow: int = typer.Option(16, "--narrow", help="Narrow-body crew pairs (CAPT+FO each)"),
@@ -98,8 +95,8 @@ def roster(
         op_day=op_date,
     )
 
-    n_narrow_legs = sum(1 for l in legs if l.aircraft_type in {"B737-800", "A321neo"})
-    n_wide_legs = sum(1 for l in legs if l.aircraft_type not in {"B737-800", "A321neo"})
+    n_narrow_legs = sum(1 for leg in legs if leg.aircraft_type in {"B737-800", "A321neo"})
+    n_wide_legs = sum(1 for leg in legs if leg.aircraft_type not in {"B737-800", "A321neo"})
     console.print(
         f"[green]{len(legs)}[/] legs  "
         f"([dim]narrow: {n_narrow_legs}, wide: {n_wide_legs}[/])  |  "
@@ -122,7 +119,7 @@ def roster(
 
     # ── Fully crewed flights ───────────────────────────────────────────────────
     if result.fully_crewed:
-        leg_map = {l.flight_id: l for l in legs}
+        leg_map = {leg.flight_id: leg for leg in legs}
         t = Table(
             title=f"Crew Assignments ({len(result.fully_crewed)} fully crewed)",
             show_header=True,
@@ -157,7 +154,7 @@ def roster(
     # ── Gaps ──────────────────────────────────────────────────────────────────
     all_gaps = set(result.unassigned_captain) | set(result.unassigned_fo)
     if all_gaps:
-        leg_map = {l.flight_id: l for l in legs}
+        leg_map = {leg.flight_id: leg for leg in legs}
         g = Table(
             title=f"[red]Crew Gaps ({len(all_gaps)} flights)[/]",
             show_header=True,

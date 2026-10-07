@@ -15,12 +15,11 @@ CLI: OCC 다중 에이전트 중단 복구 워크플로우 실행.
 
 from __future__ import annotations
 
-import sys
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
-import typer
 import duckdb
+import typer
 
 app = typer.Typer(add_completion=False)
 
@@ -29,7 +28,7 @@ DB_PATH = str(Path("data/db/argos.duckdb").resolve())
 
 def _pick_cascadeable_flight(op_date: date) -> str | None:
     """Return a flight_id that has a downstream rotation on op_date."""
-    day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=timezone.utc)
+    day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=UTC)
     day_end = day_start.replace(hour=23, minute=59)
 
     con = duckdb.connect(DB_PATH, read_only=True)
@@ -131,7 +130,7 @@ def main(
         return
 
     # ── Full run with LangGraph + Claude ──────────────────────────────────
-    from argos.agents.occ_graph import build_occ_graph, run_until_approval, resume_after_approval
+    from argos.agents.occ_graph import resume_after_approval, run_until_approval
 
     console.print("\n[cyan]Running OCC agent graph...[/]")
     state, graph = run_until_approval(

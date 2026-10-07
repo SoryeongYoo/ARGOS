@@ -20,8 +20,6 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-from argos.prediction.features import DELAY_THRESHOLD
-
 log = logging.getLogger(__name__)
 
 _LGB_PARAMS: dict = {

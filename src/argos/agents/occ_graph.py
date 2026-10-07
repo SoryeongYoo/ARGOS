@@ -36,19 +36,14 @@ Design principles
 
 from __future__ import annotations
 
-import json
-from datetime import date
-from pathlib import Path
-
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 from langgraph.types import Command, interrupt
-from langgraph.checkpoint.memory import MemorySaver
 
 from argos.agents.state import OCCState
 from argos.agents.tools import (
-    OCC_TOOLS,
     run_aircraft_optimisation,
     run_crew_optimisation,
     run_propagation,

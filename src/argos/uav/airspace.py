@@ -15,15 +15,13 @@ Separation standards (ACROSS guidelines, MOLIT 2024):
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from argos.uav.models import (
     ConflictDetail,
     ConflictType,
     GeoPoint,
     UAMFlightPlan,
-    Waypoint4D,
 )
 
 # ── ICN airspace constants ────────────────────────────────────────────────────
@@ -104,7 +102,7 @@ def check_ils_corridor(
 ) -> list[ConflictDetail]:
     """Check that the UAM plan does not penetrate any active ILS corridor."""
     conflicts: list[ConflictDetail] = []
-    for rwy_name, threshold, hdg, length_nm, width_nm in _ILS_CORRIDORS:
+    for rwy_name, threshold, hdg, length_nm, width_nm in _ILS_CORRIDORS:  # noqa: B007 — 미사용 루프 변수, 로직 검토 필요
         for wp in plan.trajectory:
             if wp.point.alt_ft >= SEP_ILS_BELOW_FT:
                 continue  # above ILS protection height — no conflict

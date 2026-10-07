@@ -35,13 +35,13 @@ ICN-hub assumptions
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
 from ortools.sat.python import cp_model
 
-from argos.domain.far117 import is_fdp_legal, required_rest_hours
+from argos.domain.far117 import is_fdp_legal
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -158,7 +158,8 @@ class CrewAssignmentResult:
             f"({self.coverage_rate:.1%} position fill rate)",
             f"CAPT gap: {len(self.unassigned_captain)} flights",
             f"FO gap  : {len(self.unassigned_fo)} flights",
-            f"FAR 117 : {'OK' if not self.far117_violations else str(len(self.far117_violations)) + ' violations'}",
+            "FAR 117 : "
+            + ("OK" if not self.far117_violations else f"{len(self.far117_violations)} violations"),
             f"Solved in {self.solve_time_seconds:.2f}s",
         ]
         for dp in self.duty_periods:
@@ -199,10 +200,10 @@ class CrewAssigner:
         if not legs:
             return CrewAssignmentResult({}, {}, [], [], [], [], 0.0, "OPTIMAL")
         if not crew:
-            fids = [l.flight_id for l in legs]
+            fids = [leg.flight_id for leg in legs]
             return CrewAssignmentResult({}, {}, fids, fids, [], [], 0.0, "INFEASIBLE")
 
-        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=timezone.utc)
+        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=UTC)
 
         def to_min(dt: datetime) -> int:
             return max(0, int((dt - midnight_utc).total_seconds() / 60))
@@ -268,7 +269,7 @@ class CrewAssigner:
                 model.Add(sum(var * bt for var, bt in all_assignments) <= max(0, remaining))
 
         # ── No-overlap per crew (round-trip footprint) ─────────────────────────
-        for c_idx, cm in enumerate(crew):
+        for c_idx, cm in enumerate(crew):  # noqa: B007 — 미사용 루프 변수, 로직 검토 필요
             intervals: list[cp_model.IntervalVar] = []
 
             for f_idx, leg in enumerate(legs):
@@ -365,8 +366,8 @@ class CrewAssigner:
                     else:
                         fo_assign[fid] = cid
 
-        unassigned_capt = [l.flight_id for l in legs if l.flight_id not in capt_assign]
-        unassigned_fo = [l.flight_id for l in legs if l.flight_id not in fo_assign]
+        unassigned_capt = [leg.flight_id for leg in legs if leg.flight_id not in capt_assign]
+        unassigned_fo = [leg.flight_id for leg in legs if leg.flight_id not in fo_assign]
 
         # ── Post-solve FAR 117 FDP validation ─────────────────────────────────
         duty_periods, violations = self._validate_far117(
@@ -395,7 +396,7 @@ class CrewAssigner:
         midnight_utc: datetime,
     ) -> tuple[list[DutyPeriod], list[str]]:
         """Compute each crew member's duty period and check FAR 117 FDP limits."""
-        leg_by_id = {l.flight_id: l for l in legs}
+        leg_by_id = {leg.flight_id: leg for leg in legs}
 
         # Group assigned flights per crew member
         crew_flights: dict[str, list[FlightLeg]] = {}
@@ -404,7 +405,7 @@ class CrewAssigner:
 
         # Sort each crew's legs by departure time
         for cid in crew_flights:
-            crew_flights[cid].sort(key=lambda l: l.scheduled_dep_utc)
+            crew_flights[cid].sort(key=lambda leg: leg.scheduled_dep_utc)
 
         duty_periods: list[DutyPeriod] = []
         violations: list[str] = []
@@ -433,14 +434,14 @@ class CrewAssigner:
             fdp_minutes = int((release_utc - report_utc).total_seconds() / 60)
             fdp_minutes += cm.fdp_used_minutes  # add already-consumed FDP today
 
-            total_block = sum(l.block_time_minutes for l in flight_list)
+            total_block = sum(leg.block_time_minutes for leg in flight_list)
             num_segs = 2 * len(flight_list)  # out + back per leg
 
             legal, max_hours = is_fdp_legal(report_kst, fdp_minutes / 60, num_segs)
 
             dp = DutyPeriod(
                 crew_id=cid,
-                flight_ids=[l.flight_id for l in flight_list],
+                flight_ids=[leg.flight_id for leg in flight_list],
                 report_utc=report_utc,
                 release_utc=release_utc,
                 total_block_minutes=total_block,
@@ -476,7 +477,7 @@ class CrewAssigner:
         """
         if op_day is None:
             op_day = date.today()
-        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=timezone.utc)
+        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=UTC)
 
         pool: list[CrewMember] = []
 

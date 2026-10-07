@@ -7,10 +7,7 @@ Usage:
     python scripts/train_model.py --rounds 800
 """
 
-import sys
 from pathlib import Path
-
-from typing import Optional
 
 import pandas as pd
 import typer
@@ -27,7 +24,7 @@ console = Console()
 
 @app.command()
 def train(
-    cutoff: Optional[str] = typer.Option(
+    cutoff: str | None = typer.Option(
         None,
         "--cutoff",
         "-c",

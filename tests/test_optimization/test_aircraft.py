@@ -1,13 +1,12 @@
 """Unit tests for OR-Tools CP-SAT aircraft assignment optimizer."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 
 from argos.optimization.aircraft import (
     AircraftAssigner,
     AircraftResource,
-    AssignmentResult,
     FlightTask,
     _compatible_types,
     _min_turn,
@@ -16,7 +15,7 @@ from argos.optimization.aircraft import (
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 OP_DAY = date(2024, 6, 15)
-MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
+MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=UTC)
 
 
 def _dep(hour: int, minute: int = 0) -> datetime:
@@ -51,7 +50,7 @@ def _flight(
     return FlightTask(
         flight_id=fid,
         flight_number=fnum,
-        route_id=f"ICN-XYZ",
+        route_id="ICN-XYZ",
         required_type=atype,
         origin_iata="ICN",
         dest_iata="XYZ",

@@ -103,7 +103,8 @@ class DataValidator:
     def check_no_duplicate_ids(self) -> CheckResult:
         with self._conn() as con:
             dupes = con.execute(
-                "SELECT COUNT(*) FROM (SELECT flight_id FROM flights GROUP BY 1 HAVING COUNT(*) > 1)"
+                "SELECT COUNT(*) FROM "
+                "(SELECT flight_id FROM flights GROUP BY 1 HAVING COUNT(*) > 1)"
             ).fetchone()[0]
         return CheckResult(
             "no_duplicate_flight_ids",
@@ -229,7 +230,8 @@ class DataValidator:
             "cancellation_rate",
             ok,
             "warning" if not ok else "info",
-            f"{rate:.2%} cancellation rate ({'> ' if not ok else '≤ '}{self.MAX_CANCEL_RATE:.0%} limit)",
+            f"{rate:.2%} cancellation rate "
+            f"({'> ' if not ok else '≤ '}{self.MAX_CANCEL_RATE:.0%} limit)",
             affected_rows=int(cnx),
         )
 
@@ -237,7 +239,9 @@ class DataValidator:
         """On-Time Performance: % of operated flights departing within 15 min."""
         with self._conn() as con:
             total, on_time = con.execute(
-                f"""SELECT COUNT(*), SUM(CASE WHEN dep_delay_minutes <= {self.OTP_THRESHOLD_MIN} THEN 1 ELSE 0 END)
+                f"""SELECT COUNT(*),
+                           SUM(CASE WHEN dep_delay_minutes <= {self.OTP_THRESHOLD_MIN}
+                               THEN 1 ELSE 0 END)
                     FROM flights WHERE status != 'CNX'"""
             ).fetchone()
         otp = on_time / total if total else 0.0
@@ -258,7 +262,8 @@ class DataValidator:
     def check_unreasonable_delays(self) -> CheckResult:
         with self._conn() as con:
             bad = con.execute(
-                f"SELECT COUNT(*) FROM flights WHERE dep_delay_minutes > {self.MAX_REASONABLE_DELAY_MIN}"
+                "SELECT COUNT(*) FROM flights "
+                f"WHERE dep_delay_minutes > {self.MAX_REASONABLE_DELAY_MIN}"
             ).fetchone()[0]
         return CheckResult(
             "no_unreasonable_delays",
@@ -290,7 +295,9 @@ class DataValidator:
         with self._conn() as con:
             orphans = con.execute(
                 """SELECT COUNT(DISTINCT f.aircraft_registration) FROM flights f
-                   WHERE NOT EXISTS (SELECT 1 FROM aircraft a WHERE a.registration = f.aircraft_registration)"""
+                   WHERE NOT EXISTS (
+                       SELECT 1 FROM aircraft a WHERE a.registration = f.aircraft_registration
+                   )"""
             ).fetchone()[0]
         return CheckResult(
             "aircraft_ref_integrity",

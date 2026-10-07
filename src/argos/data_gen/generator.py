@@ -11,7 +11,7 @@ Architecture:
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import duckdb
@@ -441,7 +441,7 @@ class SyntheticDataGenerator:
                         dep_date.day,
                         (dep_hour - 9) % 24,
                         dep_min_offset,
-                        tzinfo=timezone.utc,
+                        tzinfo=UTC,
                     )
                     sch_arr = sch_dep + timedelta(minutes=block_min)
 
@@ -651,7 +651,7 @@ class SyntheticDataGenerator:
                     hour = int(self.rng.integers(0, 24))
                     duration_h = float(self.rng.uniform(1.0, 14.0))
                     start_dt = datetime(
-                        event_date.year, event_date.month, event_date.day, hour, tzinfo=timezone.utc
+                        event_date.year, event_date.month, event_date.day, hour, tzinfo=UTC
                     )
                     end_dt = start_dt + timedelta(hours=duration_h)
                     severity = int(self.rng.integers(sev_range[0], sev_range[1] + 1))
@@ -701,7 +701,7 @@ class SyntheticDataGenerator:
                 con.execute(ddl)
 
             # Insert aircraft fleet
-            fleet_df = pd.DataFrame(FLEET)
+            fleet_df = pd.DataFrame(FLEET)  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
             con.execute("DELETE FROM aircraft")
             con.execute("INSERT INTO aircraft SELECT * FROM fleet_df")
 
@@ -722,7 +722,7 @@ class SyntheticDataGenerator:
                 }
                 for r in ALL_ROUTES
             ]
-            routes_df = pd.DataFrame(routes_rows)
+            routes_df = pd.DataFrame(routes_rows)  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
             con.execute("DELETE FROM routes")
             con.execute("INSERT INTO routes SELECT * FROM routes_df")
 
@@ -738,12 +738,12 @@ class SyntheticDataGenerator:
                             "priority": priority,
                         }
                     )
-            ra_df = pd.DataFrame(ra_rows)
+            ra_df = pd.DataFrame(ra_rows)  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
             con.execute("DELETE FROM route_aircraft")
             con.execute("INSERT INTO route_aircraft SELECT * FROM ra_df")
 
             # Insert delay code reference
-            codes_df = pd.DataFrame(
+            codes_df = pd.DataFrame(  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
                 [{"code": k, "description": v} for k, v in IATA_DELAY_CODES.items()]
             )
             con.execute("DELETE FROM delay_codes_ref")
@@ -777,7 +777,7 @@ class SyntheticDataGenerator:
                 "status",
                 "cancel_reason",
             ]
-            insert_df = flights_df[flight_cols]
+            insert_df = flights_df[flight_cols]  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
             con.execute("INSERT INTO flights SELECT * FROM insert_df")
 
             # Insert weather events

@@ -18,7 +18,7 @@ the client handles the conversion transparently.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from argos.uav.airspace import assess_conflicts
@@ -80,7 +80,7 @@ class ACROSSClient:
             response = ACROSSResponse(
                 plan_id=plan.plan_id,
                 status=ApprovalStatus.DENIED,
-                approval_time_utc=datetime.now(timezone.utc),
+                approval_time_utc=datetime.now(UTC),
                 conflicts=conflicts,
                 message=(
                     f"Flight plan denied: {len(hard)} hard conflict(s) detected. "
@@ -91,7 +91,7 @@ class ACROSSClient:
             response = ACROSSResponse(
                 plan_id=plan.plan_id,
                 status=ApprovalStatus.APPROVED,
-                approval_time_utc=datetime.now(timezone.utc),
+                approval_time_utc=datetime.now(UTC),
                 conflicts=soft,
                 conditions=[
                     f"Monitor {c.conflict_type.value} condition: {c.description}" for c in soft
@@ -102,7 +102,7 @@ class ACROSSClient:
             response = ACROSSResponse(
                 plan_id=plan.plan_id,
                 status=ApprovalStatus.APPROVED,
-                approval_time_utc=datetime.now(timezone.utc),
+                approval_time_utc=datetime.now(UTC),
                 message="Flight plan approved. No conflicts detected.",
             )
 
@@ -118,7 +118,7 @@ class ACROSSClient:
         response = ACROSSResponse(
             plan_id=plan_id,
             status=ApprovalStatus.CANCELLED,
-            approval_time_utc=datetime.now(timezone.utc),
+            approval_time_utc=datetime.now(UTC),
             message=f"Cancelled by operator. Reason: {reason}" if reason else "Cancelled.",
         )
         self._responses[plan_id] = response
@@ -149,14 +149,14 @@ class ACROSSClient:
         This is called by the OCC agent when a cascade delay affects
         time-critical passengers (e.g., last connection of the day).
         """
+        from datetime import timedelta
+
+        from argos.uav.models import FlightRules, GeoPoint, Waypoint4D
         from argos.uav.network import (
             VERTIPORTS,
             build_uam_network,
             find_route,
-            estimate_flight_time_min,
         )
-        from argos.uav.models import FlightRules, Waypoint4D, GeoPoint
-        from datetime import timedelta
 
         G = build_uam_network()
         path = find_route(G, origin_vertiport_id, dest_vertiport_id)

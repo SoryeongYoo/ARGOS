@@ -16,8 +16,8 @@ must approve before any action is executed.
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from dataclasses import dataclass
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import duckdb
@@ -121,7 +121,7 @@ class DelayPropagator:
 
     def load_flights(self, dep_date: date) -> pd.DataFrame:
         """Load all non-cancelled flights departing on dep_date from DuckDB."""
-        day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=timezone.utc)
+        day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=UTC)
         day_end = day_start + timedelta(days=1)
 
         con = duckdb.connect(str(self.db_path), read_only=True)
@@ -416,7 +416,9 @@ class DelayPropagator:
                 RecoveryScenario(
                     scenario_id=3,
                     name="No Further Action (Single Leg)",
-                    description="Trigger flight has no downstream rotation on this date. No cascade.",
+                    description=(
+                        "Trigger flight has no downstream rotation on this date. No cascade."
+                    ),
                     action_required="None. Monitor flight and update ETA.",
                     feasibility="HIGH",
                     residual=s3_clone,
@@ -442,7 +444,7 @@ class DelayPropagator:
         """
         fleet_by_type = self.load_fleet_registrations(dep_date)
 
-        day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=timezone.utc)
+        day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=UTC)
         day_end = day_start + timedelta(days=1)
 
         con = duckdb.connect(str(self.db_path), read_only=True)

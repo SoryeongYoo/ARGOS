@@ -1,9 +1,16 @@
 """Unit tests for UAM/AAM ACROSS integration modules."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from argos.uav.across_client import ACROSSClient
+from argos.uav.airspace import (
+    ICN_CENTRE,
+    assess_conflicts,
+    check_ctr_altitude,
+    check_curfew,
+)
 from argos.uav.models import (
     ApprovalStatus,
     ConflictType,
@@ -12,31 +19,20 @@ from argos.uav.models import (
     UAMFlightPlan,
     UAMVehicle,
     VehicleClass,
-    Vertiport,
     Waypoint4D,
 )
 from argos.uav.network import (
     VERTIPORTS,
+    all_routes_from,
     build_uam_network,
     estimate_flight_time_min,
     find_route,
     route_distance_nm,
-    all_routes_from,
 )
-from argos.uav.airspace import (
-    ICN_CENTRE,
-    ICN_CTR_RADIUS_NM,
-    UAM_MAX_ALT_ICN_FT,
-    assess_conflicts,
-    check_ctr_altitude,
-    check_curfew,
-    check_ils_corridor,
-)
-from argos.uav.across_client import ACROSSClient
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
-UTC = timezone.utc
+UTC = UTC
 BASE_TIME = datetime(2024, 6, 15, 2, 0, 0, tzinfo=UTC)  # 11:00 KST (daytime)
 
 DEMO_VEHICLE = UAMVehicle(

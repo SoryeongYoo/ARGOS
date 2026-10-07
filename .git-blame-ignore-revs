@@ -1,0 +1,4 @@
+# 포맷만 바꾼 커밋. `git config blame.ignoreRevsFile .git-blame-ignore-revs` 로 활성화.
+
+# style: ruff format 일괄 적용 (포맷만, 동작 변경 없음)
+727cdb73ad58b979ce671f25c413e71b8186cdc6

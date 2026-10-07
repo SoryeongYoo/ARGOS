@@ -7,11 +7,8 @@ Usage:
     python scripts/assign_aircraft.py --date 2023-07-15 --disrupted <uuid1> <uuid2>
 """
 
-import sys
-from pathlib import Path
-
 from datetime import date
-from typing import Optional
+from pathlib import Path
 
 import typer
 from rich.console import Console
@@ -27,10 +24,10 @@ console = Console()
 
 @app.command()
 def assign(
-    dep_date: Optional[str] = typer.Option(
+    dep_date: str | None = typer.Option(
         None, "--date", "-d", help="Operating date YYYY-MM-DD (default: 2023-07-15)"
     ),
-    disrupted: Optional[list[str]] = typer.Option(
+    disrupted: list[str] | None = typer.Option(
         None, "--disrupted", help="flight_ids to reassign (default: full day)"
     ),
     time_limit: float = typer.Option(
@@ -126,10 +123,11 @@ def assign(
             )
         console.print(u)
 
+    covered_pax = sum(task_map[fid].pax_boarded for fid in result.assignments if fid in task_map)
     console.print(
         Panel(
             f"Coverage rate : [bold]{result.coverage_rate:.1%}[/]\n"
-            f"Covered PAX   : [green]{sum(task_map[fid].pax_boarded for fid in result.assignments if fid in task_map):,}[/]\n"
+            f"Covered PAX   : [green]{covered_pax:,}[/]\n"
             f"Unassigned    : {len(result.unassigned)} flight(s)\n"
             f"Solver status : [{status_color}]{result.status}[/]",
             title="Summary",

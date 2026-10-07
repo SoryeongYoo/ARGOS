@@ -13,15 +13,14 @@ to the domain/simulation/optimisation layers.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from langchain_core.tools import tool
 
-from argos.optimization.aircraft import AircraftAssigner, AircraftResource, FlightTask
+from argos.optimization.aircraft import AircraftAssigner
 from argos.optimization.crew import CrewAssigner, FlightLeg
 from argos.simulation.propagation import DelayPropagator
-
 
 # ── Propagation tool ──────────────────────────────────────────────────────────
 
@@ -163,7 +162,7 @@ def run_crew_optimisation(
     import pandas as pd
 
     dep_date = date.fromisoformat(op_date)
-    midnight_utc = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=timezone.utc)
+    midnight_utc = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=UTC)  # noqa: F841 — 미사용 변수, 로직 검토 필요
 
     con = duckdb.connect(db_path, read_only=True)
     try:

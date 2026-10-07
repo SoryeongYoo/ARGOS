@@ -2,27 +2,25 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 import networkx as nx
 import pandas as pd
 import pytest
 
 from argos.simulation.propagation import (
-    DelayPropagator,
-    FlightNode,
-    PropagationResult,
-    RecoveryScenario,
     _MAX_PROPAGATED_DELAY,
     _MIN_TURN_NARROW,
     _MIN_TURN_WIDE,
+    DelayPropagator,
+    FlightNode,
     _min_turn,
 )
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 BASE_DATE = date(2024, 6, 15)
-MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
+MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=UTC)
 
 
 def _dt(hour: int, minute: int = 0) -> datetime:
@@ -105,7 +103,8 @@ def test_flight_node_with_delay():
 
 
 def test_earliest_icn_ready_narrow():
-    # dep=09:00, block=120, turn=45 → dest arr=11:00 → dest dep>=11:45 → ICN arr>=13:45 → ready>=14:30
+    # dep=09:00, block=120, turn=45 → dest arr=11:00 → dest dep>=11:45
+    #   → ICN arr>=13:45 → ready>=14:30
     n = _node("F1", "KE701", "HL7401", "B737-800", dep_hour=9, block_minutes=120)
     expected = _dt(9) + timedelta(minutes=120 + 45 + 120 + 45)
     assert n.earliest_icn_ready_utc == expected

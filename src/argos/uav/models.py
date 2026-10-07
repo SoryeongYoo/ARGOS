@@ -14,24 +14,22 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Literal
-
 
 # ── Enumerations ──────────────────────────────────────────────────────────────
 
 
-class VehicleClass(str, Enum):
+class VehicleClass(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     EVTOL = "eVTOL"  # electric Vertical Take-Off and Landing
     CARGO = "CARGO"  # unmanned cargo drone
     INSPECT = "INSPECT"  # inspection UAV
 
 
-class FlightRules(str, Enum):
+class FlightRules(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     VFRC = "VFRC"  # Visual Flight Rules (Controlled)
     IFRC = "IFRC"  # Instrument Flight Rules (Controlled)
 
 
-class ApprovalStatus(str, Enum):
+class ApprovalStatus(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     DENIED = "DENIED"
@@ -40,7 +38,7 @@ class ApprovalStatus(str, Enum):
     COMPLETED = "COMPLETED"
 
 
-class ConflictType(str, Enum):
+class ConflictType(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     SEPARATION = "SEPARATION"  # horizontal/vertical separation violation
     AIRSPACE = "AIRSPACE"  # enters restricted/controlled airspace
     RUNWAY_CORR = "RUNWAY_CORR"  # penetrates ILS/approach corridor
@@ -57,7 +55,7 @@ class GeoPoint:
     lon: float  # decimal degrees E
     alt_ft: float = 0.0  # AGL feet
 
-    def distance_nm(self, other: "GeoPoint") -> float:
+    def distance_nm(self, other: GeoPoint) -> float:
         """Haversine great-circle distance in nautical miles."""
         import math
 

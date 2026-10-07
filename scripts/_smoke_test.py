@@ -1,9 +1,7 @@
-import sys
-
-from argos.data_gen.routes import ROUTES, ROUTE_MAP
+from argos.data_gen.routes import ROUTES
 from argos.domain.block_time import calculate_block_time
 from argos.domain.far117 import max_fdp_hours
-from argos.domain.mct import get_mct, FlightType
+from argos.domain.mct import FlightType, get_mct
 
 assert len(ROUTES) == 60, f"Expected 60 routes, got {len(ROUTES)}"
 

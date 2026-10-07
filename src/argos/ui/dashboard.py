@@ -15,7 +15,7 @@ Run with:
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 from pathlib import Path
 
 import duckdb
@@ -115,7 +115,7 @@ st.set_page_config(
 @st.cache_data(ttl=300)
 def load_flights_for_day(dep_date_str: str) -> pd.DataFrame:
     dep_date = date.fromisoformat(dep_date_str)
-    day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=timezone.utc)
+    day_start = datetime(dep_date.year, dep_date.month, dep_date.day, tzinfo=UTC)
     day_end = day_start + timedelta(days=1)
 
     con = duckdb.connect(DB_PATH, read_only=True)
@@ -522,7 +522,7 @@ with tab_uam:
         if not path or len(path) < 2:
             st.error("이용 가능한 경로가 없습니다.")
         else:
-            etd = datetime(2024, 6, 15, dep_hour, 0, 0, tzinfo=timezone.utc)
+            etd = datetime(2024, 6, 15, dep_hour, 0, 0, tzinfo=UTC)
             eta = etd + timedelta(minutes=flight_min)
             origin_pos = VERTIPORTS[origin_vp].position
             dest_pos = VERTIPORTS[dest_vp].position

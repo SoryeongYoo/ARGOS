@@ -7,8 +7,7 @@ Tests use the live DuckDB database (read-only) or skip when unavailable.
 
 from __future__ import annotations
 
-import os
-from datetime import date
+from datetime import UTC, date
 from pathlib import Path
 
 import pytest
@@ -23,13 +22,14 @@ def sample_flight_id():
     if not DB_AVAILABLE:
         pytest.skip("argos.duckdb not found — run scripts/setup_db.py + generate_data.py")
 
+    from datetime import datetime
+
     import duckdb
-    from datetime import datetime, timezone
 
     # Pick a date with sufficient data
-    test_date = date(2024, 6, 15)
-    day_start = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
-    day_end = datetime(2024, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
+    test_date = date(2024, 6, 15)  # noqa: F841 — 미사용 변수, 로직 검토 필요
+    day_start = datetime(2024, 6, 15, 0, 0, 0, tzinfo=UTC)
+    day_end = datetime(2024, 6, 16, 0, 0, 0, tzinfo=UTC)
 
     con = duckdb.connect(DB_PATH, read_only=True)
     try:
@@ -235,7 +235,9 @@ def test_node_simulate_populates_state(sample_flight_id):
 def test_full_graph_approve(monkeypatch, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; approve scenario 1."""
     from unittest.mock import MagicMock
+
     from langchain_core.messages import AIMessage
+
     import argos.agents.occ_graph as occ_mod
 
     # Build a fake AIMessage that includes a tool call for run_scenario_generation
@@ -266,7 +268,7 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
         )
     )
 
-    call_count = {"n": 0}
+    call_count = {"n": 0}  # noqa: F841 — 미사용 변수, 로직 검토 필요
 
     def mock_make_llm(tools=None):
         mock_llm = MagicMock()
@@ -308,7 +310,9 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
 def test_full_graph_reject(monkeypatch, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; reject all scenarios."""
     from unittest.mock import MagicMock
+
     from langchain_core.messages import AIMessage
+
     import argos.agents.occ_graph as occ_mod
 
     fake_tool_call = {

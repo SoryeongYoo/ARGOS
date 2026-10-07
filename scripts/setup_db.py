@@ -1,6 +1,5 @@
 """Initialize DuckDB schema without generating data."""
 
-import sys
 from pathlib import Path
 
 import duckdb
@@ -24,7 +23,7 @@ def main() -> None:
 
         import pandas as pd
 
-        codes_df = pd.DataFrame(
+        codes_df = pd.DataFrame(  # noqa: F841 — DuckDB replacement scan 이 SQL 에서 이름으로 참조
             [{"code": k, "description": v} for k, v in IATA_DELAY_CODES.items()]
         )
         con.execute("DELETE FROM delay_codes_ref")

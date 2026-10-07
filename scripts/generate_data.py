@@ -7,11 +7,7 @@ Usage:
     python scripts/generate_data.py --routes ICN-NRT ICN-JFK --start 2024-01-01 --end 2024-03-31
 """
 
-import sys
-from pathlib import Path
-
 from datetime import date
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -26,9 +22,9 @@ console = Console()
 
 @app.command()
 def generate(
-    start: Optional[str] = typer.Option(None, "--start", "-s", help="Start date YYYY-MM-DD"),
-    end: Optional[str] = typer.Option(None, "--end", "-e", help="End date YYYY-MM-DD"),
-    routes: Optional[list[str]] = typer.Option(
+    start: str | None = typer.Option(None, "--start", "-s", help="Start date YYYY-MM-DD"),
+    end: str | None = typer.Option(None, "--end", "-e", help="End date YYYY-MM-DD"),
+    routes: list[str] | None = typer.Option(
         None,
         "--routes",
         "-r",

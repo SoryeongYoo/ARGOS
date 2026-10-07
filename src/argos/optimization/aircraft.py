@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -146,7 +146,7 @@ class AircraftAssigner:
         if not aircraft:
             return AssignmentResult({}, [t.flight_id for t in tasks], 0.0, "INFEASIBLE")
 
-        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=timezone.utc)
+        midnight_utc = datetime(op_day.year, op_day.month, op_day.day, tzinfo=UTC)
 
         def to_min(dt: datetime) -> int:
             """Convert datetime to integer minutes from midnight UTC on op_day."""
@@ -259,7 +259,7 @@ class AircraftAssigner:
         db_path: Path,
         op_date: date,
         disrupted_flight_ids: list[str] | None = None,
-    ) -> tuple["AircraftAssigner", list[FlightTask], list[AircraftResource]]:
+    ) -> tuple[AircraftAssigner, list[FlightTask], list[AircraftResource]]:
         """Load tasks and aircraft resources from DuckDB for the given operating date.
 
         Args:
@@ -269,7 +269,7 @@ class AircraftAssigner:
                 tasks needing reassignment (all others keep their original tail).
                 Pass None to reassign the entire day's schedule.
         """
-        day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=timezone.utc)
+        day_start = datetime(op_date.year, op_date.month, op_date.day, tzinfo=UTC)
         day_end = day_start + timedelta(days=1)
 
         con = duckdb.connect(str(db_path), read_only=True)

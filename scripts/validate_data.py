@@ -1,6 +1,5 @@
 """Quality-gate for the synthetic dataset. Run before any ML training."""
 
-import sys
 from pathlib import Path
 
 import typer

@@ -47,6 +47,10 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.flake8-bugbear]
+# typer 의 표준 CLI 선언 패턴 (B008 오탐 방지)
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

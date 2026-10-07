@@ -5,10 +5,11 @@ All timestamps are UTC. Delay codes follow IATA AHM 730 standard.
 
 from datetime import datetime
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 
-class FlightStatus(str, Enum):
+class FlightStatus(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     SCHEDULED = "SCH"
     DEPARTED = "DEP"
     AIRBORNE = "AIR"
@@ -18,7 +19,7 @@ class FlightStatus(str, Enum):
     DIVERTED = "DIV"
 
 
-class DelayResponsibility(str, Enum):
+class DelayResponsibility(str, Enum):  # noqa: UP042 — StrEnum 전환 시 str()/format() 결과가 바뀜
     AIRLINE = "A"  # Carrier responsible
     AIRPORT = "AP"  # Airport/handling responsible
     ATC = "ATC"  # Air traffic control
@@ -242,9 +243,12 @@ CREATE TABLE IF NOT EXISTS flights (
     cancel_reason           VARCHAR,
 
     -- computed columns for ML features
-    dep_hour_utc            INTEGER GENERATED ALWAYS AS (EXTRACT(HOUR FROM scheduled_dep_utc)::INTEGER),
-    dep_month               INTEGER GENERATED ALWAYS AS (EXTRACT(MONTH FROM scheduled_dep_utc)::INTEGER),
-    dep_dow                 INTEGER GENERATED ALWAYS AS (EXTRACT(DOW FROM scheduled_dep_utc)::INTEGER)
+    dep_hour_utc            INTEGER GENERATED ALWAYS AS
+        (EXTRACT(HOUR FROM scheduled_dep_utc)::INTEGER),
+    dep_month               INTEGER GENERATED ALWAYS AS
+        (EXTRACT(MONTH FROM scheduled_dep_utc)::INTEGER),
+    dep_dow                 INTEGER GENERATED ALWAYS AS
+        (EXTRACT(DOW FROM scheduled_dep_utc)::INTEGER)
 );
 """
 

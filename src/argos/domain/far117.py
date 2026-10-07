@@ -9,8 +9,7 @@ Key concepts:
 - FT   : Flight Time (airborne time only)
 """
 
-from datetime import datetime, timedelta
-
+from datetime import datetime
 
 # ── Appendix B table: max FDP hours (unaugmented crew) ───────────────────────
 # Rows = report hour (local, 0-23), Cols = number of flight segments (1-6).

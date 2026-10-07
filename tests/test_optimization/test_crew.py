@@ -1,6 +1,6 @@
 """Unit tests for CP-SAT crew roster optimizer."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -10,13 +10,12 @@ from argos.optimization.crew import (
     FlightLeg,
     _crew_footprint,
     _is_rated,
-    _min_turn,
 )
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 OP_DAY = date(2024, 6, 15)
-MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=timezone.utc)
+MIDNIGHT = datetime(2024, 6, 15, 0, 0, 0, tzinfo=UTC)
 
 
 def _dep(hour: int, minute: int = 0) -> datetime:

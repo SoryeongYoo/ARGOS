@@ -13,17 +13,15 @@ Usage:
     python scripts/uam_demo.py --scenario occ   # OCC passenger alternative
 """
 
-import sys
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import typer
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich import box
 
+from argos.uav.across_client import ACROSSClient
 from argos.uav.models import (
     ApprovalStatus,
     FlightRules,
@@ -39,13 +37,11 @@ from argos.uav.network import (
     estimate_flight_time_min,
     find_route,
     route_distance_nm,
-    all_routes_from,
 )
-from argos.uav.across_client import ACROSSClient
 
 app = typer.Typer(help="ARGOS UAM/AAM ACROSS integration demo")
 console = Console()
-UTC = timezone.utc
+UTC = UTC
 
 DEMO_VEHICLE = UAMVehicle(
     vehicle_id="KE-AAM-001",
@@ -162,7 +158,7 @@ def _show_route(G, origin_id: str, dest_id: str) -> None:
 def _submit_plans(client: ACROSSClient, G) -> None:
     console.rule("[bold]ACROSS Flight Plan Submission")
 
-    etd_day = datetime(2024, 6, 15, 3, 0, tzinfo=UTC)  # 12:00 KST
+    etd_day = datetime(2024, 6, 15, 3, 0, tzinfo=UTC)  # noqa: F841 — 12:00 KST, 미사용
 
     test_cases = [
         ("PLAN-OK", "SBR", "YDP", 800, 3, "Normal daytime SBR->YDP"),
@@ -274,18 +270,18 @@ def _occ_scenario(client: ACROSSClient, G) -> None:
         )
     else:
         console.print(
-            f"[red]UAM alternative denied.[/] Conflicts: "
+            "[red]UAM alternative denied.[/] Conflicts: "
             + ", ".join(c.conflict_type.value for c in resp.conflicts)
         )
 
 
 @app.command()
 def demo(
-    origin: Optional[str] = typer.Option(
+    origin: str | None = typer.Option(
         None, "--origin", "-o", help="Origin vertiport ID for route demo"
     ),
-    dest: Optional[str] = typer.Option(None, "--dest", "-d", help="Destination vertiport ID"),
-    scenario: Optional[str] = typer.Option(None, "--scenario", "-s", help="Scenario to run: 'occ'"),
+    dest: str | None = typer.Option(None, "--dest", "-d", help="Destination vertiport ID"),
+    scenario: str | None = typer.Option(None, "--scenario", "-s", help="Scenario to run: 'occ'"),
 ) -> None:
     G = build_uam_network()
     client = ACROSSClient(mode="simulation")
