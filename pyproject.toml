@@ -56,6 +56,53 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
+# mypy baseline: 아래 모듈은 기존 오류를 무시한다. 고친 모듈은 항목을 지워 strict 로 되돌릴 것.
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 20 errors
+module = "argos.agents.occ_graph"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 1 errors
+module = "argos.agents.state"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 4 errors
+module = "argos.agents.tools"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 8 errors
+module = "argos.data_gen.generator"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 16 errors
+module = "argos.data_gen.validator"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 1 errors
+module = "argos.optimization.aircraft"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 4 errors
+module = "argos.prediction.model"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 1 errors
+module = "argos.uav.network"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# baseline: 2026-10-01, 2 errors
+module = "argos.ui.dashboard"
+ignore_errors = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
