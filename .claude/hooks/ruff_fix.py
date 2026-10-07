@@ -41,7 +41,9 @@ def main() -> int:
         return 0
 
     check = subprocess.run(
-        [ruff, "check", "--fix", "--quiet", str(path)],
+        # F401 은 자동 삭제하지 않는다: import 를 먼저 넣고 사용 코드를 다음 편집에서
+        # 넣는 패턴에서 import 가 중간에 지워지는 것을 막는다. 남으면 아래에서 보고됨.
+        [ruff, "check", "--fix", "--unfixable", "F401", "--quiet", str(path)],
         cwd=ROOT,
         capture_output=True,
         text=True,
