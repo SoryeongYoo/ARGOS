@@ -39,13 +39,22 @@ python scripts/validate_data.py --strict   # warnings treated as errors
 # EDA notebook
 jupyter lab notebooks/01_eda.ipynb
 
-# Run tests
-pytest
+# Verify a change (run before declaring work done)
+python scripts/verify.py          # ruff check → ruff format --check → mypy → pytest; exit 1 on any failure
+python scripts/verify.py --fast   # same, but skips @pytest.mark.slow tests
 
-# Lint / type-check
+# Individual steps
+pytest
 ruff check src tests scripts
+ruff format src tests scripts
 mypy src
 ```
+
+- Lint/format/mypy baseline is zero. mypy strict is relaxed only for modules listed under `[[tool.mypy.overrides]]` in `pyproject.toml` (baseline 2026-10-01); remove an override once that module is fixed.
+- Remaining `# noqa` comments (F841, B007, UP042) mark findings whose fix would change behaviour — don't "fix" them blindly.
+- Tests never read `data/db/`. DB-dependent tests use the session fixture `fixture_db_path` (`tests/conftest.py`), which generates 2024-06-15 with seed 42 into a temp dir.
+- `tests/test_domain/test_far117.py` pins FAR 117 table values. Changing a regulatory value requires citing the rule in the PR.
+- Scripts import `argos` via the editable install (`pip install -e ".[dev]"`); there is no `sys.path` hacking.
 
 ## Architecture
 

@@ -2,26 +2,19 @@
 Tests for OCC agent tools — no LLM calls, no API key required.
 
 All tools wrap domain modules (propagation, aircraft, crew optimisers).
-Tests use the live DuckDB database (read-only) or skip when unavailable.
+DB 의존 테스트는 tests/conftest.py 의 fixture_db_path(임시 경로, 2024-06-15 하루치)를 쓴다.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, date
-from pathlib import Path
 
 import pytest
 
-DB_PATH = str(Path("data/db/argos.duckdb").resolve())
-DB_AVAILABLE = Path(DB_PATH).exists()
-
 
 @pytest.fixture(scope="module")
-def sample_flight_id():
-    """Return one flight_id from the DB for use in propagation tests."""
-    if not DB_AVAILABLE:
-        pytest.skip("argos.duckdb not found — run scripts/setup_db.py + generate_data.py")
-
+def sample_flight_id(fixture_db_path: str) -> str:
+    """Return one flight_id from the fixture DB for use in propagation tests."""
     from datetime import datetime
 
     import duckdb
@@ -31,7 +24,7 @@ def sample_flight_id():
     day_start = datetime(2024, 6, 15, 0, 0, 0, tzinfo=UTC)
     day_end = datetime(2024, 6, 16, 0, 0, 0, tzinfo=UTC)
 
-    con = duckdb.connect(DB_PATH, read_only=True)
+    con = duckdb.connect(fixture_db_path, read_only=True)
     try:
         rows = con.execute(
             """
@@ -46,8 +39,7 @@ def sample_flight_id():
     finally:
         con.close()
 
-    if not rows:
-        pytest.skip("No flights found for 2024-06-15")
+    assert rows, "fixture DB has no flights for 2024-06-15"
     return rows[0][0]
 
 
@@ -91,7 +83,7 @@ def test_occ_state_keys():
         "trigger_flight_id": "test-uuid",
         "initial_delay_minutes": 90,
         "op_date": "2024-06-15",
-        "db_path": DB_PATH,
+        "db_path": "unused.duckdb",
         "propagation_summary": {},
         "scenarios_raw": [],
         "scenario_briefing": "",
@@ -125,13 +117,12 @@ def test_occ_tools_importable():
 # ── Tool invocation tests (require DB) ────────────────────────────────────────
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_run_propagation_returns_dict(sample_flight_id):
+def test_run_propagation_returns_dict(fixture_db_path, sample_flight_id):
     from argos.agents.tools import run_propagation
 
     result = run_propagation.invoke(
         {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 90,
@@ -145,13 +136,12 @@ def test_run_propagation_returns_dict(sample_flight_id):
     assert len(result["cascade_chain"]) >= 1
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_run_scenario_generation_returns_three(sample_flight_id):
+def test_run_scenario_generation_returns_three(fixture_db_path, sample_flight_id):
     from argos.agents.tools import run_scenario_generation
 
     scenarios = run_scenario_generation.invoke(
         {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 90,
@@ -168,13 +158,12 @@ def test_run_scenario_generation_returns_three(sample_flight_id):
         assert s["requires_approval"] is True
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_run_aircraft_optimisation(sample_flight_id):
+def test_run_aircraft_optimisation(fixture_db_path, sample_flight_id):
     from argos.agents.tools import run_aircraft_optimisation
 
     result = run_aircraft_optimisation.invoke(
         {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "disrupted_flight_ids": [sample_flight_id],
         }
@@ -187,13 +176,12 @@ def test_run_aircraft_optimisation(sample_flight_id):
     assert result["status"] in ("OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN")
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_run_crew_optimisation(sample_flight_id):
+def test_run_crew_optimisation(fixture_db_path, sample_flight_id):
     from argos.agents.tools import run_crew_optimisation
 
     result = run_crew_optimisation.invoke(
         {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "disrupted_flight_ids": [sample_flight_id],
         }
@@ -209,15 +197,14 @@ def test_run_crew_optimisation(sample_flight_id):
 # ── node_simulate unit test (no LLM) ─────────────────────────────────────────
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_node_simulate_populates_state(sample_flight_id):
+def test_node_simulate_populates_state(fixture_db_path, sample_flight_id):
     from argos.agents.occ_graph import node_simulate
 
     state = {
         "trigger_flight_id": sample_flight_id,
         "initial_delay_minutes": 60,
         "op_date": "2024-06-15",
-        "db_path": DB_PATH,
+        "db_path": fixture_db_path,
     }
     patch = node_simulate(state)
 
@@ -231,8 +218,8 @@ def test_node_simulate_populates_state(sample_flight_id):
 # ── End-to-end graph test (mocked LLM, requires DB) ──────────────────────────
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_full_graph_approve(monkeypatch, sample_flight_id):
+@pytest.mark.slow
+def test_full_graph_approve(monkeypatch, fixture_db_path, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; approve scenario 1."""
     from unittest.mock import MagicMock
 
@@ -245,7 +232,7 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
     fake_tool_call = {
         "name": "run_scenario_generation",
         "args": {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 60,
@@ -281,7 +268,7 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
     monkeypatch.setattr(occ_mod, "_make_llm", mock_make_llm)
 
     state, graph = occ_mod.run_until_approval(
-        db_path=DB_PATH,
+        db_path=fixture_db_path,
         op_date="2024-06-15",
         trigger_flight_id=sample_flight_id,
         initial_delay_minutes=60,
@@ -306,8 +293,8 @@ def test_full_graph_approve(monkeypatch, sample_flight_id):
     assert "1" in final["execution_summary"]
 
 
-@pytest.mark.skipif(not DB_AVAILABLE, reason="DuckDB not available")
-def test_full_graph_reject(monkeypatch, sample_flight_id):
+@pytest.mark.slow
+def test_full_graph_reject(monkeypatch, fixture_db_path, sample_flight_id):
     """Run the full OCC graph with a mocked LLM; reject all scenarios."""
     from unittest.mock import MagicMock
 
@@ -318,7 +305,7 @@ def test_full_graph_reject(monkeypatch, sample_flight_id):
     fake_tool_call = {
         "name": "run_scenario_generation",
         "args": {
-            "db_path": DB_PATH,
+            "db_path": fixture_db_path,
             "op_date": "2024-06-15",
             "trigger_flight_id": sample_flight_id,
             "initial_delay_minutes": 30,
@@ -337,7 +324,7 @@ def test_full_graph_reject(monkeypatch, sample_flight_id):
     monkeypatch.setattr(occ_mod, "_make_llm", mock_make_llm)
 
     state, graph = occ_mod.run_until_approval(
-        db_path=DB_PATH,
+        db_path=fixture_db_path,
         op_date="2024-06-15",
         trigger_flight_id=sample_flight_id,
         initial_delay_minutes=30,
