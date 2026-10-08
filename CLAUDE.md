@@ -15,9 +15,9 @@ ARGOS (Airline Route & Ground Operations System): 인천 허브 항공사(대한
 ## 완료 조건
 
 ```bash
-python scripts/verify.py          # ruff check → ruff format --check → mypy → pytest. 하나라도 실패하면 exit 1
+python scripts/verify.py          # ruff check → ruff format --check → mypy → doc links → pytest. 하나라도 실패하면 exit 1
 python scripts/verify.py --fast   # @pytest.mark.slow 제외
-python scripts/check_doc_links.py # 문서를 고쳤다면: CLAUDE.md, docs/ 상대 링크 검사
+python scripts/check_doc_links.py # doc links 단계만 단독 실행: CLAUDE.md, docs/ 상대 링크 검사
 ```
 
 이 명령이 통과하기 전에는 "완료"라고 하지 않는다. 테스트는 `data/db/` 를 읽지 않는다 (fixture DB, [conventions](docs/conventions.md)).

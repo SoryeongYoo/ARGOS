@@ -13,6 +13,10 @@ Streamlit OCC 대시보드다. 탭은 두 개다.
 
 디자인 시스템(토큰, 폰트, 목업, UI 문구 규칙)은 이 모듈이 아니라 [`design/`](../../design/) 에 있다. design/ 은 명시적 요청이 있을 때만 수정한다 ([ADR 0006](../decisions/0006-design-assets-in-design-dir.md)).
 
+## 공개 인터페이스
+
+없음. Streamlit 진입점(`dashboard.py`)만 있고, 다른 모듈이 import 하는 대상이 아니다.
+
 ## 의존해도 되는 대상
 
 모든 레이어. 다만 회복 시나리오 승인은 agents 의 `human_gate` 를 거쳐야 한다 ([ADR 0004](../decisions/0004-all-approvals-via-human-gate.md)).

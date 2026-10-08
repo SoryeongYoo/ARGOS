@@ -2,7 +2,7 @@
 에이전트/개발자용 단일 검증 명령.
 
 Usage:
-    python scripts/verify.py          # ruff check → ruff format --check → mypy → pytest
+    python scripts/verify.py          # ruff check → ruff format --check → mypy → doc links → pytest
     python scripts/verify.py --fast   # pytest 에서 slow 마커 제외
 
 모든 단계를 끝까지 실행한 뒤 요약표를 출력한다. 하나라도 실패하면 exit 1.
@@ -46,6 +46,7 @@ def _steps(fast: bool) -> list[tuple[str, list[str]]]:
         ("ruff check", [py, "-m", "ruff", "check", *LINT_TARGETS]),
         ("ruff format", [py, "-m", "ruff", "format", "--check", *LINT_TARGETS]),
         ("mypy", [py, "-m", "mypy", "src"]),
+        ("doc links", [py, "scripts/check_doc_links.py"]),
         ("pytest" + (" (fast)" if fast else ""), pytest_cmd),
     ]
 

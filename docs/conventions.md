@@ -64,7 +64,7 @@
 
 ## 정적 검사
 
-- 완료 조건: `python scripts/verify.py` 통과 (ruff check, ruff format, mypy strict, pytest).
+- 완료 조건: `python scripts/verify.py` 통과 (ruff check, ruff format, mypy strict, 문서 상대 링크, pytest).
 - `# noqa` 는 동작을 바꿔야 고칠 수 있는 경우에만 달고, 이유를 적는다.
 - mypy 는 [`pyproject.toml`](../pyproject.toml) 의 `[[tool.mypy.overrides]]` 에 있는 baseline 모듈만 예외다. 모듈을 고치면 override 를 지운다.
 - 포맷만 바꾼 커밋은 [`.git-blame-ignore-revs`](../.git-blame-ignore-revs) 에 등록한다.
