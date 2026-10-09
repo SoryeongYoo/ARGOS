@@ -335,16 +335,16 @@ class CrewAssigner:
 
         solve_time = time.perf_counter() - t0
 
-        # int 로 비교한다: CpSolverStatus 와 cp_model 상수의 stub 타입 해석이
-        # mypy 버전마다 다르다 (2.1 통과, 2.4 실패).
-        _STATUS_MAP: dict[int, Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN"]] = {
-            int(cp_model.OPTIMAL): "OPTIMAL",
-            int(cp_model.FEASIBLE): "FEASIBLE",
-            int(cp_model.INFEASIBLE): "INFEASIBLE",
-            int(cp_model.UNKNOWN): "UNKNOWN",
+        # 상태 이름(str)으로 비교한다. ortools 9.11 은 Solve() 반환을 enum 클래스
+        # CpSolverStatus 로 잘못 annotate 해서, 값 비교는 환경마다 mypy 결과가 달라진다.
+        _STATUS_MAP: dict[str, Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN"]] = {
+            "OPTIMAL": "OPTIMAL",
+            "FEASIBLE": "FEASIBLE",
+            "INFEASIBLE": "INFEASIBLE",
+            "UNKNOWN": "UNKNOWN",
         }
         status_str: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"] = (
-            _STATUS_MAP.get(int(cp_status), "TIMEOUT")
+            _STATUS_MAP.get(solver.StatusName(cp_status), "TIMEOUT")
         )
 
         # ── Extract solution ───────────────────────────────────────────────────
