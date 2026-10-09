@@ -95,7 +95,7 @@ ARGOS/
 python -m venv venv
 venv\Scripts\activate          # Windows
 # source venv/bin/activate     # macOS/Linux
-pip install -e ".[dev]"
+pip install -e ".[dev]" -c constraints.txt
 
 # 2. API 키 설정
 cp .env.example .env

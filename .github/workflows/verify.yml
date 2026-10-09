@@ -23,10 +23,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: pyproject.toml
+          cache-dependency-path: |
+            pyproject.toml
+            constraints.txt
 
       - name: Install
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev]" -c constraints.txt
 
       # ANTHROPIC_API_KEY 는 주지 않는다. 테스트가 키를 요구하면 버그다.
       - name: Verify

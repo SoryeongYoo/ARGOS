@@ -57,7 +57,7 @@ python scripts/check_doc_links.py # doc links 단계만 단독 실행: CLAUDE.md
 
 ```bash
 python -m venv venv && venv\Scripts\activate   # Python 3.12
-pip install -e ".[dev]"                         # scripts 는 editable 설치로 argos 를 import
+pip install -e ".[dev]" -c constraints.txt      # editable 설치. 버전은 CI 와 같은 constraints.txt 로 고정
 cp .env.example .env                            # ANTHROPIC_API_KEY (run_occ 실제 실행에만 필요)
 ```
 

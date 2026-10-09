@@ -68,3 +68,9 @@
 - `# noqa` 는 동작을 바꿔야 고칠 수 있는 경우에만 달고, 이유를 적는다.
 - mypy 는 [`pyproject.toml`](../pyproject.toml) 의 `[[tool.mypy.overrides]]` 에 있는 baseline 모듈만 예외다. 모듈을 고치면 override 를 지운다.
 - 포맷만 바꾼 커밋은 [`.git-blame-ignore-revs`](../.git-blame-ignore-revs) 에 등록한다.
+
+## 의존성
+
+- 설치는 `pip install -e ".[dev]" -c constraints.txt`. [`constraints.txt`](../constraints.txt) 는 CI(ubuntu-latest, Python 3.12) 에서 verify 가 통과한 버전이다.
+- 의존성 업그레이드는 `constraints.txt` 갱신 PR 로만 한다. CI 통과 확인 후 머지한다.
+- 고정하지 않으면 CI 가 코드 변경 없이 깨진다: mypy 2.1 → 2.4 에서 ortools stub 해석이 달라져 실패한 적이 있다 (PR #4).
