@@ -12,11 +12,12 @@ harness/verify 작업(2026-10) 중 발견했지만, 동작이 바뀌는 수정�
 
 ## B1. `max_fdp_hours(num_segments=0)` 이 6구간 값을 반환
 
+- 상태: **해결** (2026-10-08). `num_segments < 1` 이면 `ValueError`. 테스트 `test_max_fdp_hours_rejects_fewer_than_one_segment`. 회고: [01-retro](../../harness/01-retro.md)
 - 위치: [`src/argos/domain/far117.py`](../../../src/argos/domain/far117.py) `max_fdp_hours`
 - 현상:
   - `seg_idx = min(num_segments, 6) - 1` 이라 0 이면 인덱스가 -1 이 된다.
   - 파이썬 음수 인덱스로 마지막 열(6구간) 값을 조용히 반환한다.
-  - 음수 입력도 마찬가지다.
+  - 음수 입력은 `-1`~`-5` 가 조용히 다른 열 값을 반환하고 (`-1`→5구간, `-5`→1구간), `-6` 이하는 `IndexError` 다.
 - 고정 테스트: 없음. 골든 테스트는 1~6구간과 6 초과 클램프만 고정한다.
 - 권장 동작: `num_segments < 1` 이면 `ValueError`. FDP 에는 최소 1구간이 있어야 하므로, 조용히 값을 반환하는 것보다 안전하다.
 - 단계:

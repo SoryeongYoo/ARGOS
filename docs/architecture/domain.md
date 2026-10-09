@@ -28,4 +28,4 @@ domain 내부만 된다 (`cost_index` → `block_time`). I/O, LLM, DuckDB 는 �
 - **C4**: `block_time`, `mct`, `cost_index` 는 런타임에서 쓰이지 않는다. 테스트에서만 호출된다.
 - **D2**: 턴타임, 기종 호환, footprint 가 domain 밖에 중복 정의되어 있다. → [domain-consolidation](../exec-plans/active/domain-consolidation.md)
 - **C2**: far117 은 crew 최적화의 사후 검증에서만 쓰인다. → [fdp-hard-constraint](../exec-plans/active/fdp-hard-constraint.md)
-- far117 동작의 의심점(`num_segments=0`, 증원 +2h 등) → [bug-backlog](../exec-plans/active/bug-backlog.md)
+- far117 동작의 의심점(증원 +2h, Table B 값 등) → [bug-backlog](../exec-plans/active/bug-backlog.md)

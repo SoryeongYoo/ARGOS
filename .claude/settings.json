@@ -12,5 +12,17 @@
         ]
       }
     ]
+  }, 
+  "permissions": {
+    "deny": [
+      "Bash(git push*--force*)",
+      "Bash(git push* -f*)",
+      "PowerShell(git push*--force*)",
+      "PowerShell(git push* -f*)"
+    ],
+    "ask": [
+      "Bash(git push*main*)",
+      "PowerShell(git push*main*)"
+    ]
   }
 }
