@@ -24,6 +24,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+from argos.config import get_settings
 from argos.simulation.propagation import DelayPropagator
 from argos.uav.across_client import ACROSSClient
 from argos.uav.models import FlightRules, GeoPoint, UAMFlightPlan, Waypoint4D
@@ -31,8 +32,7 @@ from argos.uav.network import VERTIPORTS, build_uam_network, find_route
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-_ROOT = Path(__file__).parent.parent.parent.parent
-DB_PATH = str((_ROOT / "data" / "db" / "argos.duckdb").resolve())
+DB_PATH = str(get_settings().duckdb_path)
 KST = timezone(timedelta(hours=9))
 
 # Static airport lat/lon for route map rendering (routes table has no geo columns)
@@ -217,7 +217,7 @@ with st.sidebar:
 
     delay_min = st.slider("출발 지연 (분)", 15, 300, 90, step=15)
 
-    run_sim = st.button("▶ 시뮬레이션 실행", type="primary", use_container_width=True)
+    run_sim = st.button("▶ 시뮬레이션 실행", type="primary", width="stretch")
     st.divider()
     st.caption(f"DB: {flights_df.shape[0]:,}편 로드됨")
 
@@ -296,7 +296,7 @@ with tab_occ:
             margin=dict(l=0, r=0, t=0, b=0),
             geo=dict(bgcolor="aliceblue"),
         )
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, width="stretch")
 
     with sched_col:
         st.subheader("출발 스케줄")
@@ -316,7 +316,7 @@ with tab_occ:
 
         st.dataframe(
             sched_display.style.apply(_color_row, axis=1),
-            use_container_width=True,
+            width="stretch",
             height=340,
         )
 
@@ -391,7 +391,7 @@ with tab_occ:
             color_discrete_sequence=["#1f77b4"],
         )
         fig_hist.update_layout(height=250, margin=dict(t=10))
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width="stretch")
     else:
         st.info("해당 날짜에 지연 항공편이 없습니다.")
 
@@ -426,7 +426,7 @@ with tab_uam:
         vp_v = VERTIPORTS[v]
         color = "#aaa" if data["corridor"].avoids_icn_ctr else "#e07b39"
         fig_uam.add_trace(
-            go.Scattermapbox(
+            go.Scattermap(
                 lon=[vp_u.position.lon, vp_v.position.lon],
                 lat=[vp_u.position.lat, vp_v.position.lat],
                 mode="lines",
@@ -438,7 +438,7 @@ with tab_uam:
 
     # Draw vertiports
     fig_uam.add_trace(
-        go.Scattermapbox(
+        go.Scattermap(
             lon=vp_df["lon"],
             lat=vp_df["lat"],
             mode="markers+text",
@@ -462,7 +462,7 @@ with tab_uam:
         ctr_lats.append(37.4691 + dlat)
         ctr_lons.append(126.4505 + dlon)
     fig_uam.add_trace(
-        go.Scattermapbox(
+        go.Scattermap(
             lon=ctr_lons,
             lat=ctr_lats,
             mode="lines",
@@ -473,7 +473,7 @@ with tab_uam:
     )
 
     fig_uam.update_layout(
-        mapbox=dict(
+        map=dict(
             style="open-street-map",
             center=dict(lat=37.48, lon=126.85),
             zoom=8.5,
@@ -482,7 +482,7 @@ with tab_uam:
         margin=dict(l=0, r=0, t=0, b=0),
         legend=dict(x=0, y=1),
     )
-    st.plotly_chart(fig_uam, use_container_width=True)
+    st.plotly_chart(fig_uam, width="stretch")
 
     st.caption(
         "회색 회랑은 ICN CTR을 우회합니다.  "
@@ -561,6 +561,6 @@ with tab_uam:
         vp_df.rename(
             columns={"id": "ID", "name": "이름", "lat": "위도", "lon": "경도", "pads": "패드 수"}
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )

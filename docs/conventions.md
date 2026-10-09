@@ -18,7 +18,6 @@
 - **`get_settings().duckdb_path` 만 쓴다.** `.env` 와 `DUCKDB_PATH` 환경변수가 반영된다. 하위 함수에는 경로를 인자나 state 로 넘긴다.
 - 테스트는 `data/db` 를 쓰지 않고 [`tests/conftest.py`](../tests/conftest.py) 의 `fixture_db_path` 를 쓴다.
 - 현재 상태 (진단 D3): 규칙과 다른 방식이 남아 있다.
-  - [`ui/dashboard.py`](../src/argos/ui/dashboard.py): `Path(__file__)` 기준 하드코딩. compose 의 `DUCKDB_PATH` 를 무시한다
   - [`scripts/run_occ.py`](../scripts/run_occ.py): CWD 기준 `data/db/argos.duckdb` 하드코딩
 - DB 를 쓰는 스크립트는 `--yes` 없이 먼저 실행해 바꿀 내용을 확인한다 ([`cli_guard.py`](../src/argos/cli_guard.py)).
 
