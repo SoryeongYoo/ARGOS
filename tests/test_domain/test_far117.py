@@ -97,6 +97,13 @@ def test_max_fdp_hours_clamps_segments_above_six(segments: int) -> None:
     assert max_fdp_hours(10, segments) == max_fdp_hours(10, 6) == 11.0
 
 
+@pytest.mark.parametrize("segments", [0, -1])
+def test_max_fdp_hours_rejects_fewer_than_one_segment(segments: int) -> None:
+    # 음수 인덱스로 6구간 값을 조용히 반환하던 동작 방지 (bug-backlog B1)
+    with pytest.raises(ValueError, match="num_segments"):
+        max_fdp_hours(10, segments)
+
+
 @pytest.mark.parametrize(("hour", "wrapped"), [(24, 0), (31, 7), (-1, 23)])
 def test_max_fdp_hours_wraps_report_hour(hour: int, wrapped: int) -> None:
     assert max_fdp_hours(hour, 1) == max_fdp_hours(wrapped, 1)

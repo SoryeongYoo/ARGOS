@@ -64,7 +64,12 @@ def max_fdp_hours(report_hour_local: int, num_segments: int, augmented: bool = F
         report_hour_local: Hour (0-23) crew reports at origin, in crew base local time.
         num_segments: Number of flight legs in the FDP.
         augmented: True if ≥3 pilots (enables 2-hour extension allowance).
+
+    Raises:
+        ValueError: If num_segments < 1 (an FDP has at least one flight leg).
     """
+    if num_segments < 1:
+        raise ValueError(f"num_segments must be >= 1, got {num_segments}")
     hour = report_hour_local % 24
     seg_idx = min(num_segments, 6) - 1  # clamp to table max of 6
     base_hours = _APPENDIX_B[hour][seg_idx]
