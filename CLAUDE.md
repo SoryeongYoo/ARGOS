@@ -8,9 +8,10 @@ ARGOS (Airline Route & Ground Operations System): 인천 허브 항공사(대한
 
 ## 작업 시작 전
 
-1. [`docs/exec-plans/active/`](docs/exec-plans/active/) 에 지금 작업과 관련된 계획이 있는지 본다. 있으면 그 단계와 완료 조건을 따른다.
-2. 건드릴 모듈의 [아키텍처 문서](docs/architecture/overview.md) 와 관련 [ADR](docs/decisions/) 을 읽는다.
-3. 모르는 약어는 [용어집](docs/glossary.md), 코딩 규칙은 [컨벤션](docs/conventions.md) 에서 찾는다.
+1. git status 확인. 출처를 설명할 수 없는 변경이 있으면 작업하지 말고 보고할 것.
+2. [`docs/exec-plans/active/`](docs/exec-plans/active/) 에 지금 작업과 관련된 계획이 있는지 본다. 있으면 그 단계와 완료 조건을 따른다.
+3. 건드릴 모듈의 [아키텍처 문서](docs/architecture/overview.md) 와 관련 [ADR](docs/decisions/) 을 읽는다.
+4. 모르는 약어는 [용어집](docs/glossary.md), 코딩 규칙은 [컨벤션](docs/conventions.md) 에서 찾는다.
 
 ## 완료 조건
 
