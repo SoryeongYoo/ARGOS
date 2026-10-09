@@ -33,3 +33,40 @@ jobs:
       # ANTHROPIC_API_KEY 는 주지 않는다. 테스트가 키를 요구하면 버그다.
       - name: Verify
         run: python scripts/verify.py
+
+  # 이미지 빌드 → 하루치 DB 생성 → 대시보드 기동 → health 확인. verify 와 병렬로 돈다.
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATA_START_DATE: "2024-06-15"
+      DATA_END_DATE: "2024-06-15"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: docker compose build
+
+      - name: Generate DB (1 day)
+        run: docker compose --profile setup run --rm setup
+
+      - name: Start dashboard
+        run: docker compose up -d
+
+      - name: Wait for health (max 60s)
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8501/_stcore/health; then
+              echo; echo "healthy after ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "dashboard not healthy within 60s"; exit 1
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --profile setup logs
+
+      - name: Down
+        if: always()
+        run: docker compose --profile setup down

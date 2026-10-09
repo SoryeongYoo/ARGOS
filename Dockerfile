@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy project metadata first (layer-cache friendly)
-COPY pyproject.toml ./
+COPY pyproject.toml constraints.txt ./
 COPY src/ ./src/
 
-# Install the package and all dependencies
-RUN pip install --no-cache-dir -e "."
+# Install the package and all dependencies (versions pinned to CI: constraints.txt)
+RUN pip install --no-cache-dir -e "." -c constraints.txt
 
 # Copy application code
 COPY scripts/ ./scripts/

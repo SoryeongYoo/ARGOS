@@ -40,8 +40,11 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - DUCKDB_PATH=data/db/argos.duckdb
+      # generate_data.py 는 --start/--end 가 없으면 이 값을 쓴다. CI 는 하루치만 만든다
+      - DATA_START_DATE=${DATA_START_DATE:-2024-06-01}
+      - DATA_END_DATE=${DATA_END_DATE:-2024-06-30}
     command: >
       sh -c "python scripts/setup_db.py --yes &&
-             python scripts/generate_data.py --yes --start 2024-06-01 --end 2024-06-30"
+             python scripts/generate_data.py --yes"
     profiles:
       - setup
