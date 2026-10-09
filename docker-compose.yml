@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   dashboard:
     build:
@@ -40,9 +38,10 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - DUCKDB_PATH=data/db/argos.duckdb
-      # generate_data.py 는 --start/--end 가 없으면 이 값을 쓴다. CI 는 하루치만 만든다
-      - DATA_START_DATE=${DATA_START_DATE:-2024-06-01}
-      - DATA_END_DATE=${DATA_END_DATE:-2024-06-30}
+      # generate_data.py 는 --start/--end 가 없으면 DATA_START_DATE/DATA_END_DATE 를 쓴다.
+      # 호스트 쪽은 SETUP_* 로 받는다: .env 의 DATA_* (앱 설정용, 3년치) 가 섞이지 않게. CI 는 하루치
+      - DATA_START_DATE=${SETUP_START_DATE:-2024-06-01}
+      - DATA_END_DATE=${SETUP_END_DATE:-2024-06-30}
     command: >
       sh -c "python scripts/setup_db.py --yes &&
              python scripts/generate_data.py --yes"

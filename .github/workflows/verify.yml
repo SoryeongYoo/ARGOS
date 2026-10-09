@@ -39,8 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      DATA_START_DATE: "2024-06-15"
-      DATA_END_DATE: "2024-06-15"
+      SETUP_START_DATE: "2024-06-15"
+      SETUP_END_DATE: "2024-06-15"
     steps:
       - uses: actions/checkout@v4
 
