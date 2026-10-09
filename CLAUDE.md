@@ -21,7 +21,7 @@ python scripts/verify.py --fast   # @pytest.mark.slow 제외
 python scripts/check_doc_links.py # doc links 단계만 단독 실행: CLAUDE.md, docs/ 상대 링크 검사
 ```
 
-이 명령이 통과하기 전에는 "완료"라고 하지 않는다. 테스트는 `data/db/` 를 읽지 않는다 (fixture DB, [conventions](docs/conventions.md)).
+이 명령이 통과하기 전에는 "완료"라고 하지 않는다. PR 이 있으면 PR 의 CI(`.github/workflows/verify.yml`, Ubuntu 에서 같은 `verify.py` 실행) 통과까지가 완료다. 테스트는 `data/db/` 를 읽지 않는다 (fixture DB, [conventions](docs/conventions.md)).
 
 ## 사람이 결정하는 영역: 수정하지 말고 제안만
 
