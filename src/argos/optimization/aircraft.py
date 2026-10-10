@@ -36,6 +36,7 @@ import pandas as pd
 from ortools.sat.python import cp_model
 
 from argos.domain.fleet import compatible_types, min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 
 # ── Optimizer constants ───────────────────────────────────────────────────────
 
@@ -173,7 +174,9 @@ class AircraftAssigner:
                 if (f_idx, a_idx) not in x:
                     continue
                 dep_min = to_min(task.scheduled_dep_utc)
-                footprint = 2 * task.block_time_minutes + 2 * min_turn_minutes(ac.aircraft_type)
+                footprint = aircraft_rotation_span(
+                    task.block_time_minutes, min_turn_minutes(ac.aircraft_type)
+                )
                 end_min = min(dep_min + footprint, HORIZON)
                 itv = model.NewOptionalIntervalVar(
                     dep_min,

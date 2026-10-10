@@ -8,7 +8,6 @@ from argos.optimization.crew import (
     CrewAssigner,
     CrewMember,
     FlightLeg,
-    _crew_footprint,
     _is_rated,
 )
 
@@ -84,16 +83,6 @@ def test_is_rated_narrow_wide_incompatible():
 def test_is_rated_wide_cross():
     assert _is_rated("B777-300ER", "B787-9") is True
     assert _is_rated("B747-8i", "B787-9") is True
-
-
-def test_crew_footprint_narrow():
-    # check_in(60) + 2*block(360) + turn(45) + post(30) = 495
-    assert _crew_footprint(180, "B737-800") == 495
-
-
-def test_crew_footprint_wide():
-    # 60 + 2*240 + 60 + 30 = 630
-    assert _crew_footprint(240, "B777-300ER") == 630
 
 
 # ── Basic assignment tests ────────────────────────────────────────────────────

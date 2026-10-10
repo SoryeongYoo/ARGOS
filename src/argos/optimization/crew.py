@@ -43,12 +43,16 @@ from ortools.sat.python import cp_model
 
 from argos.domain.far117 import is_fdp_legal
 from argos.domain.fleet import min_turn_minutes
+from argos.domain.rotation import (
+    CREW_CHECK_IN_MINUTES,
+    CREW_POST_FLIGHT_MINUTES,
+    crew_duty_span,
+    icn_block_in_offset,
+)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 _KST_OFFSET = 9  # UTC+9
-_CHECK_IN_MIN = 60  # crew reports 60 min before departure
-_POST_FLIGHT_MIN = 30  # post-flight duties after block-in
 _MAX_FLIGHT_TIME_MIN = 480  # FAR 117 § 117.65(a) — 8 h per calendar day
 _MIN_REST_MIN = 600  # FAR 117 § 117.25 — 10 h minimum rest
 
@@ -60,11 +64,6 @@ _RATING_GROUPS: dict[str, str] = {
     "B787-9": "WIDE",
     "B747-8i": "WIDE",
 }
-
-
-def _crew_footprint(block_time: int, aircraft_type: str) -> int:
-    """Total minutes a crew is 'occupied' by one ICN round-trip leg assignment."""
-    return _CHECK_IN_MIN + 2 * block_time + min_turn_minutes(aircraft_type) + _POST_FLIGHT_MIN
 
 
 def _is_rated(crew_type_rating: str, aircraft_type: str) -> bool:
@@ -223,7 +222,7 @@ class CrewAssigner:
                     ready_min = max(ready_min, to_min(cm.rest_end_utc))
 
                 # Need to be at origin at check-in time
-                checkin_min = dep_min - _CHECK_IN_MIN
+                checkin_min = dep_min - CREW_CHECK_IN_MINUTES
                 if ready_min > checkin_min:
                     continue
 
@@ -268,8 +267,10 @@ class CrewAssigner:
 
             for f_idx, leg in enumerate(legs):
                 dep_min = to_min(leg.scheduled_dep_utc)
-                footprint = _crew_footprint(leg.block_time_minutes, leg.aircraft_type)
-                start = dep_min - _CHECK_IN_MIN
+                footprint = crew_duty_span(
+                    leg.block_time_minutes, min_turn_minutes(leg.aircraft_type)
+                )
+                start = dep_min - CREW_CHECK_IN_MINUTES
                 end = min(start + footprint, HORIZON)
 
                 # Both capt and fo intervals must be tracked independently —
@@ -417,13 +418,17 @@ class CrewAssigner:
             last_leg = flight_list[-1]
 
             # Report time = departure of first leg - CHECK_IN_MIN
-            report_utc = first_dep - timedelta(minutes=_CHECK_IN_MIN)
+            report_utc = first_dep - timedelta(minutes=CREW_CHECK_IN_MINUTES)
 
             # FDP ends when crew checks in after return from last leg
+            # NOTE: FDP 를 duty span(마무리 30분 포함)으로 센다. FAR 117 FDP 는
+            # rotation.crew_fdp_span 이다. 교체는 fdp-hard-constraint 계획에서 한다.
             last_arr_utc = last_leg.scheduled_dep_utc + timedelta(
-                minutes=2 * last_leg.block_time_minutes + min_turn_minutes(last_leg.aircraft_type)
+                minutes=icn_block_in_offset(
+                    last_leg.block_time_minutes, min_turn_minutes(last_leg.aircraft_type)
+                )
             )
-            release_utc = last_arr_utc + timedelta(minutes=_POST_FLIGHT_MIN)
+            release_utc = last_arr_utc + timedelta(minutes=CREW_POST_FLIGHT_MINUTES)
 
             # Convert report time to KST for FAR 117 table lookup
             report_kst = report_utc + timedelta(hours=_KST_OFFSET)

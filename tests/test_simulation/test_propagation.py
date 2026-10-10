@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from argos.domain.fleet import min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 from argos.simulation.propagation import (
     _MAX_PROPAGATED_DELAY,
     DelayPropagator,
@@ -62,7 +63,9 @@ def _build_graph(*nodes: FlightNode) -> nx.DiGraph:
     for i in range(len(nodes) - 1):
         u = nodes[i]
         v = nodes[i + 1]
-        min_elapsed = 2 * u.block_time_minutes + 2 * min_turn_minutes(u.aircraft_type)
+        min_elapsed = aircraft_rotation_span(
+            u.block_time_minutes, min_turn_minutes(u.aircraft_type)
+        )
         gap = (v.scheduled_dep_utc - u.scheduled_dep_utc).total_seconds() / 60
         buffer = gap - min_elapsed
         G.add_edge(u.flight_id, v.flight_id, buffer_minutes=buffer, min_elapsed_minutes=min_elapsed)
