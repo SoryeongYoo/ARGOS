@@ -18,7 +18,6 @@
 - **`get_settings().duckdb_path` 만 쓴다.** `.env` 와 `DUCKDB_PATH` 환경변수가 반영된다. 하위 함수에는 경로를 인자나 state 로 넘긴다.
 - 테스트는 `data/db` 를 쓰지 않고 [`tests/conftest.py`](../tests/conftest.py) 의 `fixture_db_path` 를 쓴다.
 - 현재 상태 (진단 D3): 규칙과 다른 방식이 남아 있다.
-  - [`ui/dashboard.py`](../src/argos/ui/dashboard.py): `Path(__file__)` 기준 하드코딩. compose 의 `DUCKDB_PATH` 를 무시한다
   - [`scripts/run_occ.py`](../scripts/run_occ.py): CWD 기준 `data/db/argos.duckdb` 하드코딩
 - DB 를 쓰는 스크립트는 `--yes` 없이 먼저 실행해 바꿀 내용을 확인한다 ([`cli_guard.py`](../src/argos/cli_guard.py)).
 
@@ -68,3 +67,21 @@
 - `# noqa` 는 동작을 바꿔야 고칠 수 있는 경우에만 달고, 이유를 적는다.
 - mypy 는 [`pyproject.toml`](../pyproject.toml) 의 `[[tool.mypy.overrides]]` 에 있는 baseline 모듈만 예외다. 모듈을 고치면 override 를 지운다.
 - 포맷만 바꾼 커밋은 [`.git-blame-ignore-revs`](../.git-blame-ignore-revs) 에 등록한다.
+
+## 의존성
+
+- 설치는 `pip install -e ".[dev]" -c constraints.txt`. [`constraints.txt`](../constraints.txt) 는 CI(ubuntu-latest, Python 3.12) 에서 verify 가 통과한 버전이다.
+- 의존성 업그레이드는 `constraints.txt` 갱신 PR 로만 한다. CI 통과 확인 후 머지한다.
+- 고정하지 않으면 CI 가 코드 변경 없이 깨진다: mypy 2.1 → 2.4 에서 ortools stub 해석이 달라져 실패한 적이 있다 (PR #4).
+
+## CI
+
+[`.github/workflows/verify.yml`](../.github/workflows/verify.yml) 의 두 job 이 병렬로 돈다. 둘 다 통과해야 완료다.
+
+| job | 검증하는 것 | 검증하지 않는 것 |
+|---|---|---|
+| `verify` | `scripts/verify.py` 전체: ruff, mypy, 문서 링크, pytest. 대시보드 스크립트는 AppTest 스모크 테스트([`tests/test_ui/`](../tests/test_ui/))로 실행된다 | Docker 이미지, 실제 서버 기동 |
+| `docker` | `docker compose build`, setup 프로필로 DB 생성(`SETUP_START_DATE`=`SETUP_END_DATE`=2024-06-15 하루치), `up -d` 후 `/_stcore/health` 200 | 대시보드 스크립트 실행. health 는 서버만 확인하고, 스크립트는 브라우저 세션이 붙어야 돈다 |
+
+- 대시보드 화면 코드의 오류는 `verify` 의 AppTest 가 잡는다. `docker` job 이 초록이어도 화면이 정상이라는 뜻은 아니다.
+- `ANTHROPIC_API_KEY` 는 두 job 모두 주지 않는다. 테스트가 키를 요구하면 버그다.

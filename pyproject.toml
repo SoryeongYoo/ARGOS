@@ -85,6 +85,7 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 # baseline: 2026-10-01, 1 errors
+# Solve() 반환 타입: crew.py 의 StatusName 방식 필요 (272a5bb 이후 커밋 참고)
 module = "argos.optimization.aircraft"
 ignore_errors = true
 

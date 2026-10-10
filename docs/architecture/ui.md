@@ -11,6 +11,12 @@ Streamlit OCC 대시보드다. 탭은 두 개다.
 
 실행: `streamlit run src/argos/ui/dashboard.py`. Docker 이미지의 기본 CMD 도 이것이다.
 
+DB 경로는 `get_settings().duckdb_path` 를 쓴다 (기본값은 CWD 기준 `data/db/argos.duckdb`, `DUCKDB_PATH` 로 바꿀 수 있다).
+
+## 테스트
+
+[`tests/test_ui/test_dashboard.py`](../../tests/test_ui/test_dashboard.py): Streamlit AppTest 스모크 테스트. fixture DB 로 첫 렌더링, OCC 탭 시뮬레이션·승인 버튼, UAM 탭 ACROSS 제출을 실행한다. 예외와 deprecated 경고(Python 경고, Streamlit deprecation 안내)는 실패로 처리한다.
+
 디자인 시스템(토큰, 폰트, 목업, UI 문구 규칙)은 이 모듈이 아니라 [`design/`](../../design/) 에 있다. design/ 은 명시적 요청이 있을 때만 수정한다 ([ADR 0006](../decisions/0006-design-assets-in-design-dir.md)).
 
 ## 공개 인터페이스
@@ -24,7 +30,5 @@ Streamlit OCC 대시보드다. 탭은 두 개다.
 ## 알려진 부채
 
 - **D1**: 현재는 `simulation.propagation.DelayPropagator` 를 직접 호출하고, "승인" 버튼은 `st.success` 토스트만 띄운다. → [dashboard-human-gate](../exec-plans/active/dashboard-human-gate.md)
-- **D3**: DB 경로를 `Path(__file__)` 기준으로 하드코딩한다. 그래서 `DUCKDB_PATH` 환경변수(compose 에서 설정)를 무시한다.
 - **C6**: [`design/README.md`](../../design/README.md) 의 문구 규칙(이모지 금지 등)을 지키지 않는다.
 - **C9**: `KST = timezone(timedelta(hours=9))` 를 로컬에 정의한다.
-- **V4**: 테스트가 없다. `use_container_width` 등 deprecated API 를 쓴다.

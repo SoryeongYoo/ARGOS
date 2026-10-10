@@ -335,21 +335,23 @@ class CrewAssigner:
 
         solve_time = time.perf_counter() - t0
 
-        _STATUS_MAP = {
-            cp_model.OPTIMAL: "OPTIMAL",
-            cp_model.FEASIBLE: "FEASIBLE",
-            cp_model.INFEASIBLE: "INFEASIBLE",
-            cp_model.UNKNOWN: "UNKNOWN",
+        # 상태 이름(str)으로 비교한다. ortools 9.11 은 Solve() 반환을 enum 클래스
+        # CpSolverStatus 로 잘못 annotate 해서, 값 비교는 환경마다 mypy 결과가 달라진다.
+        _STATUS_MAP: dict[str, Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN"]] = {
+            "OPTIMAL": "OPTIMAL",
+            "FEASIBLE": "FEASIBLE",
+            "INFEASIBLE": "INFEASIBLE",
+            "UNKNOWN": "UNKNOWN",
         }
         status_str: Literal["OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNKNOWN", "TIMEOUT"] = (
-            _STATUS_MAP.get(cp_status, "TIMEOUT")  # type: ignore[assignment]
+            _STATUS_MAP.get(solver.StatusName(cp_status), "TIMEOUT")
         )
 
         # ── Extract solution ───────────────────────────────────────────────────
         capt_assign: dict[str, str] = {}
         fo_assign: dict[str, str] = {}
 
-        if cp_status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        if status_str in ("OPTIMAL", "FEASIBLE"):
             for (f_idx, c_idx), var in capt_vars.items():
                 if solver.Value(var) == 1:
                     cm = crew[c_idx]
