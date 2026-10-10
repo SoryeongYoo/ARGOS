@@ -1,7 +1,7 @@
 # domain 단일 기준 출처로 통합
 
 - 근거: [ADR 0001](../../decisions/0001-domain-single-source.md), 진단 [D2, C4, C5](../../harness/00-diagnosis.md)
-- 상태: 진행 중 (phase3/boundaries)
+- 상태: **3단계에서 사람 결정 대기**. 1·2단계 완료 (phase3/boundaries)
 
 ## 목표
 
@@ -33,3 +33,73 @@
 
 - crew footprint 의 `1·turn` 이 의도인지 버그인지 모른다. 합치면 crew 배정 결과가 바뀐다.
 - 블록타임을 바꾸면 합성 데이터와 학습된 예측 모델이 모두 달라진다.
+
+## 진행 기록
+
+### 1단계 (완료)
+
+[`tests/test_domain/test_consolidation_parity.py`](../../../tests/test_domain/test_consolidation_parity.py). 통합 전(main `0c33942`) 출력을 숫자로 고정했다.
+
+- 턴타임: 5개 기종 + 미등록 기종(`A380-800`, `""` → 45분) × block 60/125/600
+- footprint: propagation `earliest_icn_ready_utc`·그래프 edge `min_elapsed_minutes`, aircraft 솔버 경계(footprint 정각이면 둘 다 배정, 1분 앞이면 하나), crew `_crew_footprint`·`_validate_far117` release
+- 기종 호환: aircraft 는 솔버 배정 결과(6×6), propagation 은 `_find_spare_aircraft` 탐색 순서
+- fixture DB(2024-06-15, seed 42): edge 62개, 노드 146개 전파 결과, 시나리오 75개(25 트리거 × 3)의 digest
+- 변이 확인: 협동체 턴 45→46 이면 27건, B747-8i 호환 순서를 바꾸면 1건 실패
+
+### 2단계 (완료)
+
+[`domain/fleet.py`](../../../src/argos/domain/fleet.py): `WIDE_BODY_TYPES`, `MIN_TURN_NARROW_MINUTES`/`MIN_TURN_WIDE_MINUTES`, `TYPE_SUBSTITUTES`, `is_wide_body`, `min_turn_minutes`, `compatible_types`.
+
+- 세 모듈의 사본 삭제. 완료 조건 grep(`_MIN_TURN_\|_WIDE_BODY\|_TYPE_COMPAT`)은 `src/argos` 에서 0건이다.
+- 미등록 기종 → 45분 동작은 그대로 두고 docstring 에 적었다 ([conventions](../../conventions.md) domain 함수의 입력 검증).
+- 비교 테스트 123건이 기대값 변경 없이 통과했다.
+
+### 3단계: footprint (멈춤, 사람 결정 필요)
+
+공식을 통일하지 않았다. 모듈 안에 그대로 있다.
+
+| 모듈 | 공식 | 구간 | narrow, block 125 | wide, block 125 |
+|---|---|---|---|---|
+| aircraft (`solve` no-overlap) | `2·block + 2·turn` | `[dep, dep + 340)` | 340 | 370 |
+| propagation (edge `min_elapsed`, `earliest_icn_ready_utc`) | `2·block + 2·turn` | 다음 ICN 출발까지 | 340 | 370 |
+| crew (`_crew_footprint`) | `60 + 2·block + 1·turn + 30` | `[dep − 60, dep + 2·block + turn + 30)` | 385 | 400 |
+| crew (`_validate_far117` release) | `dep + 2·block + 1·turn + 30` | FDP 종료 | dep+325 | dep+340 |
+
+같은 승무원이 연속 두 편을 맡으려면 출발 간격이 `2·block + turn + 90` 이상이어야 한다. 기체는 `2·block + 2·turn` 이다. 그래서 출발 간격이 최소인 기체 rotation(협동체 `2·block + 90`, 광동체 `2·block + 120`)을 같은 승무원이 이어 탈 수 없다. 차이는 협동체 45분, 광동체 30분이다.
+
+판단 재료 (결정은 하지 않았다):
+
+- 왕복을 따라가면 ICN 블록인 시각은 `dep + 2·block + 1·turn` 이다(목적지 턴 1회). 기체의 두 번째 turn 은 ICN 에서 다음 출발 전 지상 시간이다.
+- 이렇게 읽으면 crew 의 `1·turn` 은 같은 블록인 시각에 check-in·post-flight 를 더한 것이다. 두 공식이 서로 다른 자원을 모델링한 것일 수 있다.
+- 반대로 crew 도 ICN 턴을 포함해야 한다고 보면 crew footprint 가 turn 만큼 길어진다. 그러면 crew 배정 결과와 FDP 판정이 바뀐다.
+- crew FDP 종료 시점(블록인 + 30분) 문제는 [01-retro](../../harness/01-retro.md) 3절 #3, [retro-01-followups](retro-01-followups.md) R2 와 같은 결정이다.
+
+결정할 것: (a) 두 공식을 이름을 달리해 domain 으로 옮긴다 (계획 원안, 동작 불변) (b) 한쪽으로 통일한다. (b) 면 어느 쪽인지.
+
+### 4단계: 블록타임 측정 (보고만, 코드 변경 없음)
+
+`routes.py` 의 99개 (노선, 기종) 블록타임과 `calculate_block_time(distance_nm, type)` (CI 70, 바람 0) 를 비교했다. 차이는 `계산값 − routes.py` 다.
+
+| 묶음 | 쌍 | 평균 | 최소 | 최대 |
+|---|---|---|---|---|
+| 전체 | 99 | −6.7 | −63 | +100 |
+| 북미 | 12 | +79.4 | +44 | +100 |
+| 동남아 | 15 | −53.7 | −63 | −42 |
+| CIS | 2 | −52.5 | −57 | −48 |
+| 일본 | 20 | −10.8 | −22 | +1 |
+| 중국 | 22 | −16.7 | −32 | +3 |
+| 유럽 | 11 | +5.5 | +1 | +13 |
+
+- |차이| ≤ 10분은 30쌍, > 30분은 34쌍이다.
+- 극단값: ICN-ATL B777-300ER `740` vs `840` (+100), ICN-SIN B777-300ER `450` vs `387` (−63).
+- 북미가 크게 양수인 것은 `calculate_block_time` 에 바람이 없기 때문으로 보인다 (동향 제트기류 순풍). routes.py 값이 실제 시간표에 더 가깝다는 근거는 확인하지 않았다.
+- 교체하면 합성 데이터, 학습된 예측 모델, 이 계획 1단계의 fixture digest 가 모두 바뀐다. `routes.py` 는 사람 결정 영역이다.
+
+### 5단계: MCT (결정 요청)
+
+`domain/mct.py` 는 승객 연결 최소 시간(국제↔국제 60분 등)이다. 기체 턴타임(`fleet.min_turn_minutes`)과 다른 개념이라 이번 통합에서 합치지 않았다. 런타임 호출자는 여전히 없다. 연결 승객 영향(환승 실패)을 전파·시나리오에 넣을지 결정이 필요하다.
+
+### 범위 밖에서 발견한 것
+
+- `crew._RATING_GROUPS` 도 NARROW/WIDE 분류다. `fleet.WIDE_BODY_TYPES` 와 내용은 같지만, 미등록 기종을 `None`(자격 없음)으로 처리하는 점이 다르다(`fleet` 은 협동체). 통합하면 동작이 바뀔 수 있어 그대로 두었다.
+- 합성 데이터 편명 중복 → [bug-backlog](bug-backlog.md) B7.

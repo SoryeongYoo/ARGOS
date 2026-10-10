@@ -66,3 +66,12 @@ harness/verify 작업(2026-10) 중 발견했지만, 동작이 바뀌는 수정�
 - 위치: [`src/argos/optimization/crew.py`](../../../src/argos/optimization/crew.py)
 - 현상: `_MIN_REST_MIN = 600` 이 정의만 되어 있다. 연속 duty 사이의 휴식을 모델도 사후 검증도 확인하지 않는다.
 - 단계: [fdp-hard-constraint](fdp-hard-constraint.md) 4단계에서 처리한다.
+
+## B7. 합성 데이터에서 같은 편명·기체·시각이 두 노선에 생김
+
+- 발견: 2026-10-10, domain-consolidation 1단계 fixture digest 작성 중
+- 현상: fixture DB(2024-06-15, seed 42)에 `KE0005` 가 ICN-ORD(block 665)와 ICN-HNL(block 500)에 같은 `HL7705`, 같은 출발 시각(01:20 UTC)으로 두 편 있다. 편명이 노선 간에 겹치고, 기체 하나가 동시에 두 편에 배정되었다.
+- 영향: propagation 그래프에서 두 편 사이 간격이 0 이라 `_MIN_ROTATION_GAP_MIN` 필터로 edge 가 빠진다. 데이터 검증(`validate_data.py`)이 잡는지는 확인하지 않았다.
+- 고정 테스트: 없음. 비교 테스트는 키에 `route_id` 를 넣어 이 중복을 피했다.
+- 위치 후보: [`data_gen/generator.py`](../../../src/argos/data_gen/generator.py) 편명·기체 배정. TODO(확인 필요)
+- 사람 결정: 불필요할 가능성이 높다. 고치면 fixture DB 가 바뀌므로 비교 테스트의 digest 갱신이 필요하다 (domain-consolidation 이 끝난 뒤에 할 것).
