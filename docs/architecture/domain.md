@@ -10,6 +10,7 @@
 
 | 모듈 | 진입점 | 다루는 것 |
 |---|---|---|
+| [`rotation.py`](../../src/argos/domain/rotation.py) | `icn_block_in_offset`, `aircraft_rotation_span`, `crew_duty_span`, `crew_fdp_span`, `CREW_CHECK_IN_MINUTES`, `CREW_POST_FLIGHT_MINUTES` | ICN 왕복의 구간. 기체(aircraft, propagation)와 승무원(crew)은 다른 구간을 쓴다. `crew_fdp_span` 은 정의만, 사용처 없음 |
 | [`fleet.py`](../../src/argos/domain/fleet.py) | `min_turn_minutes`, `compatible_types`, `is_wide_body`, `WIDE_BODY_TYPES`, `TYPE_SUBSTITUTES`, `MIN_TURN_*_MINUTES` | 광동체 분류, 지상 턴타임, 기종 호환. aircraft·crew·propagation 이 import |
 | [`far117.py`](../../src/argos/domain/far117.py) | `max_fdp_hours`, `is_fdp_legal`, `required_rest_hours`, `is_in_wocl`, `check_cumulative_limits`, `augmented_required`, `MAX_FT_*` 상수 | 승무원 근무 한도 |
 | [`block_time.py`](../../src/argos/domain/block_time.py) | `calculate_block_time`, `estimate_airborne_time`, `available_aircraft_types` | 블록타임 |
@@ -27,6 +28,7 @@ domain 내부만 된다 (`cost_index` → `block_time`). I/O, LLM, DuckDB 는 �
 ## 알려진 부채
 
 - **C4**: `block_time`, `mct`, `cost_index` 는 런타임에서 쓰이지 않는다. 테스트에서만 호출된다.
-- **D2**: 턴타임·광동체·기종 호환은 `fleet.py` 로 통합했다. rotation footprint 공식은 아직 모듈마다 다르고(aircraft·propagation `2·turn`, crew `1·turn`) 모듈 안에 있다. 어느 쪽이 맞는지 사람 결정 대기. → [domain-consolidation](../exec-plans/active/domain-consolidation.md)
+- **D2**: 해소. 턴타임·광동체·기종 호환은 `fleet.py`, rotation 구간은 `rotation.py`. 기체 `2·turn` 과 승무원 `1·turn` 은 둘 다 맞는 서로 다른 개념이라 통일하지 않았다 (2026-10-10 결정). → [domain-consolidation](../exec-plans/completed/domain-consolidation.md)
+- **`crew._RATING_GROUPS` 는 fleet 분류와 따로 둔다.** 내용(NARROW/WIDE)은 `fleet.WIDE_BODY_TYPES` 와 같지만, 미등록 기종을 **자격 없음**(`None` → 어떤 승무원도 배정 불가)으로 처리한다. `fleet` 은 미등록 기종을 협동체로 본다. 턴타임은 모르는 기종에 기본값을 줘도 되지만 승무원 자격은 안전상 기본값을 주면 안 되므로, 합치지 않는다 (2026-10-10 결정).
 - **C2**: far117 은 crew 최적화의 사후 검증에서만 쓰인다. → [fdp-hard-constraint](../exec-plans/active/fdp-hard-constraint.md)
 - far117 동작의 의심점(증원 +2h, Table B 값 등) → [bug-backlog](../exec-plans/active/bug-backlog.md)

@@ -24,6 +24,6 @@ domain 만 된다. 현재는 argos 내부 import 가 없고, 필요한 상수를
 ## 알려진 부채
 
 - **D2**: 해소. 턴타임·기종 호환은 [`domain/fleet.py`](../../src/argos/domain/fleet.py) 를 쓴다.
-- **C5**: footprint `2·block + 2·turn` 가 코드에 박혀 있다.
+- **C5**: 해소. rotation 최소 간격은 `domain.rotation.aircraft_rotation_span` 이다.
 - **D8**: 계산 클래스가 DuckDB 를 직접 읽는다.
 - **C3**: `cost_index` 이름 충돌.

@@ -13,6 +13,13 @@
 - `src/argos/domain/far117.py`: 값 변경 시에만 수정. 사람 승인 필요
 - `tests/test_optimization/test_crew.py`, `tests/test_domain/test_far117.py`
 
+## 메모: crew.py 는 duty span 을 FDP 로 쓰고 있다
+
+- `crew._validate_far117` 의 FDP = 보고(출발 − 60분)부터 `release_utc`(ICN 블록인 + `CREW_POST_FLIGHT_MINUTES` 30분)까지다. 이것은 `domain.rotation.crew_duty_span` 구간이다.
+- FAR 117 FDP 는 마지막 편 블록인에서 끝난다. 기준 함수는 `domain.rotation.crew_fdp_span` (= check-in + `icn_block_in_offset`, 마무리 제외)이다. 2026-10-10 domain-consolidation 에서 정의만 했고 사용처는 바꾸지 않았다.
+- 그래서 지금 사후 검증은 FDP 를 30분 길게 잡는다 (보수적 방향). 이 계획 3단계에서 FDP 판정과 CP-SAT 제약을 `crew_fdp_span` 기준으로 바꾼다. 바꾸면 `far117_violations` 결과와 `DutyPeriod.fdp_minutes` 가 달라지므로 [비교 테스트](../../../tests/test_domain/test_consolidation_parity.py) 의 crew release 기대값을 근거와 함께 갱신해야 한다.
+- glossary: [Duty period vs FDP](../../glossary.md)
+
 ## 단계
 
 0. **사람이 할 일**: `_APPENDIX_B` 를 14 CFR 117 Table B 원문과 대조한다. 국토교통부 기준을 쓸지도 결정한다. 차이가 있으면 근거 조항과 함께 far117 수정 PR 을 따로 낸다. 증원 승무원(+2h) 처리도 같이 결정한다 ([bug-backlog](bug-backlog.md)).

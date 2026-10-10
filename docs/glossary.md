@@ -12,7 +12,9 @@
 | UTC / KST | 저장·계산 시각 / 표시용 한국 표준시 (UTC+9) | [conventions](conventions.md) |
 | Rotation | 한 기체가 ICN 을 출발해 목적지를 거쳐 ICN 으로 돌아오는 왕복 | [conventions](conventions.md) |
 | Cascade (전파) | 앞 편의 지연이 같은 기체의 다음 편으로 번지는 것 | `simulation/propagation.py` |
-| Footprint | 한 편 배정으로 기체·승무원이 묶이는 시간. 공식은 모듈마다 다르다 | [ADR 0001](decisions/0001-domain-single-source.md) |
+| ICN 블록인 시각 | 왕복에서 ICN 으로 돌아와 블록인하는 시각. 출발 + `2·block + turn`(목적지 턴 1회). 아래 구간들의 공통 기준 | `domain.rotation.icn_block_in_offset` |
+| Footprint (span) | 한 편 배정으로 자원이 묶이는 시간. 기체와 승무원은 개념이 달라 공식도 다르다: 기체는 `aircraft_rotation_span`, 승무원은 `crew_duty_span` | [`domain/rotation.py`](../src/argos/domain/rotation.py) |
+| Aircraft rotation span | 출발부터 다음 ICN 출발 가능 시각까지 = 블록인 + ICN 턴 = `2·block + 2·turn` | `domain.rotation.aircraft_rotation_span` |
 | Turn time (턴타임) | 도착 후 다음 출발까지의 최소 지상 시간. 협동체 45분, 광동체 60분 | `domain.fleet.min_turn_minutes` |
 | Block time | 출발 블록아웃부터 도착 블록인까지의 시간. 지상 이동(taxi) 포함 | `domain/block_time.py`, `data_gen/routes.py` |
 | MCT | Minimum Connection Time. 환승에 필요한 최소 연결 시간 | `domain/mct.py` |
@@ -36,7 +38,9 @@
 | 용어 | 뜻 | 코드 위치 |
 |---|---|---|
 | FAR 117 | 미국 14 CFR Part 117 승무원 비행·근무 시간 제한. 국토교통부 기준이 이를 따른다고 코드 docstring 에 적혀 있다 | `domain/far117.py` |
-| FDP | Flight Duty Period. 출근 보고부터 마지막 편 블록인까지의 근무 시간 | `far117.max_fdp_hours` |
+| Duty period (근무 구간) | 출근 보고(출발 60분 전)부터 마무리 업무(블록인 + 30분) 끝까지. crew 최적화의 no-overlap 구간 | `domain.rotation.crew_duty_span` |
+| FDP | Flight Duty Period. 출근 보고부터 마지막 편 블록인까지의 근무 시간. duty period 와 달리 블록인 뒤 마무리 30분을 넣지 않는다. FAR 117 한도는 이 값에 건다 | `domain.rotation.crew_fdp_span`, `far117.max_fdp_hours` |
+| Duty period vs FDP | duty period = FDP + 마무리 30분. **현재 `crew.py` `_validate_far117` 은 duty period 를 FDP 로 판정한다** (30분 과대). 교체는 [fdp-hard-constraint](exec-plans/active/fdp-hard-constraint.md) 에서 | `optimization/crew.py` |
 | FT | Flight Time. 비행시간 | `MAX_FT_*` |
 | Table B (Appendix B) | 보고 시각과 구간 수별 FDP 한도 표. 코드 값은 원문 대조 전이라 **검증 대기** | [ADR 0002](decisions/0002-fdp-hard-constraint.md) |
 | WOCL | Window of Circadian Low. 생체리듬 저점 시간대, 현지 02:00–05:59 | `far117.is_in_wocl` |

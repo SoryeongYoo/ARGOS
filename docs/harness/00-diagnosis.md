@@ -199,7 +199,8 @@ scripts/* ──► 각 모듈 (sys.path.insert로 src/를 경로에 추가)
 | C1 | 해소 | CLAUDE.md 를 지도로 재작성 |
 | C2 | 결정됨, 구현 대기 | [ADR 0002](../decisions/0002-fdp-hard-constraint.md) |
 | C3 | 결정됨, 구현 대기 | [ADR 0003](../decisions/0003-rename-relative-cost.md) |
-| C4, C5, D2 | 결정됨, 구현 대기 | [ADR 0001](../decisions/0001-domain-single-source.md) |
+| C5, D2 | 해소: `domain/fleet.py`, `domain/rotation.py` 로 통합 | [domain-consolidation](../exec-plans/completed/domain-consolidation.md) |
+| C4 | 일부: 블록타임·MCT 연결은 사람 결정 대기 | [domain-consolidation](../exec-plans/completed/domain-consolidation.md) 4·5단계 |
 | C6, C7 | 자산 이동 완료(`design/`). dashboard 문구 규칙 불일치는 남음 | [ADR 0006](../decisions/0006-design-assets-in-design-dir.md) |
 | C8 | 해소 | [glossary](../glossary.md) |
 | C9, D3, D6, D9, D10 | 규칙 문서화, 코드는 그대로 | [conventions](../conventions.md) |

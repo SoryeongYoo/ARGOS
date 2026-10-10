@@ -75,7 +75,7 @@
 ## ICN 출발 왕복 가정
 
 - 모든 rotation 은 **ICN 출발 → 목적지 → ICN 복귀** 왕복으로 본다. 목적지에서 다른 곳으로 이어지는 편(W 패턴)은 없다.
-- 한 편의 "footprint"(기체나 승무원이 묶이는 시간)는 이 가정에서 나온다. 공식은 [ADR 0001](decisions/0001-domain-single-source.md) 에 있다. 턴타임은 [`domain/fleet.py`](../src/argos/domain/fleet.py) 의 `min_turn_minutes` 하나만 쓴다. footprint 공식은 아직 aircraft·propagation(`2·block + 2·turn`)과 crew(`checkin + 2·block + 1·turn + post`)가 다르다 (C5, D2). 어느 쪽을 기준으로 할지 사람 결정 대기다.
+- 한 편의 "footprint"(기체나 승무원이 묶이는 시간)는 이 가정에서 나온다. 공식은 [ADR 0001](decisions/0001-domain-single-source.md) 에 있다. 턴타임은 [`domain/fleet.py`](../src/argos/domain/fleet.py) 의 `min_turn_minutes`, 구간은 [`domain/rotation.py`](../src/argos/domain/rotation.py) 만 쓴다. 공통 기준은 ICN 블록인(`icn_block_in_offset` = `2·block + turn`)이다. 기체는 `aircraft_rotation_span`(+ ICN 턴), 승무원은 `crew_duty_span`(+ check-in, 마무리), FAR 117 FDP 는 `crew_fdp_span`(+ check-in)이다. 모듈 안에서 `2 * block` 식을 다시 쓰지 않는다.
 - 이 가정을 깨는 노선이나 기능을 추가하려면 footprint 를 쓰는 세 모듈을 함께 바꿔야 한다.
 
 ## 정적 검사

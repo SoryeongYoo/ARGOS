@@ -1,7 +1,7 @@
 # domain 단일 기준 출처로 통합
 
 - 근거: [ADR 0001](../../decisions/0001-domain-single-source.md), 진단 [D2, C4, C5](../../harness/00-diagnosis.md)
-- 상태: **3단계에서 사람 결정 대기**. 1·2단계 완료 (phase3/boundaries)
+- 상태: **완료** (2026-10-10, phase3/boundaries). 4단계 블록타임 교체와 5단계 MCT 연결은 사람 결정으로 넘김
 
 ## 목표
 
@@ -9,7 +9,7 @@
 
 ## 영향 파일
 
-- `src/argos/domain/`: 새 모듈 추가. 예: `turnaround.py`, `fleet.py`. 이름은 TODO(확인 필요)
+- `src/argos/domain/`: 새 모듈 `fleet.py`, `rotation.py`
 - `src/argos/optimization/aircraft.py`: `_WIDE_BODY`, `_MIN_TURN_*`, `_min_turn`, `_TYPE_COMPAT`, footprint
 - `src/argos/optimization/crew.py`: `_WIDE_BODY`, `_MIN_TURN_*`, `_min_turn`, `_crew_footprint`
 - `src/argos/simulation/propagation.py`: `_WIDE_BODY`, `_MIN_TURN_*`, `_min_turn`, `DelayPropagator._TYPE_COMPAT`, footprint
@@ -54,9 +54,24 @@
 - 미등록 기종 → 45분 동작은 그대로 두고 docstring 에 적었다 ([conventions](../../conventions.md) domain 함수의 입력 검증).
 - 비교 테스트 123건이 기대값 변경 없이 통과했다.
 
-### 3단계: footprint (멈춤, 사람 결정 필요)
+### 3단계: footprint (완료)
 
-공식을 통일하지 않았다. 모듈 안에 그대로 있다.
+**결정 (2026-10-10, 사람)**: 둘 다 맞다. 서로 다른 개념이라 통일하지 않고 이름을 나눠 domain 에 둔다.
+
+[`domain/rotation.py`](../../../src/argos/domain/rotation.py):
+
+| 함수 | 공식 | 사용처 |
+|---|---|---|
+| `icn_block_in_offset` | `2·block + turn` | 공통 기준. crew `_validate_far117` release 계산 |
+| `aircraft_rotation_span` | 블록인 + turn | aircraft no-overlap, propagation edge `min_elapsed`·`earliest_icn_ready_utc` |
+| `crew_duty_span` | 60 + 블록인 + 30 | crew no-overlap |
+| `crew_fdp_span` | 60 + 블록인 | **정의만**. [fdp-hard-constraint](../active/fdp-hard-constraint.md) 에서 사용. 현재 crew 는 duty span 을 FDP 로 쓴다 (그 계획에 메모) |
+
+- `CREW_CHECK_IN_MINUTES`(60), `CREW_POST_FLIGHT_MINUTES`(30)도 crew 에서 domain 으로 옮겼다.
+- 음수 block/turn 은 `ValueError` 다 (새 함수의 정의역 검증. 기존 호출자는 음수를 넘기지 않는다).
+- 비교 테스트는 crew footprint 를 솔버 배정 경계로 확인하도록 바꾼 뒤(`ce999a3`, 변이 확인 10건 실패) 통합했고, 기대값 변경 없이 통과했다.
+
+아래는 결정 전 보고한 비교다.
 
 | 모듈 | 공식 | 구간 | narrow, block 125 | wide, block 125 |
 |---|---|---|---|---|
@@ -72,9 +87,8 @@
 - 왕복을 따라가면 ICN 블록인 시각은 `dep + 2·block + 1·turn` 이다(목적지 턴 1회). 기체의 두 번째 turn 은 ICN 에서 다음 출발 전 지상 시간이다.
 - 이렇게 읽으면 crew 의 `1·turn` 은 같은 블록인 시각에 check-in·post-flight 를 더한 것이다. 두 공식이 서로 다른 자원을 모델링한 것일 수 있다.
 - 반대로 crew 도 ICN 턴을 포함해야 한다고 보면 crew footprint 가 turn 만큼 길어진다. 그러면 crew 배정 결과와 FDP 판정이 바뀐다.
-- crew FDP 종료 시점(블록인 + 30분) 문제는 [01-retro](../../harness/01-retro.md) 3절 #3, [retro-01-followups](retro-01-followups.md) R2 와 같은 결정이다.
+- crew FDP 종료 시점(블록인 + 30분) 문제는 [01-retro](../../harness/01-retro.md) 3절 #3, [retro-01-followups](../active/retro-01-followups.md) R2 와 같은 결정이다.
 
-결정할 것: (a) 두 공식을 이름을 달리해 domain 으로 옮긴다 (계획 원안, 동작 불변) (b) 한쪽으로 통일한다. (b) 면 어느 쪽인지.
 
 ### 4단계: 블록타임 측정 (보고만, 코드 변경 없음)
 
@@ -101,5 +115,5 @@
 
 ### 범위 밖에서 발견한 것
 
-- `crew._RATING_GROUPS` 도 NARROW/WIDE 분류다. `fleet.WIDE_BODY_TYPES` 와 내용은 같지만, 미등록 기종을 `None`(자격 없음)으로 처리하는 점이 다르다(`fleet` 은 협동체). 통합하면 동작이 바뀔 수 있어 그대로 두었다.
-- 합성 데이터 편명 중복 → [bug-backlog](bug-backlog.md) B7.
+- `crew._RATING_GROUPS` 도 NARROW/WIDE 분류다. 미등록 기종을 자격 없음으로 처리하므로 그대로 둔다 (사람 결정, [domain.md](../../architecture/domain.md) 알려진 부채에 기록).
+- 합성 데이터 편명 중복 → [bug-backlog](../active/bug-backlog.md) B7.

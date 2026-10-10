@@ -31,4 +31,8 @@
 
 ## 후속 작업
 
-- [domain-consolidation](../exec-plans/active/domain-consolidation.md)
+- [domain-consolidation](../exec-plans/completed/domain-consolidation.md) (완료 2026-10-10)
+
+## 갱신 (2026-10-10)
+
+결정 4 확인 결과: 두 공식은 둘 다 맞다. 기체는 다음 출발까지(ICN 턴 포함), 승무원은 근무 구간(check-in·마무리 포함)으로 다른 개념이다. [`domain/rotation.py`](../../src/argos/domain/rotation.py) 에 공통 기준 `icn_block_in_offset` 과 `aircraft_rotation_span`, `crew_duty_span`, `crew_fdp_span` 으로 나눠 정의했다.
