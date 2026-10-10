@@ -8,6 +8,7 @@ Architecture:
   Phase 3 – DuckDB stores the result.
 """
 
+import bisect
 import logging
 import uuid
 from dataclasses import dataclass
@@ -28,30 +29,34 @@ from argos.data_gen.schemas import (
     IATA_DELAY_CODES,
     RouteParams,
 )
+from argos.domain.fleet import min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 
 log = logging.getLogger(__name__)
 console = Console()
 
 # ── Fleet definition ──────────────────────────────────────────────────────────
+# 대수는 ADR 0007: 3년치 스케줄을 기체 겹침 없이 배정하는 데 필요한 최대 동시 대수 + 예비 10%.
+# 모든 인도일은 데이터 시작(2022-01-01) 이전이다.
 
 FLEET: list[dict] = [
-    # B737-800 (HL74xx series) — 20 frames
+    # B737-800 (HL74xx series) — 54 frames (필요 49)
     *[
         {
             "registration": f"HL74{i:02d}",
             "aircraft_type": "B737-800",
             "icao_type": "B738",
             "manufacturer_serial": f"3{40000 + i}",
-            "delivery_date": date(2010 + i // 4, (i % 4) * 3 + 1, 15),
+            "delivery_date": date(2008 + i // 4, (i % 4) * 3 + 1, 15),
             "seat_config_y": 147,
             "seat_config_c": 8,
             "seat_config_f": 0,
             "max_payload_kg": 20_000,
             "mtow_kg": 79_016,
         }
-        for i in range(1, 21)
+        for i in range(1, 55)
     ],
-    # A321neo (HL82xx series) — 10 frames
+    # A321neo (HL82xx series) — 10 frames (주 기종인 노선 없음)
     *[
         {
             "registration": f"HL82{i:02d}",
@@ -67,23 +72,23 @@ FLEET: list[dict] = [
         }
         for i in range(1, 11)
     ],
-    # B777-300ER (HL77xx series) — 15 frames
+    # B777-300ER (HL77xx series) — 72 frames (필요 65)
     *[
         {
             "registration": f"HL77{i:02d}",
             "aircraft_type": "B777-300ER",
             "icao_type": "B77W",
             "manufacturer_serial": f"4{30000 + i}",
-            "delivery_date": date(2005 + i // 2, (i % 6) * 2 + 1, 10),
+            "delivery_date": date(2005 + i // 5, (i % 6) * 2 + 1, 10),
             "seat_config_y": 261,
             "seat_config_c": 56,
             "seat_config_f": 8,
             "max_payload_kg": 66_000,
             "mtow_kg": 352_400,
         }
-        for i in range(1, 16)
+        for i in range(1, 73)
     ],
-    # B787-9 (HL80xx series) — 8 frames
+    # B787-9 (HL80xx series) — 9 frames (필요 8)
     *[
         {
             "registration": f"HL80{i:02d}",
@@ -97,9 +102,9 @@ FLEET: list[dict] = [
             "max_payload_kg": 53_000,
             "mtow_kg": 254_011,
         }
-        for i in range(1, 9)
+        for i in range(1, 10)
     ],
-    # B747-8i (HL75xx series) — 5 frames (flagship)
+    # B747-8i (HL75xx series) — 5 frames (flagship, 필요 4)
     *[
         {
             "registration": f"HL75{i:02d}",
@@ -120,6 +125,78 @@ FLEET: list[dict] = [
 FLEET_BY_TYPE: dict[str, list[dict]] = {}
 for ac in FLEET:
     FLEET_BY_TYPE.setdefault(ac["aircraft_type"], []).append(ac)
+
+# ADR 0007 이전 기단 대수. 기체 배정은 _assign_tails 가 하지만, 예전 rng.choice(기체 목록) 호출을
+# 같은 길이로 남겨 RNG 스트림을 보존한다. 그래야 지연·결항·승객 등 다른 값이 바뀌지 않는다.
+_LEGACY_TAIL_DRAW_SIZE: dict[str, int] = {
+    "B737-800": 20,
+    "A321neo": 10,
+    "B777-300ER": 15,
+    "B787-9": 8,
+    "B747-8i": 5,
+}
+
+# ── Schedule: departure slots and flight numbers ──────────────────────────────
+
+# Korean Air typical departure schedule patterns (local KST = UTC+9)
+# Maps region → list of (dep_hour_local, proportion). 리스트 순서가 slot 번호다.
+_DEP_PATTERNS: dict[str, list[tuple[int, float]]] = {
+    "Japan": [(7, 0.25), (10, 0.25), (14, 0.25), (18, 0.25)],
+    "China": [(8, 0.3), (12, 0.3), (17, 0.4)],
+    "SE Asia": [(0, 0.4), (10, 0.3), (22, 0.3)],
+    "North America": [(10, 0.5), (13, 0.5)],
+    "Europe": [(11, 0.5), (22, 0.5)],
+    "Middle East": [(8, 0.5), (23, 0.5)],
+    "Oceania": [(19, 1.0)],
+    "Russia": [(9, 0.5), (15, 0.5)],
+    "CIS": [(10, 1.0)],
+    "South Asia": [(9, 1.0)],
+    "Africa": [(20, 1.0)],
+    "Mongolia": [(9, 1.0)],
+}
+_DEFAULT_DEP_PATTERN: list[tuple[int, float]] = [(10, 1.0)]
+
+# Real KE flight numbers: Japan 700s, China 800s, Americas 001-099, Europe 900s, etc.
+_FN_REGION_BASE: dict[str, int] = {
+    "North America": 1,
+    "Africa": 100,
+    "Oceania": 120,
+    "South Asia": 470,
+    "Other": 500,
+    "SE Asia": 600,
+    "Japan": 700,
+    "China": 800,
+    "Mongolia": 870,
+    "CIS": 880,
+    "Europe": 900,
+    "Russia": 940,  # 920 이면 Europe 블록(900..930)과 겹친다
+    "Middle East": 950,
+}
+
+
+def _dep_pattern(route: RouteDefinition) -> list[tuple[int, float]]:
+    return _DEP_PATTERNS.get(route.region, _DEFAULT_DEP_PATTERN)
+
+
+def _flight_number_table(routes: list[RouteDefinition]) -> dict[tuple[str, int], str]:
+    """(route_id, slot) → 편명. 지역 블록 안에서 노선·slot 순서대로 2씩 올린다.
+
+    같은 날 같은 편명이 두 편이 되지 않는다 (B7). 지역 블록이 다음 지역 base 에 닿으면 ValueError.
+    """
+    bases = sorted(_FN_REGION_BASE.values())
+    next_base = {b: (bases[i + 1] if i + 1 < len(bases) else 10_000) for i, b in enumerate(bases)}
+    used: dict[str, int] = {}
+    table: dict[tuple[str, int], str] = {}
+    for route in routes:
+        region = route.region if route.region in _FN_REGION_BASE else "Other"
+        base = _FN_REGION_BASE[region]
+        for slot in range(len(_dep_pattern(route))):
+            num = base + 2 * used.get(region, 0)
+            if num >= next_base[base]:
+                raise ValueError(f"flight number block for region {region!r} overflows at {num}")
+            used[region] = used.get(region, 0) + 1
+            table[route.route_id, slot] = f"KE{num:04d}"
+    return table
 
 
 # ── Regional delay profiles (domain knowledge, no API needed) ─────────────────
@@ -399,22 +476,11 @@ class SyntheticDataGenerator:
         records: list[dict] = []
         date_range = pd.date_range(start_date, end_date, freq="D")
 
-        # Korean Air typical departure schedule patterns (local KST = UTC+9)
-        # Maps region → list of (dep_hour_local, proportion)
-        dep_patterns: dict[str, list[tuple[int, float]]] = {
-            "Japan": [(7, 0.25), (10, 0.25), (14, 0.25), (18, 0.25)],
-            "China": [(8, 0.3), (12, 0.3), (17, 0.4)],
-            "SE Asia": [(0, 0.4), (10, 0.3), (22, 0.3)],
-            "North America": [(10, 0.5), (13, 0.5)],
-            "Europe": [(11, 0.5), (22, 0.5)],
-            "Middle East": [(8, 0.5), (23, 0.5)],
-            "Oceania": [(19, 1.0)],
-            "Russia": [(9, 0.5), (15, 0.5)],
-            "CIS": [(10, 1.0)],
-            "South Asia": [(9, 1.0)],
-            "Africa": [(20, 1.0)],
-            "Mongolia": [(9, 1.0)],
-        }
+        # 편명은 전체 노선 기준으로 정해, 일부 노선만 생성해도 같은 노선은 같은 편명이다
+        known = {r.route_id for r in ROUTES}
+        flight_numbers = _flight_number_table(
+            [*ROUTES, *(r for r in routes if r.route_id not in known)]
+        )
 
         console.print(
             f"[cyan]Generating flights for {len(date_range)} days × {len(routes)} routes..."
@@ -422,7 +488,7 @@ class SyntheticDataGenerator:
 
         for route in routes:
             params = route_params[route.route_id]
-            pattern = dep_patterns.get(route.region, [(10, 1.0)])
+            pattern = _dep_pattern(route)
             ac_type = route.aircraft_types[0]
             block_min = route.block_times.get(ac_type, 300)
             registrations = [a["registration"] for a in FLEET_BY_TYPE.get(ac_type, FLEET[:1])]
@@ -432,7 +498,8 @@ class SyntheticDataGenerator:
                 if route.frequency_per_day < 1.0 and self.rng.random() > route.frequency_per_day:
                     continue
 
-                for dep_hour, _proportion in pattern:
+                for slot, (dep_hour, _proportion) in enumerate(pattern):
+                    flight_number = flight_numbers[route.route_id, slot]
                     # scheduled times (UTC = KST - 9)
                     dep_min_offset = int(self.rng.integers(0, 60))
                     sch_dep = datetime(
@@ -449,7 +516,13 @@ class SyntheticDataGenerator:
                     if self.rng.random() < params.cancellation_rate:
                         records.append(
                             self._cancelled_flight(
-                                route, sch_dep, sch_arr, ac_type, registrations, block_min
+                                route,
+                                sch_dep,
+                                sch_arr,
+                                ac_type,
+                                registrations,
+                                block_min,
+                                flight_number,
                             )
                         )
                         continue
@@ -468,17 +541,17 @@ class SyntheticDataGenerator:
 
                     arr_delay = dep_delay  # simplified; propagation model handles cascading
 
-                    reg = str(self.rng.choice(registrations))
+                    self._legacy_tail_draw(ac_type, registrations)
                     lf = float(np.clip(self.rng.normal(0.82, 0.08), 0.40, 1.0))
 
                     records.append(
                         {
                             "flight_id": str(uuid.uuid4()),
-                            "flight_number": self._flight_number(route),
+                            "flight_number": flight_number,
                             "route_id": route.route_id,
                             "origin_iata": route.origin_iata,
                             "dest_iata": route.dest_iata,
-                            "aircraft_registration": reg,
+                            "aircraft_registration": None,  # _assign_tails 가 채운다
                             "aircraft_type": ac_type,
                             "scheduled_dep_utc": sch_dep,
                             "scheduled_arr_utc": sch_arr,
@@ -501,6 +574,7 @@ class SyntheticDataGenerator:
                     )
 
         df = pd.DataFrame(records)
+        df = self._assign_tails(df)
         console.print(f"[green]Generated {len(df):,} flight records.")
         return df
 
@@ -559,29 +633,46 @@ class SyntheticDataGenerator:
         rate = burn.get(ac_type, 10.0)
         return int(distance_nm * rate * self.rng.uniform(0.92, 1.08))
 
-    _fn_counter: dict[str, int] = {}
+    def _legacy_tail_draw(self, ac_type: str, registrations: list[str]) -> None:
+        """예전 기체 선택 호출을 같은 길이로 재현하고 결과는 버린다 (RNG 스트림 보존, ADR 0007)."""
+        self.rng.choice(registrations[: _LEGACY_TAIL_DRAW_SIZE.get(ac_type, 1)])
 
-    def _flight_number(self, route: RouteDefinition) -> str:
-        key = route.route_id
-        n = self._fn_counter.get(key, 0)
-        self._fn_counter[key] = n + 1
-        # Real KE flight numbers: Japan 700s, China 800s, Americas 001-099, Europe 900s, etc.
-        base = {
-            "Japan": 700,
-            "China": 800,
-            "SE Asia": 600,
-            "North America": 1,
-            "Europe": 900,
-            "Middle East": 950,
-            "Oceania": 120,
-            "Russia": 920,
-            "CIS": 880,
-            "South Asia": 470,
-            "Africa": 100,
-            "Mongolia": 870,
-        }.get(route.region, 500)
-        num = (base + list(FLEET_BY_TYPE.keys()).index(route.aircraft_types[0]) * 2 + n % 2) % 9999
-        return f"KE{num:04d}"
+    @staticmethod
+    def _assign_tails(df: pd.DataFrame) -> pd.DataFrame:
+        """출발 순서대로 기체를 겹치지 않게 배정한다 (B7).
+
+        기체는 출발부터 aircraft_rotation_span 동안 묶인다. 결항편도 계획상 기체를 잡는다.
+        비어 있는 기체 중 가장 최근에 돌아온 기체를 고른다 (best fit). 한 기체가 하루에 여러 편을
+        이어 타는 실제 rotation 에 가깝고, 남는 기체는 하루 내내 예비로 남는다. 처음에는 등록번호
+        순이다. 출발 순서대로 배정하므로 기체 수가 최대 동시 필요 대수 이상이면 실패하지 않는다.
+        쓸 수 있는 기체가 없으면 ValueError.
+        """
+        if df.empty:
+            return df
+        epoch = pd.Timestamp("1970-01-01", tz="UTC")
+        # 기종별 (돌아오는 시각, -등록번호 순번, 등록번호) 정렬 리스트
+        free: dict[str, list[tuple[pd.Timestamp, int, str]]] = {}
+        regs: dict[int, str] = {}
+        ordered = df.sort_values(["scheduled_dep_utc", "route_id"], kind="stable")
+        for idx, row in zip(ordered.index, ordered.itertuples(index=False), strict=True):
+            ac_type = row.aircraft_type
+            if ac_type not in free:
+                fleet = FLEET_BY_TYPE.get(ac_type, FLEET[:1])
+                free[ac_type] = sorted((epoch, -i, a["registration"]) for i, a in enumerate(fleet))
+            tails = free[ac_type]
+            dep = pd.Timestamp(row.scheduled_dep_utc)
+            # free_at <= dep 인 마지막 기체 다음 위치. rank 는 0 이하라 1 로 막는다
+            pos = bisect.bisect_right(tails, (dep, 1, ""))
+            if pos == 0:
+                raise ValueError(
+                    f"{ac_type}: {len(tails)} aircraft cannot cover {row.route_id} "
+                    f"departing {dep} without overlapping rotations (ADR 0007 fleet sizing)"
+                )
+            _, rank, reg = tails.pop(pos - 1)
+            span = aircraft_rotation_span(row.block_time_minutes, min_turn_minutes(ac_type))
+            bisect.insort(tails, (dep + pd.Timedelta(minutes=span), rank, reg))
+            regs[idx] = reg
+        return df.assign(aircraft_registration=pd.Series(regs))
 
     def _cancelled_flight(
         self,
@@ -591,15 +682,16 @@ class SyntheticDataGenerator:
         ac_type: str,
         registrations: list[str],
         block_min: int,
+        flight_number: str,
     ) -> dict:
-        reg = str(self.rng.choice(registrations))
+        self._legacy_tail_draw(ac_type, registrations)
         return {
             "flight_id": str(uuid.uuid4()),
-            "flight_number": self._flight_number(route),
+            "flight_number": flight_number,
             "route_id": route.route_id,
             "origin_iata": route.origin_iata,
             "dest_iata": route.dest_iata,
-            "aircraft_registration": reg,
+            "aircraft_registration": None,  # _assign_tails 가 채운다
             "aircraft_type": ac_type,
             "scheduled_dep_utc": sch_dep,
             "scheduled_arr_utc": sch_arr,
