@@ -42,15 +42,13 @@ from typing import Literal
 from ortools.sat.python import cp_model
 
 from argos.domain.far117 import is_fdp_legal
+from argos.domain.fleet import min_turn_minutes
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 _KST_OFFSET = 9  # UTC+9
 _CHECK_IN_MIN = 60  # crew reports 60 min before departure
 _POST_FLIGHT_MIN = 30  # post-flight duties after block-in
-_WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
-_MIN_TURN_NARROW = 45
-_MIN_TURN_WIDE = 60
 _MAX_FLIGHT_TIME_MIN = 480  # FAR 117 § 117.65(a) — 8 h per calendar day
 _MIN_REST_MIN = 600  # FAR 117 § 117.25 — 10 h minimum rest
 
@@ -64,13 +62,9 @@ _RATING_GROUPS: dict[str, str] = {
 }
 
 
-def _min_turn(aircraft_type: str) -> int:
-    return _MIN_TURN_WIDE if aircraft_type in _WIDE_BODY else _MIN_TURN_NARROW
-
-
 def _crew_footprint(block_time: int, aircraft_type: str) -> int:
     """Total minutes a crew is 'occupied' by one ICN round-trip leg assignment."""
-    return _CHECK_IN_MIN + 2 * block_time + _min_turn(aircraft_type) + _POST_FLIGHT_MIN
+    return _CHECK_IN_MIN + 2 * block_time + min_turn_minutes(aircraft_type) + _POST_FLIGHT_MIN
 
 
 def _is_rated(crew_type_rating: str, aircraft_type: str) -> bool:
@@ -427,7 +421,7 @@ class CrewAssigner:
 
             # FDP ends when crew checks in after return from last leg
             last_arr_utc = last_leg.scheduled_dep_utc + timedelta(
-                minutes=2 * last_leg.block_time_minutes + _min_turn(last_leg.aircraft_type)
+                minutes=2 * last_leg.block_time_minutes + min_turn_minutes(last_leg.aircraft_type)
             )
             release_utc = last_arr_utc + timedelta(minutes=_POST_FLIGHT_MIN)
 

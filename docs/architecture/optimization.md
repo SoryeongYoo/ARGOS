@@ -28,7 +28,7 @@ domain 만 된다. 현재 `crew` 는 `domain.far117` 을 import 하고, `aircraf
 
 ## 알려진 부채
 
-- **D2, C5**: 턴타임, 기종 호환, footprint 가 중복되고 공식이 다르다. aircraft 는 `2·block + 2·turn`, crew 는 `checkin + 2·block + 1·turn + post` 다.
+- **D2, C5**: 턴타임·기종 호환은 [`domain/fleet.py`](../../src/argos/domain/fleet.py) 를 쓴다. footprint 공식은 아직 모듈 안에 있고 서로 다르다. aircraft 는 `2·block + 2·turn`, crew 는 `checkin + 2·block + 1·turn + post` 다 (사람 결정 대기, [domain-consolidation](../exec-plans/active/domain-consolidation.md)).
 - **C2**: `_MAX_FLIGHT_TIME_MIN` 이 far117 상수를 쓰지 않는다. `_MIN_REST_MIN` 은 정의만 있고 쓰이지 않는다.
 - **D8**: `AircraftAssigner.load_from_db` 가 계산 클래스 안에서 I/O 를 한다.
 - `crew.py` 의 B007 `noqa`(`cm` 미사용 루프 변수)

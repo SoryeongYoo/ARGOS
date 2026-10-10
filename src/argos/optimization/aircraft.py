@@ -35,31 +35,12 @@ import duckdb
 import pandas as pd
 from ortools.sat.python import cp_model
 
-# ── Domain constants ──────────────────────────────────────────────────────────
+from argos.domain.fleet import compatible_types, min_turn_minutes
 
-_WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
-_MIN_TURN_NARROW = 45  # minutes
-_MIN_TURN_WIDE = 60  # minutes
+# ── Optimizer constants ───────────────────────────────────────────────────────
+
 _REPOSITIONING_MINUTES = 120  # conservative ferry-flight estimate
-
-_TYPE_COMPAT: dict[str, list[str]] = {
-    "B737-800": ["A321neo"],
-    "A321neo": ["B737-800"],
-    "B777-300ER": ["B787-9", "B747-8i"],
-    "B787-9": ["B777-300ER"],
-    "B747-8i": ["B777-300ER", "B787-9"],
-}
-
 _SUBSTITUTION_PENALTY = 50  # PAX-equivalent cost for cross-type substitution
-
-
-def _min_turn(aircraft_type: str) -> int:
-    return _MIN_TURN_WIDE if aircraft_type in _WIDE_BODY else _MIN_TURN_NARROW
-
-
-def _compatible_types(required_type: str) -> list[str]:
-    """Return list of aircraft types that can legally cover required_type."""
-    return [required_type] + _TYPE_COMPAT.get(required_type, [])
 
 
 # ── Data classes ──────────────────────────────────────────────────────────────
@@ -161,7 +142,7 @@ class AircraftAssigner:
 
         for f_idx, task in enumerate(tasks):
             dep_min = to_min(task.scheduled_dep_utc)
-            compat_types = _compatible_types(task.required_type)
+            compat_types = compatible_types(task.required_type)
 
             for a_idx, ac in enumerate(aircraft):
                 if ac.aircraft_type not in compat_types:
@@ -192,7 +173,7 @@ class AircraftAssigner:
                 if (f_idx, a_idx) not in x:
                     continue
                 dep_min = to_min(task.scheduled_dep_utc)
-                footprint = 2 * task.block_time_minutes + 2 * _min_turn(ac.aircraft_type)
+                footprint = 2 * task.block_time_minutes + 2 * min_turn_minutes(ac.aircraft_type)
                 end_min = min(dep_min + footprint, HORIZON)
                 itv = model.NewOptionalIntervalVar(
                     dep_min,

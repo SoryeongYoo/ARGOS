@@ -8,8 +8,6 @@ from argos.optimization.aircraft import (
     AircraftAssigner,
     AircraftResource,
     FlightTask,
-    _compatible_types,
-    _min_turn,
 )
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -61,34 +59,6 @@ def _flight(
     )
 
 
-# ── Domain helper tests ───────────────────────────────────────────────────────
-
-
-def test_min_turn_narrow():
-    assert _min_turn("B737-800") == 45
-    assert _min_turn("A321neo") == 45
-
-
-def test_min_turn_wide():
-    assert _min_turn("B777-300ER") == 60
-    assert _min_turn("B787-9") == 60
-    assert _min_turn("B747-8i") == 60
-
-
-def test_compatible_types_exact():
-    assert _compatible_types("B777-300ER")[0] == "B777-300ER"
-
-
-def test_compatible_types_cross():
-    compat = _compatible_types("B737-800")
-    assert "A321neo" in compat
-
-
-def test_compatible_types_widebody():
-    compat = _compatible_types("B787-9")
-    assert "B777-300ER" in compat
-
-
 # ── Basic assignment tests ────────────────────────────────────────────────────
 
 
@@ -115,7 +85,7 @@ def test_type_incompatibility_blocks_assignment():
 
 
 def test_cross_type_substitution_allowed():
-    # A321neo can sub for B737-800 per _TYPE_COMPAT
+    # A321neo can sub for B737-800 per domain.fleet.TYPE_SUBSTITUTES
     tasks = [_flight("F1", "KE001", "B737-800", dep_hour=9)]
     fleet = [_aircraft("HL8201", "A321neo")]
     assigner = AircraftAssigner()

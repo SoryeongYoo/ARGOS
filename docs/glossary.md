@@ -13,10 +13,10 @@
 | Rotation | 한 기체가 ICN 을 출발해 목적지를 거쳐 ICN 으로 돌아오는 왕복 | [conventions](conventions.md) |
 | Cascade (전파) | 앞 편의 지연이 같은 기체의 다음 편으로 번지는 것 | `simulation/propagation.py` |
 | Footprint | 한 편 배정으로 기체·승무원이 묶이는 시간. 공식은 모듈마다 다르다 | [ADR 0001](decisions/0001-domain-single-source.md) |
-| Turn time (턴타임) | 도착 후 다음 출발까지의 최소 지상 시간. 협동체 45분, 광동체 60분 | `_MIN_TURN_*` (3곳 중복) |
+| Turn time (턴타임) | 도착 후 다음 출발까지의 최소 지상 시간. 협동체 45분, 광동체 60분 | `domain.fleet.min_turn_minutes` |
 | Block time | 출발 블록아웃부터 도착 블록인까지의 시간. 지상 이동(taxi) 포함 | `domain/block_time.py`, `data_gen/routes.py` |
 | MCT | Minimum Connection Time. 환승에 필요한 최소 연결 시간 | `domain/mct.py` |
-| Wide body / Narrow body | 광동체(B777-300ER, B787-9, B747-8i) / 협동체(B737-800, A321neo) | `_WIDE_BODY` |
+| Wide body / Narrow body | 광동체(B777-300ER, B787-9, B747-8i) / 협동체(B737-800, A321neo) | `domain.fleet.WIDE_BODY_TYPES` |
 | 기체 등록부호 | B737-800 HL74xx, A321neo HL82xx, B777-300ER HL77xx, B787-9 HL80xx, B747-8i HL75xx | `data_gen/generator.py:FLEET` |
 | OTP | On-Time Performance. 출발 지연 15분 이내 비율 | `data_gen/validator.py` |
 | PAX | 승객 | 전역 |
