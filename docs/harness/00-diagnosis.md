@@ -212,4 +212,5 @@ scripts/* ──► 각 모듈 (sys.path.insert로 src/를 경로에 추가)
 | D1 | 결정됨, 구현 대기 | [ADR 0004](../decisions/0004-all-approvals-via-human-gate.md) |
 | D7 | 해소: `sys.path.insert` 제거, 깨진 `[project.scripts]` 삭제 | |
 | D11 | 해소: `streamlit_*.log` 삭제, `*.log` gitignore | |
-| V3, V4, V9, D4, D5, D8 | 미착수 | 각 [아키텍처 문서](../architecture/overview.md) 의 알려진 부채 |
+| D8 | 일부 해소: 경계를 import-linter 로 강제. 계산 클래스의 DuckDB I/O 3곳은 baseline 으로 남음 | [overview](../architecture/overview.md) 경계 강제 |
+| V3, V4, V9, D4, D5 | 미착수 | 각 [아키텍처 문서](../architecture/overview.md) 의 알려진 부채 |
