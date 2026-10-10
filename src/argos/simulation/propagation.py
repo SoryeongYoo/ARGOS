@@ -24,16 +24,8 @@ import duckdb
 import networkx as nx
 import pandas as pd
 
-# ── Domain constants ──────────────────────────────────────────────────────────
-
-_WIDE_BODY = {"B777-300ER", "B787-9", "B747-8i"}
-_MIN_TURN_NARROW = 45  # minutes — ICN or destination ground minimum (narrow body)
-_MIN_TURN_WIDE = 60  # minutes — wide body
-
-
-def _min_turn(aircraft_type: str) -> int:
-    return _MIN_TURN_WIDE if aircraft_type in _WIDE_BODY else _MIN_TURN_NARROW
-
+from argos.domain.fleet import compatible_types, min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 
 # Rotation edge constraints
 _MAX_ROTATION_GAP_HOURS = 14  # max gap to still consider two flights a rotation pair
@@ -72,14 +64,14 @@ class FlightNode:
     @property
     def earliest_return_dep_utc(self) -> datetime:
         """Earliest the aircraft can depart the destination back to ICN."""
-        turn = _min_turn(self.aircraft_type)
+        turn = min_turn_minutes(self.aircraft_type)
         return self.actual_arr_dest_utc + timedelta(minutes=turn)
 
     @property
     def earliest_icn_ready_utc(self) -> datetime:
         """Earliest this aircraft is ready for the next ICN departure."""
-        turn = _min_turn(self.aircraft_type)
-        return self.earliest_return_dep_utc + timedelta(minutes=self.block_time_minutes + turn)
+        span = aircraft_rotation_span(self.block_time_minutes, min_turn_minutes(self.aircraft_type))
+        return self.actual_dep_utc + timedelta(minutes=span)
 
 
 @dataclass
@@ -206,8 +198,8 @@ class DelayPropagator:
                 v_node: FlightNode = G.nodes[ids[i + 1]]["data"]
 
                 # Minimum time needed between the two ICN departures
-                min_elapsed_min = 2 * u_node.block_time_minutes + 2 * _min_turn(
-                    u_node.aircraft_type
+                min_elapsed_min = aircraft_rotation_span(
+                    u_node.block_time_minutes, min_turn_minutes(u_node.aircraft_type)
                 )
                 gap_min = (v_node.scheduled_dep_utc - u_node.scheduled_dep_utc).total_seconds() / 60
 
@@ -428,15 +420,6 @@ class DelayPropagator:
 
         return scenarios
 
-    # Compatible type pairs — one can substitute for the other operationally
-    _TYPE_COMPAT: dict[str, list[str]] = {
-        "B737-800": ["A321neo"],
-        "A321neo": ["B737-800"],
-        "B777-300ER": ["B787-9", "B747-8i"],
-        "B787-9": ["B777-300ER"],
-        "B747-8i": ["B777-300ER", "B787-9"],
-    }
-
     def _find_spare_aircraft(self, aircraft_type: str, dep_date: date) -> str | None:
         """Return spare aircraft registration not scheduled on dep_date.
 
@@ -466,7 +449,7 @@ class DelayPropagator:
             con.close()
 
         # Check exact type first, then compatible types
-        check_types = [aircraft_type] + self._TYPE_COMPAT.get(aircraft_type, [])
+        check_types = compatible_types(aircraft_type)
         for t in check_types:
             for reg in fleet_by_type.get(t, []):
                 if reg not in busy:

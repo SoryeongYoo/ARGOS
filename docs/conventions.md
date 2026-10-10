@@ -55,15 +55,32 @@
 - 현재 상태 (진단 D4): 모델명이 `_make_llm` 에 하드코딩되어 있다. `settings.claude_model` 과 `claude_haiku_model` 은 쓰이지 않는다.
 - 테스트는 `_make_llm` 을 mock 으로 바꾼다. 실제 API 를 호출하는 테스트를 추가하지 않는다 (비용).
 
+## domain 함수의 입력 검증
+
+[`domain/`](../src/argos/domain/) 함수는 규정·성능 값의 기준 출처라, 이상한 입력에 조용히 엉뚱한 값을 돌려주면 세 모듈이 같이 틀린다 ([01-retro](harness/01-retro.md) 5절).
+
+- **정의역 밖 입력은 `ValueError`** 로 거부한다. 메시지에 인자 이름과 받은 값을 넣는다. 예: `max_fdp_hours(num_segments=0)` → `ValueError("num_segments must be >= 1, got 0")`.
+- **대체 동작을 두는 경우는 docstring 에 적는다.** 클램프(예: 6구간 초과는 6구간 값), 기본값 대체(예: `fleet.min_turn_minutes` 는 미등록 기종을 협동체 45분으로 처리)처럼 예외 대신 값을 돌려주면, 어떤 입력이 어떤 값이 되는지 docstring 에 쓴다.
+- 기존 동작을 옮기는 리팩터링에서는 대체 동작을 `ValueError` 로 바꾸지 않는다. 바꾸려면 호출 지점을 확인한 별도 작업으로 한다.
+- 인덱스 계산(`min(x, N) - 1` 등)에는 음수 인덱스 위험이 있다. ruff 로는 잡히지 않는다.
+
+**경계값 테스트 체크리스트** (domain 함수를 추가하거나 바꿀 때):
+
+- 정상 범위 양 끝 (예: 1구간, 6구간)
+- 0, 음수
+- 상한 + 1 (클램프 확인)
+- 미등록 키 (기종 이름, 공항 코드)
+- 반환한 컬렉션을 호출자가 바꿔도 domain 테이블이 바뀌지 않는지
+
 ## ICN 출발 왕복 가정
 
 - 모든 rotation 은 **ICN 출발 → 목적지 → ICN 복귀** 왕복으로 본다. 목적지에서 다른 곳으로 이어지는 편(W 패턴)은 없다.
-- 한 편의 "footprint"(기체나 승무원이 묶이는 시간)는 이 가정에서 나온다. 공식은 [ADR 0001](decisions/0001-domain-single-source.md) 에 있다. 현재 aircraft·propagation 과 crew 의 공식이 다르다 (C5, D2).
+- 한 편의 "footprint"(기체나 승무원이 묶이는 시간)는 이 가정에서 나온다. 공식은 [ADR 0001](decisions/0001-domain-single-source.md) 에 있다. 턴타임은 [`domain/fleet.py`](../src/argos/domain/fleet.py) 의 `min_turn_minutes`, 구간은 [`domain/rotation.py`](../src/argos/domain/rotation.py) 만 쓴다. 공통 기준은 ICN 블록인(`icn_block_in_offset` = `2·block + turn`)이다. 기체는 `aircraft_rotation_span`(+ ICN 턴), 승무원은 `crew_duty_span`(+ check-in, 마무리), FAR 117 FDP 는 `crew_fdp_span`(+ check-in)이다. 모듈 안에서 `2 * block` 식을 다시 쓰지 않는다.
 - 이 가정을 깨는 노선이나 기능을 추가하려면 footprint 를 쓰는 세 모듈을 함께 바꿔야 한다.
 
 ## 정적 검사
 
-- 완료 조건: `python scripts/verify.py` 통과 (ruff check, ruff format, mypy strict, 문서 상대 링크, pytest).
+- 완료 조건: `python scripts/verify.py` 통과 (ruff check, ruff format, mypy strict, import contracts, 문서 상대 링크, pytest).
 - `# noqa` 는 동작을 바꿔야 고칠 수 있는 경우에만 달고, 이유를 적는다.
 - mypy 는 [`pyproject.toml`](../pyproject.toml) 의 `[[tool.mypy.overrides]]` 에 있는 baseline 모듈만 예외다. 모듈을 고치면 override 를 지운다.
 - 포맷만 바꾼 커밋은 [`.git-blame-ignore-revs`](../.git-blame-ignore-revs) 에 등록한다.

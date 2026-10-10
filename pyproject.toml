@@ -35,6 +35,7 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "ruff>=0.8.0",
     "mypy>=1.13.0",
+    "import-linter>=2.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -103,6 +104,89 @@ ignore_errors = true
 # baseline: 2026-10-01, 2 errors
 module = "argos.ui.dashboard"
 ignore_errors = true
+
+# ── 레이어 경계 (docs/architecture/overview.md 레이어 규칙) ─────────────────
+# 실행: lint-imports (verify.py 의 "import contracts" 단계)
+# ignore_imports 는 현재 위반 baseline 이다. 줄마다 진단 항목 번호를 단다.
+# baseline 을 늘리지 말 것. 고친 위반은 줄을 지운다.
+
+[tool.importlinter]
+root_package = "argos"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+id = "layers"
+name = "레이어 방향: ui → agents → 계산·데이터·uav → config → domain"
+type = "layers"
+layers = [
+    "argos.ui",
+    "argos.agents",
+    "argos.simulation | argos.optimization | argos.data_gen | argos.prediction | argos.uav",
+    "argos.config",
+    "argos.domain",
+]
+
+[[tool.importlinter.contracts]]
+id = "compute-domain-only"
+name = "계산 레이어(simulation, optimization)는 argos 중 domain 만 import"
+type = "forbidden"
+source_modules = ["argos.simulation", "argos.optimization"]
+forbidden_modules = ["argos.config", "argos.cli_guard"]
+
+[[tool.importlinter.contracts]]
+id = "uav-standalone"
+name = "uav 는 uav 내부만 import (OCC 와 독립)"
+type = "forbidden"
+source_modules = ["argos.uav"]
+forbidden_modules = ["argos.config", "argos.domain", "argos.cli_guard"]
+
+[[tool.importlinter.contracts]]
+id = "cli-guard-entry-only"
+name = "cli_guard 는 scripts/ 진입점 전용"
+type = "forbidden"
+source_modules = [
+    "argos.domain",
+    "argos.config",
+    "argos.data_gen",
+    "argos.prediction",
+    "argos.simulation",
+    "argos.optimization",
+    "argos.uav",
+    "argos.agents",
+    "argos.ui",
+]
+forbidden_modules = ["argos.cli_guard"]
+
+[[tool.importlinter.contracts]]
+id = "no-db-io-in-compute"
+name = "domain, 계산, 오케스트레이션 레이어는 DuckDB 를 직접 쓰지 않음"
+type = "forbidden"
+source_modules = ["argos.domain", "argos.simulation", "argos.optimization", "argos.agents"]
+forbidden_modules = ["duckdb"]
+ignore_imports = [
+    "argos.simulation.propagation -> duckdb",  # D8: DelayPropagator.load_flights, _find_spare_aircraft
+    "argos.optimization.aircraft -> duckdb",  # D8: AircraftAssigner.load_from_db
+    "argos.agents.tools -> duckdb",  # D8: run_crew_optimisation 의 직접 SQL
+]
+
+[[tool.importlinter.contracts]]
+id = "llm-via-occ-graph"
+name = "Claude 호출은 agents.occ_graph._make_llm 에서만 (conventions LLM 호출)"
+type = "forbidden"
+source_modules = [
+    "argos.domain",
+    "argos.config",
+    "argos.cli_guard",
+    "argos.data_gen",
+    "argos.prediction",
+    "argos.simulation",
+    "argos.optimization",
+    "argos.uav",
+    "argos.agents.state",
+    "argos.agents.tools",
+    "argos.ui",
+]
+forbidden_modules = ["anthropic", "langchain_anthropic"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

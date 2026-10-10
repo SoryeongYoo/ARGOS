@@ -8,13 +8,12 @@ import networkx as nx
 import pandas as pd
 import pytest
 
+from argos.domain.fleet import min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 from argos.simulation.propagation import (
     _MAX_PROPAGATED_DELAY,
-    _MIN_TURN_NARROW,
-    _MIN_TURN_WIDE,
     DelayPropagator,
     FlightNode,
-    _min_turn,
 )
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -64,25 +63,13 @@ def _build_graph(*nodes: FlightNode) -> nx.DiGraph:
     for i in range(len(nodes) - 1):
         u = nodes[i]
         v = nodes[i + 1]
-        min_elapsed = 2 * u.block_time_minutes + 2 * _min_turn(u.aircraft_type)
+        min_elapsed = aircraft_rotation_span(
+            u.block_time_minutes, min_turn_minutes(u.aircraft_type)
+        )
         gap = (v.scheduled_dep_utc - u.scheduled_dep_utc).total_seconds() / 60
         buffer = gap - min_elapsed
         G.add_edge(u.flight_id, v.flight_id, buffer_minutes=buffer, min_elapsed_minutes=min_elapsed)
     return G
-
-
-# ── _min_turn ─────────────────────────────────────────────────────────────────
-
-
-def test_min_turn_narrow():
-    assert _min_turn("B737-800") == _MIN_TURN_NARROW
-    assert _min_turn("A321neo") == _MIN_TURN_NARROW
-
-
-def test_min_turn_wide():
-    assert _min_turn("B777-300ER") == _MIN_TURN_WIDE
-    assert _min_turn("B787-9") == _MIN_TURN_WIDE
-    assert _min_turn("B747-8i") == _MIN_TURN_WIDE
 
 
 # ── FlightNode properties ─────────────────────────────────────────────────────

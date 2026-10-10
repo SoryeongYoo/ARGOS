@@ -31,4 +31,12 @@
 
 ## 후속 작업
 
-- [domain-consolidation](../exec-plans/active/domain-consolidation.md)
+- [domain-consolidation](../exec-plans/completed/domain-consolidation.md) (완료 2026-10-10)
+
+## 갱신 (2026-10-10)
+
+결정 4 확인 결과: 두 공식은 둘 다 맞다. 기체는 다음 출발까지(ICN 턴 포함), 승무원은 근무 구간(check-in·마무리 포함)으로 다른 개념이다. [`domain/rotation.py`](../../src/argos/domain/rotation.py) 에 공통 기준 `icn_block_in_offset` 과 `aircraft_rotation_span`, `crew_duty_span`, `crew_fdp_span` 으로 나눠 정의했다.
+
+블록타임 (위 표와 결정 1 을 바꾼다): 기준 출처는 [`data_gen/routes.py`](../../src/argos/data_gen/routes.py) 로 유지한다. `domain.block_time.calculate_block_time()` 은 `routes.py` 에 없는 노선용 추정기다. 두 값의 차이가 ±15% 를 넘으면 [`test_block_time_vs_routes.py`](../../tests/test_domain/test_block_time_vs_routes.py) 가 경고로 목록을 낸다 (실패 아님). 값 수정은 사람이 결정한다. 2026-10-10 기준 99쌍 중 2쌍이 벗어난다.
+
+MCT (결정 1 을 바꾼다): `domain/mct.py` 는 런타임에 연결하지 않는다. MCT 는 승객·승무원 환승 시간이고 turn 은 기체 지상 준비 시간이라 다른 개념이다. 승객 환승 지연을 모델링할 때 쓴다 → [passenger-connection-delay](../exec-plans/active/passenger-connection-delay.md)

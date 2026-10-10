@@ -199,7 +199,8 @@ scripts/* ──► 각 모듈 (sys.path.insert로 src/를 경로에 추가)
 | C1 | 해소 | CLAUDE.md 를 지도로 재작성 |
 | C2 | 결정됨, 구현 대기 | [ADR 0002](../decisions/0002-fdp-hard-constraint.md) |
 | C3 | 결정됨, 구현 대기 | [ADR 0003](../decisions/0003-rename-relative-cost.md) |
-| C4, C5, D2 | 결정됨, 구현 대기 | [ADR 0001](../decisions/0001-domain-single-source.md) |
+| C5, D2 | 해소: `domain/fleet.py`, `domain/rotation.py` 로 통합 | [domain-consolidation](../exec-plans/completed/domain-consolidation.md) |
+| C4 | 해소(결정): 블록타임 기준은 `routes.py`, `block_time` 은 추정기, `mct` 는 미연결 | [ADR 0001](../decisions/0001-domain-single-source.md) 갱신 |
 | C6, C7 | 자산 이동 완료(`design/`). dashboard 문구 규칙 불일치는 남음 | [ADR 0006](../decisions/0006-design-assets-in-design-dir.md) |
 | C8 | 해소 | [glossary](../glossary.md) |
 | C9, D3, D6, D9, D10 | 규칙 문서화, 코드는 그대로 | [conventions](../conventions.md) |
@@ -212,4 +213,5 @@ scripts/* ──► 각 모듈 (sys.path.insert로 src/를 경로에 추가)
 | D1 | 결정됨, 구현 대기 | [ADR 0004](../decisions/0004-all-approvals-via-human-gate.md) |
 | D7 | 해소: `sys.path.insert` 제거, 깨진 `[project.scripts]` 삭제 | |
 | D11 | 해소: `streamlit_*.log` 삭제, `*.log` gitignore | |
-| V3, V4, V9, D4, D5, D8 | 미착수 | 각 [아키텍처 문서](../architecture/overview.md) 의 알려진 부채 |
+| D8 | 일부 해소: 경계를 import-linter 로 강제. 계산 클래스의 DuckDB I/O 3곳은 baseline 으로 남음 | [overview](../architecture/overview.md) 경계 강제 |
+| V3, V4, V9, D4, D5 | 미착수 | 각 [아키텍처 문서](../architecture/overview.md) 의 알려진 부채 |
