@@ -16,12 +16,7 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
-from argos.optimization.aircraft import (
-    AircraftAssigner,
-    AircraftResource,
-    FlightTask,
-    _compatible_types,
-)
+from argos.optimization.aircraft import AircraftAssigner, AircraftResource, FlightTask
 from argos.optimization.crew import CrewAssigner, CrewMember, FlightLeg, _crew_footprint
 from argos.simulation.propagation import DelayPropagator, FlightNode
 
@@ -159,8 +154,13 @@ def test_aircraft_footprint_boundary_is_2block_2turn(atype: str, block: int) -> 
 
 
 @pytest.mark.parametrize("required", list(COMPAT))
-def test_aircraft_compatible_types(required: str) -> None:
-    assert _compatible_types(required) == COMPAT[required]
+@pytest.mark.parametrize("candidate", list(COMPAT))
+def test_aircraft_solver_type_compat(required: str, candidate: str) -> None:
+    """기체 하나만 있을 때 배정 여부 = candidate 가 required 의 호환 목록에 있는지."""
+    task = _aircraft_task("F1", required, MIDNIGHT.replace(hour=9), 120, 200)
+    fleet = [AircraftResource("HL0001", candidate, "ICN", MIDNIGHT)]
+    result = AircraftAssigner().solve([task], fleet, OP_DAY, time_limit_seconds=5)
+    assert ("F1" in result.assignments) == (candidate in COMPAT[required])
 
 
 @pytest.mark.parametrize("required", list(COMPAT))
