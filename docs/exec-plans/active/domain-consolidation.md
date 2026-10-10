@@ -1,7 +1,7 @@
 # domain 단일 기준 출처로 통합
 
 - 근거: [ADR 0001](../../decisions/0001-domain-single-source.md), 진단 [D2, C4, C5](../../harness/00-diagnosis.md)
-- 상태: 대기
+- 상태: 진행 중 (phase3/boundaries)
 
 ## 목표
 
