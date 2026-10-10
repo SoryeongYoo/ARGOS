@@ -15,9 +15,9 @@
 | ICN 블록인 시각 | 왕복에서 ICN 으로 돌아와 블록인하는 시각. 출발 + `2·block + turn`(목적지 턴 1회). 아래 구간들의 공통 기준 | `domain.rotation.icn_block_in_offset` |
 | Footprint (span) | 한 편 배정으로 자원이 묶이는 시간. 기체와 승무원은 개념이 달라 공식도 다르다: 기체는 `aircraft_rotation_span`, 승무원은 `crew_duty_span` | [`domain/rotation.py`](../src/argos/domain/rotation.py) |
 | Aircraft rotation span | 출발부터 다음 ICN 출발 가능 시각까지 = 블록인 + ICN 턴 = `2·block + 2·turn` | `domain.rotation.aircraft_rotation_span` |
-| Turn time (턴타임) | 도착 후 다음 출발까지의 최소 지상 시간. 협동체 45분, 광동체 60분 | `domain.fleet.min_turn_minutes` |
-| Block time | 출발 블록아웃부터 도착 블록인까지의 시간. 지상 이동(taxi) 포함 | `domain/block_time.py`, `data_gen/routes.py` |
-| MCT | Minimum Connection Time. 환승에 필요한 최소 연결 시간 | `domain/mct.py` |
+| Turn time (턴타임) | **기체**가 도착 후 다음 출발까지 필요한 최소 지상 준비 시간. 협동체 45분, 광동체 60분. MCT 와 다르다 | `domain.fleet.min_turn_minutes` |
+| Block time | 출발 블록아웃부터 도착 블록인까지의 시간. 지상 이동(taxi) 포함. 기준 출처는 `routes.py`, `calculate_block_time()` 은 없는 노선용 추정기 | `data_gen/routes.py`, `domain/block_time.py` |
+| MCT | Minimum Connection Time. **승객·승무원**이 도착 편에서 출발 편으로 갈아타는 데 필요한 최소 시간. 기체 지상 준비 시간인 turn 과 다른 개념이다. 런타임 미연결 | `domain/mct.py` |
 | Wide body / Narrow body | 광동체(B777-300ER, B787-9, B747-8i) / 협동체(B737-800, A321neo) | `domain.fleet.WIDE_BODY_TYPES` |
 | 기체 등록부호 | B737-800 HL74xx, A321neo HL82xx, B777-300ER HL77xx, B787-9 HL80xx, B747-8i HL75xx | `data_gen/generator.py:FLEET` |
 | OTP | On-Time Performance. 출발 지연 15분 이내 비율 | `data_gen/validator.py` |

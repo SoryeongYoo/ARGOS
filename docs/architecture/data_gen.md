@@ -34,7 +34,7 @@ CLI: `scripts/setup_db.py`, `generate_data.py`, `validate_data.py`. 앞의 둘�
 
 ## 알려진 부채
 
-- **C4**: 블록타임이 `routes.py` 에 하드코딩되어 있고, `domain/block_time` 과 따로 논다.
+- **C4**: 결정됨. `routes.py` 블록타임이 기준 출처다. `domain/block_time` 은 `routes.py` 에 없는 노선용 추정기다 ([ADR 0001](../decisions/0001-domain-single-source.md) 갱신).
 - **D9**: 출력에 `print`, `logging`, `rich.Console` 이 섞여 있다.
 - **D10**: Pydantic 모델(`schemas.py`)과 dataclass(`validator.py`)가 섞여 있다.
 - `validator.py` 는 SQL 에 클래스 상수를 f-string 으로 넣는다. 외부 입력은 아니지만 [conventions](../conventions.md) 의 SQL 규칙과 어긋난다.

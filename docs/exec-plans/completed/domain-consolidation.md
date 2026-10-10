@@ -1,7 +1,7 @@
 # domain 단일 기준 출처로 통합
 
 - 근거: [ADR 0001](../../decisions/0001-domain-single-source.md), 진단 [D2, C4, C5](../../harness/00-diagnosis.md)
-- 상태: **완료** (2026-10-10, phase3/boundaries). 4단계 블록타임 교체와 5단계 MCT 연결은 사람 결정으로 넘김
+- 상태: **완료** (2026-10-10, phase3/boundaries). 1~5단계 결정 모두 반영. 남은 것은 ±15% 밖 블록타임 2쌍의 값 수정 여부(사람 판단, 4단계)뿐
 
 ## 목표
 
@@ -90,7 +90,19 @@
 - crew FDP 종료 시점(블록인 + 30분) 문제는 [01-retro](../../harness/01-retro.md) 3절 #3, [retro-01-followups](../active/retro-01-followups.md) R2 와 같은 결정이다.
 
 
-### 4단계: 블록타임 측정 (보고만, 코드 변경 없음)
+### 4단계: 블록타임 (완료)
+
+**결정 (2026-10-10, 사람)**: `routes.py` 를 기준 출처로 유지한다. `calculate_block_time()` 은 `routes.py` 에 없는 노선용 추정기다 ([domain.md](../../architecture/domain.md), [ADR 0001](../../decisions/0001-domain-single-source.md) 갱신).
+
+- [`test_block_time_vs_routes.py`](../../../tests/test_domain/test_block_time_vs_routes.py): 상대 차이 `(추정 − routes) / routes` 가 ±15% 를 넘으면 `BlockTimeDivergenceWarning` 으로 목록만 낸다. 실패시키지 않는다.
+- 2026-10-10 기준 99쌍 중 2쌍이 벗어난다. 값 수정은 사람 결정 대기 (routes.py 는 사람 결정 영역):
+
+| 노선 | 기종 | routes.py | 추정 | 차이 |
+|---|---|---|---|---|
+| ICN-ALA | B787-9 | 368 | 311 | −15.5% |
+| ICN-MNL | B777-300ER | 285 | 241 | −15.4% |
+
+아래는 결정 전 측정(분 단위 차이)이다.
 
 `routes.py` 의 99개 (노선, 기종) 블록타임과 `calculate_block_time(distance_nm, type)` (CI 70, 바람 0) 를 비교했다. 차이는 `계산값 − routes.py` 다.
 
@@ -109,9 +121,14 @@
 - 북미가 크게 양수인 것은 `calculate_block_time` 에 바람이 없기 때문으로 보인다 (동향 제트기류 순풍). routes.py 값이 실제 시간표에 더 가깝다는 근거는 확인하지 않았다.
 - 교체하면 합성 데이터, 학습된 예측 모델, 이 계획 1단계의 fixture digest 가 모두 바뀐다. `routes.py` 는 사람 결정 영역이다.
 
-### 5단계: MCT (결정 요청)
+### 5단계: MCT (완료)
 
-`domain/mct.py` 는 승객 연결 최소 시간(국제↔국제 60분 등)이다. 기체 턴타임(`fleet.min_turn_minutes`)과 다른 개념이라 이번 통합에서 합치지 않았다. 런타임 호출자는 여전히 없다. 연결 승객 영향(환승 실패)을 전파·시나리오에 넣을지 결정이 필요하다.
+**결정 (2026-10-10, 사람)**: 런타임에 연결하지 않는다. MCT(승객·승무원 환승)와 turn(기체 지상 준비)은 다른 개념이다 ([glossary](../../glossary.md), [domain.md](../../architecture/domain.md)). 승객 환승 지연을 모델링할 때 쓴다 → [passenger-connection-delay](../active/passenger-connection-delay.md) (미래 항목).
+
+결정 전 보고:
+
+
+`domain/mct.py` 는 승객 연결 최소 시간(국제↔국제 60분 등)이다. 기체 턴타임(`fleet.min_turn_minutes`)과 다른 개념이라 이번 통합에서 합치지 않았다. 런타임 호출자는 여전히 없다. 연결 승객 영향(환승 실패)을 전파·시나리오에 넣을지 결정이 필요했다.
 
 ### 범위 밖에서 발견한 것
 
