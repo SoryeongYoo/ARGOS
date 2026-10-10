@@ -17,7 +17,7 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 
 from argos.optimization.aircraft import AircraftAssigner, AircraftResource, FlightTask
-from argos.optimization.crew import CrewAssigner, CrewMember, FlightLeg, _crew_footprint
+from argos.optimization.crew import CrewAssigner, CrewMember, FlightLeg
 from argos.simulation.propagation import DelayPropagator, FlightNode
 
 OP_DAY = date(2024, 6, 15)
@@ -104,10 +104,31 @@ def test_propagation_edge_min_elapsed_is_2block_2turn(atype: str, block: int) ->
     assert edge["buffer_minutes"] == 13 * 60 - expected
 
 
-@pytest.mark.parametrize("atype", list(TURN_MIN))
-@pytest.mark.parametrize("block", BLOCKS)
-def test_crew_footprint_is_checkin_2block_1turn_post(atype: str, block: int) -> None:
-    assert _crew_footprint(block, atype) == 60 + 2 * block + TURN_MIN[atype] + 30
+@pytest.mark.parametrize("atype", ["B737-800", "A321neo", "B777-300ER", "B787-9", "B747-8i"])
+@pytest.mark.parametrize("block", [60, 125])
+def test_crew_footprint_boundary_is_checkin_2block_1turn_post(atype: str, block: int) -> None:
+    """같은 CAPT 가 F2 를 맡으려면 출발 간격 ≥ 60 + 2·block + 1·turn + 30.
+
+    정각이면 두 편 모두 CAPT 배정, 1분 앞이면 한 편만.
+    """
+    span = 60 + 2 * block + TURN_MIN[atype] + 30
+    dep1 = MIDNIGHT.replace(hour=1)
+    crew = [
+        CrewMember("C1", "C1", "CAPT", atype, "ICN", MIDNIGHT),
+        CrewMember("F1", "F1", "FO", atype, "ICN", MIDNIGHT),
+    ]
+
+    def legs(gap: int) -> list[FlightLeg]:
+        dep2 = dep1 + timedelta(minutes=gap)
+        return [
+            FlightLeg("L1", "KE001", atype, "ICN", "XYZ", dep1, block, 200),
+            FlightLeg("L2", "KE002", atype, "ICN", "XYZ", dep2, block, 100),
+        ]
+
+    result = CrewAssigner().solve(legs(span), crew, OP_DAY, time_limit_seconds=5)
+    assert sorted(result.captain_assignments) == ["L1", "L2"]
+    result = CrewAssigner().solve(legs(span - 1), crew, OP_DAY, time_limit_seconds=5)
+    assert len(result.captain_assignments) == 1
 
 
 @pytest.mark.parametrize("atype", ["B737-800", "A321neo", "B777-300ER", "B787-9", "B747-8i"])
