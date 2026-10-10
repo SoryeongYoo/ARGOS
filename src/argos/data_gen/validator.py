@@ -10,8 +10,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import duckdb
+import pandas as pd
 from rich.console import Console
 from rich.table import Table
+
+from argos.domain.fleet import min_turn_minutes
+from argos.domain.rotation import aircraft_rotation_span
 
 log = logging.getLogger(__name__)
 console = Console()
@@ -309,6 +313,63 @@ class DataValidator:
             affected_rows=orphans,
         )
 
+    def check_no_aircraft_rotation_overlap(self) -> CheckResult:
+        """같은 기체가 앞 rotation(출발 ~ aircraft_rotation_span) 안에 다시 출발하면 오류 (B7).
+
+        결항편도 계획상 기체를 잡으므로 포함한다. 정렬된 연속 편만 비교해도 충분하다:
+        A 가 C 와 겹치면 사이의 B 도 A 와 겹친다.
+        """
+        with self._conn() as con:
+            df = con.execute(
+                """SELECT aircraft_registration, aircraft_type, scheduled_dep_utc,
+                          block_time_minutes, route_id
+                   FROM flights ORDER BY aircraft_registration, scheduled_dep_utc"""
+            ).df()
+        spans = [
+            aircraft_rotation_span(int(b), min_turn_minutes(t))
+            for b, t in zip(df["block_time_minutes"], df["aircraft_type"], strict=True)
+        ]
+        end = df["scheduled_dep_utc"] + pd.to_timedelta(spans, unit="m")
+        nxt = df.groupby("aircraft_registration")["scheduled_dep_utc"].shift(-1)
+        bad = df[nxt < end]
+        sample = ", ".join(
+            f"{r.aircraft_registration} {r.route_id} {r.scheduled_dep_utc:%Y-%m-%d %H:%M}"
+            for r in bad.head(5).itertuples()
+        )
+        return CheckResult(
+            "no_aircraft_rotation_overlap",
+            bad.empty,
+            "error",
+            f"{len(bad)} flights overlap the next rotation of the same aircraft"
+            if len(bad)
+            else "No aircraft flies overlapping rotations",
+            affected_rows=len(bad),
+            detail=sample,
+        )
+
+    def check_no_duplicate_flight_number_per_day(self) -> CheckResult:
+        """같은 UTC 날짜에 같은 편명이 두 편 이상이면 오류 (B7: KE0005 가 두 노선에 있었음)."""
+        with self._conn() as con:
+            rows = con.execute(
+                """SELECT scheduled_dep_utc::DATE AS d, flight_number,
+                          COUNT(*) AS n, COUNT(DISTINCT route_id) AS routes
+                   FROM flights GROUP BY 1, 2 HAVING COUNT(*) > 1
+                   ORDER BY 1, 2"""
+            ).df()
+        multi_route = int((rows["routes"] > 1).sum()) if len(rows) else 0
+        sample = ", ".join(f"{r.flight_number} {r.d:%Y-%m-%d}" for r in rows.head(5).itertuples())
+        return CheckResult(
+            "no_duplicate_flight_number_per_day",
+            rows.empty,
+            "error",
+            f"{len(rows)} (date, flight_number) pairs used more than once "
+            f"({multi_route} across different routes)"
+            if len(rows)
+            else "Flight numbers unique per day",
+            affected_rows=len(rows),
+            detail=sample,
+        )
+
     def check_block_time_plausibility(self) -> CheckResult:
         """Block times should be within ±20% of route definition."""
         with self._conn() as con:
@@ -359,6 +420,8 @@ class DataValidator:
             self.check_unreasonable_delays,
             self.check_route_coverage,
             self.check_aircraft_reference_integrity,
+            self.check_no_aircraft_rotation_overlap,
+            self.check_no_duplicate_flight_number_per_day,
             self.check_block_time_plausibility,
             self.check_date_range,
         ]

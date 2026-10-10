@@ -3,6 +3,7 @@
 docs/exec-plans 의 domain-consolidation 1단계. 턴타임, 광동체 분류, 기종 호환,
 rotation footprint 가 aircraft·crew·propagation 에 따로 정의되어 있던 시점(main 0c33942)의
 출력을 고정한다. 상수를 domain 으로 옮긴 뒤에도 이 파일의 기대값은 바꾸지 않는다.
+(예외: fixture DB digest 는 입력 데이터가 바뀌면 갱신한다. 아래 EXPECTED_* 주석 참고)
 
 - 기대값은 모듈 상수를 import 하지 않고 숫자로 적는다. 옮기는 대상과 비교하면 의미가 없다.
 - 모듈의 private 이름 대신 옮긴 뒤에도 남는 동작(공개 클래스, footprint 결과)으로 검사한다.
@@ -209,12 +210,18 @@ def test_propagation_spare_search_order(
 
 # ── fixture DB 전체: 전파 그래프와 시나리오 ──────────────────────────────────────
 
-# 아래 digest 는 0c33942 시점 코드로 fixture DB(2024-06-15, seed 42)에서 계산했다.
-EXPECTED_EDGES = 62
+# 아래 digest 는 fixture DB(2024-06-15, seed 42)에서 계산했다.
+# 입력 데이터가 바뀌면 다시 계산한다. 시뮬레이션 코드가 바뀌어서 다시 계산하면 안 된다.
+# - 0c33942: 최초 고정. edge 62
+# - B7 수정(ADR 0007): generator 의 기체 배정·편명만 바뀜 (다른 컬럼은 행 단위로 동일).
+#   edge 62 → 32. 사라진 62개 중 53개는 같은 기체 rotation 이 겹친 가짜 edge(buffer < 0),
+#   9개는 겹치지 않았지만 뒤 편이 다른 기체로 배정되어 빠짐. 새 32개는 모두 buffer ≥ 0.
+#   근거: bug-backlog B7
+EXPECTED_EDGES = 32
 EXPECTED_NODES = 146
-EXPECTED_EDGE_DIGEST = "15a93f54e52e5ce7"
-EXPECTED_PROPAGATION_DIGEST = "64ca219211f169b4"
-EXPECTED_SCENARIO_DIGEST = "c3d76f6b216f7ad3"
+EXPECTED_EDGE_DIGEST = "7dca44e7ce25c249"
+EXPECTED_PROPAGATION_DIGEST = "3ecbd47675b0a26d"
+EXPECTED_SCENARIO_DIGEST = "39119588030b1b2c"
 
 
 def _digest(lines: list[str]) -> str:

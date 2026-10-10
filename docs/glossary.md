@@ -19,7 +19,8 @@
 | Block time | 출발 블록아웃부터 도착 블록인까지의 시간. 지상 이동(taxi) 포함. 기준 출처는 `routes.py`, `calculate_block_time()` 은 없는 노선용 추정기 | `data_gen/routes.py`, `domain/block_time.py` |
 | MCT | Minimum Connection Time. **승객·승무원**이 도착 편에서 출발 편으로 갈아타는 데 필요한 최소 시간. 기체 지상 준비 시간인 turn 과 다른 개념이다. 런타임 미연결 | `domain/mct.py` |
 | Wide body / Narrow body | 광동체(B777-300ER, B787-9, B747-8i) / 협동체(B737-800, A321neo) | `domain.fleet.WIDE_BODY_TYPES` |
-| 기체 등록부호 | B737-800 HL74xx, A321neo HL82xx, B777-300ER HL77xx, B787-9 HL80xx, B747-8i HL75xx | `data_gen/generator.py:FLEET` |
+| 기체 등록부호 | B737-800 HL74xx(54), A321neo HL82xx(10), B777-300ER HL77xx(72), B787-9 HL80xx(9), B747-8i HL75xx(5) | `data_gen/generator.py:FLEET`, [ADR 0007](decisions/0007-fleet-sized-for-overlap-free-tails.md) |
+| Tail assignment (기체 배정) | 편마다 기체 등록부호를 정하는 것. 같은 기체의 rotation 은 겹치면 안 된다 | `SyntheticDataGenerator._assign_tails` |
 | OTP | On-Time Performance. 출발 지연 15분 이내 비율 | `data_gen/validator.py` |
 | PAX | 승객 | 전역 |
 | Recovery scenario | 지연에 대한 회복안. 항상 3개를 만들고 사람이 승인한다 | `simulation/propagation.py` |

@@ -67,13 +67,26 @@ harness/verify 작업(2026-10) 중 발견했지만, 동작이 바뀌는 수정�
 - 현상: `_MIN_REST_MIN = 600` 이 정의만 되어 있다. 연속 duty 사이의 휴식을 모델도 사후 검증도 확인하지 않는다.
 - 단계: [fdp-hard-constraint](fdp-hard-constraint.md) 4단계에서 처리한다.
 
-## B7. 합성 데이터에서 같은 편명·기체·시각이 두 노선에 생김
+## B7. 합성 데이터에서 같은 기체가 겹치는 rotation 을 동시에 운항
 
-- 우선순위: **높음** (2026-10-10 지정). 같은 기체가 같은 시각에 두 노선을 나는 것은 물리적으로 불가능하다. 전파 그래프·기체 배정·승무원 배정의 입력이 오염되어 시뮬레이션·최적화 결과를 믿을 수 없게 된다.
+- 상태: **해결** (2026-10-10). [ADR 0007](../../decisions/0007-fleet-sized-for-overlap-free-tails.md). 회고: [02-retro](../../harness/02-retro.md)
+- 우선순위: 높음 (2026-10-10 지정). 같은 기체가 같은 시각에 두 노선을 나는 것은 물리적으로 불가능하다. 전파 그래프·기체 배정·승무원 배정의 입력이 오염된다.
+- 발견: 2026-10-10, domain-consolidation 1단계 fixture digest 작성 중. `KE0005` 가 ICN-ORD 와 ICN-HNL 에 같은 `HL7705`, 같은 시각(01:20 UTC)으로 있었다.
+- 원인 (측정 결과, 처음 생각보다 넓었다):
+  - 기체를 편마다 `rng.choice` 로 골라 겹침을 확인하지 않았다. fixture 하루치에서 146편 중 127편(87%)이 같은 기체의 rotation 과 겹쳤다. 로컬 3년치 DB 에서는 129,836편이다.
+  - 겹침 때문에 전파 그래프 edge 62개 중 53개의 buffer 가 음수였다. 0분 지연 트리거 146개 중 145개가 연쇄 지연을 만들었다.
+  - 편명은 `지역 base + 기종순번·2 + n%2` 라 같은 지역·기종 노선끼리 겹쳤다. fixture 하루 146편이 편명 33개를 썼다. 로컬 DB 에서 (날짜, 편명) 중복은 20,827쌍이다. `_fn_counter` 가 클래스 변수라 인스턴스끼리 공유되기도 했다.
+  - 기단이 모자라 겹침 없는 배정이 불가능했다 (B777 필요 65대, 보유 15대).
+- 수정: 기체를 출발 순서대로 best fit 배정, 기단 58 → 150대, 편명을 (노선, slot) 별 고유 번호로, validator 에 두 검사를 오류로 추가. RNG 스트림을 보존해 다른 컬럼은 행 단위로 같다.
+- 고정 테스트: [`test_generator_schedule.py`](../../../tests/test_data_gen/test_generator_schedule.py), [`test_fixture_propagation.py`](../../../tests/test_simulation/test_fixture_propagation.py) (0분 지연이 연쇄 지연을 만들지 않음), [`test_validator.py`](../../../tests/test_data_gen/test_validator.py) 의 겹침·편명 테스트
+- 남은 것: 로컬 DB 재생성(사람이 실행), 기단 현실화 [fleet-realism](fleet-realism.md), B8
 
-- 발견: 2026-10-10, domain-consolidation 1단계 fixture digest 작성 중
-- 현상: fixture DB(2024-06-15, seed 42)에 `KE0005` 가 ICN-ORD(block 665)와 ICN-HNL(block 500)에 같은 `HL7705`, 같은 출발 시각(01:20 UTC)으로 두 편 있다. 편명이 노선 간에 겹치고, 기체 하나가 동시에 두 편에 배정되었다.
-- 영향: propagation 그래프에서 두 편 사이 간격이 0 이라 `_MIN_ROTATION_GAP_MIN` 필터로 edge 가 빠진다. 데이터 검증(`validate_data.py`)이 잡는지는 확인하지 않았다.
-- 고정 테스트: 없음. 비교 테스트는 키에 `route_id` 를 넣어 이 중복을 피했다.
-- 위치 후보: [`data_gen/generator.py`](../../../src/argos/data_gen/generator.py) 편명·기체 배정. TODO(확인 필요)
-- 사람 결정: 불필요할 가능성이 높다. 고치면 fixture DB 가 바뀌므로 비교 테스트의 digest 갱신이 필요하다 ([domain-consolidation](../completed/domain-consolidation.md) 완료됨).
+## B8. 지연 전파가 음수 buffer 를 "지연 생성"으로 처리
+
+- 발견: 2026-10-10, B7 조사 중
+- 위치: [`simulation/propagation.py`](../../../src/argos/simulation/propagation.py) `propagate`
+- 현상:
+  - 전파량이 `max(0, 앞 편 지연 − buffer)` 다. buffer 가 음수면 앞 편 지연이 0 이어도 다음 편이 지연된다.
+  - 트리거 이후 위상 순서의 모든 노드를 돈다. 트리거의 후손이 아닌 노드도 음수 buffer edge 가 있으면 지연된다.
+- 현재 영향: 없음. B7 수정 후 생성 데이터에는 음수 buffer 가 없고, validator 가 겹침을 오류로 막는다. 회귀 테스트가 fixture 에서 0분 지연 연쇄를 막는다.
+- 판단 필요: 데이터가 깨끗하다는 전제에 기대지 않고 propagate 가 후손만 돌고 음수 buffer 를 0 으로 볼지. 바꾸면 그래프 의미가 달라지므로 사람이 정한다. TODO(확인 필요)

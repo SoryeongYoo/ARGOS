@@ -191,3 +191,58 @@ def test_validation_report_structure():
     assert report.passed  # empty report = no errors
     assert report.errors == []
     assert report.warnings == []
+
+
+def _insert(con, fnum, reg, dep, block=145):
+    from datetime import timedelta
+
+    arr = dep + timedelta(minutes=block)
+    con.execute(
+        """
+        INSERT INTO flights VALUES (?, ?, 'ICN-NRT', 'ICN', 'NRT', ?, 'B737-800',
+            ?, ?, ?, ?, ?, 696, 0, 0, NULL, NULL, NULL, 140, 0.90, 8500, 2000, 'ARR', NULL)
+    """,
+        [str(uuid.uuid4()), fnum, reg, dep, arr, dep, arr, block],
+    )
+
+
+def test_aircraft_rotation_overlap_is_error(clean_db):
+    """B7: 같은 기체가 앞 rotation(2·145 + 2·45 = 380분) 안에 다시 출발하면 오류."""
+    con = duckdb.connect(clean_db)
+    # clean_db 의 KE001 은 2024-06-01 01:00 HL7401. 06:19 출발은 1분 겹침
+    _insert(con, "KE009", "HL7401", datetime(2024, 6, 1, 7, 19, tzinfo=UTC))
+    con.close()
+    report = DataValidator(clean_db).run_all()
+    check = next(r for r in report.results if r.name == "no_aircraft_rotation_overlap")
+    assert not check.passed
+    assert check.severity == "error"
+    assert check.affected_rows == 1
+    assert not report.passed
+
+
+def test_aircraft_rotation_back_to_back_is_ok(clean_db):
+    con = duckdb.connect(clean_db)
+    _insert(con, "KE009", "HL7401", datetime(2024, 6, 1, 7, 20, tzinfo=UTC))  # 정확히 380분 뒤
+    con.close()
+    check = next(
+        r
+        for r in DataValidator(clean_db).run_all().results
+        if r.name == "no_aircraft_rotation_overlap"
+    )
+    assert check.passed
+
+
+def test_duplicate_flight_number_same_day_is_error(clean_db):
+    """B7: 같은 UTC 날짜에 같은 편명이 두 번 나오면 오류."""
+    con = duckdb.connect(clean_db)
+    con.execute(
+        "INSERT INTO aircraft VALUES "
+        "('HL7402','B737-800','B738','MSN2','2010-01-01',147,8,0,20000,79016)"
+    )
+    _insert(con, "KE001", "HL7402", datetime(2024, 6, 1, 9, 0, tzinfo=UTC))
+    con.close()
+    report = DataValidator(clean_db).run_all()
+    check = next(r for r in report.results if r.name == "no_duplicate_flight_number_per_day")
+    assert not check.passed
+    assert check.severity == "error"
+    assert not report.passed
